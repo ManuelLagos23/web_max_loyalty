@@ -251,43 +251,52 @@ export default function Usuarios() {
                   <form onSubmit={handleSubmitEditar}>
                     {/* Campo oculto para el ID */}
                     <input type="hidden" name="id" value={formData.id} />
+                    <label className="block text-center" htmlFor="nombre">Nombre:</label>
+
                     <input
                       type="text"
                       name="nombre"
                       placeholder="Nombre"
                       value={formData.nombre}
                       onChange={handleInputChange}
-                      className="w-full p-2 mb-2 border border-gray-300 rounded"
+                      className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
                     />
+
+                    <label className='block text-center' htmlFor="email">Correo electrónico</label>
                     <input
                       type="email"
                       name="email"
                       placeholder="Email"
                       value={formData.email}
                       onChange={handleInputChange}
-                      className="w-full p-2 mb-2 border border-gray-300 rounded"
+                      className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
                     />
+
+                    <label className='block text-center' htmlFor="password">Contraseña</label>
                     <input
                       type="password"
                       name="contraseña"
                       placeholder="Contraseña"
                       value={formData.contraseña}
                       onChange={handleInputChange}
-                      className="w-full p-2 mb-2 border border-gray-300 rounded"
+                      className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
                     />
+                    <label className='block text-center' htmlFor="foto">Foto</label>
                     <input
                       type="file"
                       name="foto"
                       onChange={handleFileChange}
-                      className="w-full p-2 mb-2 border border-gray-300 rounded"
+                      className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
                     />
+
+                    <label className='block text-center' htmlFor="num_telefono">Número de teléfono</label>
                     <input
                       type="text"
                       name="num_telefono"
                       placeholder="Número de Teléfono"
                       value={formData.num_telefono}
                       onChange={handleInputChange}
-                      className="w-full p-2 mb-2 border border-gray-300 rounded"
+                      className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
                     />
                     <div className="flex justify-end space-x-2">
                       <button type="button" onClick={closePopup} className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500">
@@ -300,43 +309,49 @@ export default function Usuarios() {
                   </form>
                 ) : (
                   <form onSubmit={handleSubmitAgregar}>
+                    <label className='block text-center' htmlFor="nombre">Nombre</label>
                     <input
                       type="text"
                       name="nombre"
                       placeholder="Nombre"
                       value={formData.nombre}
                       onChange={handleInputChange}
-                      className="w-full p-2 mb-2 border border-gray-300 rounded"
+                      className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
                     />
+
+                    <label className='block text-center' htmlFor="email">Corre electrónico</label>
                     <input
                       type="email"
                       name="email"
                       placeholder="Email"
                       value={formData.email}
                       onChange={handleInputChange}
-                      className="w-full p-2 mb-2 border border-gray-300 rounded"
+                      className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
                     />
+                    <label className='block text-center' htmlFor="password">Contraseña</label>
                     <input
                       type="password"
                       name="contraseña"
                       placeholder="Contraseña"
                       value={formData.contraseña}
                       onChange={handleInputChange}
-                      className="w-full p-2 mb-2 border border-gray-300 rounded"
+                      className="w-full p-2 mb-2 border border-gray-300 rounded block text-center" 
                     />
+                    <label className='block text-center' htmlFor="foto">Foto</label>
                     <input
                       type="file"
                       name="foto"
                       onChange={handleFileChange}
-                      className="w-full p-2 mb-2 border border-gray-300 rounded"
+                      className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
                     />
+                    <label className='block text-center' htmlFor="num_telefono">Número de teléfono</label>
                     <input
                       type="text"
                       name="num_telefono"
                       placeholder="Número de Teléfono"
                       value={formData.num_telefono}
                       onChange={handleInputChange}
-                      className="w-full p-2 mb-2 border border-gray-300 rounded"
+                      className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
                     />
                     <div className="flex justify-end space-x-2">
                       <button type="button" onClick={closePopup} className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500">
