@@ -3,204 +3,212 @@
 import { useState, useEffect, useCallback } from 'react';
 import Navbar from '../components/Navbar';
 
-interface Usuario {
+interface Miembro {
   id: number;
   nombre: string;
+  user: string;
   email: string;
-  contraseña: string;
-  num_telefono: string;
+  establecimiento: string;
+  password: string;
 }
 
-export default function Usuarios() {
+interface CentroCosto {
+  id: number;
+  nombre_centro_costos: string;
+}
+
+export default function Miembros() {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false);
-  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+  const [miembros, setMiembros] = useState<Miembro[]>([]);
+  const [centrosCostos, setCentrosCostos] = useState<CentroCosto[]>([]);
   const [formData, setFormData] = useState({
     id: 0,
     nombre: '',
+    user: '',
     email: '',
-    contraseña: '',
-    foto: null as File | null,
-    num_telefono: '',
+    establecimiento: '',
+    password: '',
   });
-  const [searchTerm, setSearchTerm] = useState(''); 
-
-  const [usuarioSeleccionado, setUsuarioSeleccionado] = useState<Usuario | null>(null);
-  const [usuarioAEliminar, setUsuarioAEliminar] = useState<Usuario | null>(null);
-
-  
+  const [searchTerm, setSearchTerm] = useState('');
+  const [miembroSeleccionado, setMiembroSeleccionado] = useState<Miembro | null>(null);
+  const [miembroAEliminar, setMiembroAEliminar] = useState<Miembro | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(5);
 
   const openPopup = (modo: 'agregar' | 'editar') => {
     setIsPopupOpen(true);
     if (modo === 'agregar') {
-      setUsuarioSeleccionado(null);
+      setMiembroSeleccionado(null);
       setFormData({
         id: 0,
         nombre: '',
+        user: '',
         email: '',
-        contraseña: '',
-        foto: null,
-        num_telefono: '',
+        establecimiento: '',
+        password: '',
       });
     }
   };
 
   const closePopup = () => setIsPopupOpen(false);
-  const openDeletePopup = (usuario: Usuario) => {
-    setUsuarioAEliminar(usuario);
+
+  const openDeletePopup = (miembro: Miembro) => {
+    setMiembroAEliminar(miembro);
     setIsDeletePopupOpen(true);
   };
+
   const closeDeletePopup = () => {
-    setUsuarioAEliminar(null);
+    setMiembroAEliminar(null);
     setIsDeletePopupOpen(false);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setFormData({ ...formData, foto: e.target.files[0] });
-    }
-  };
-
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
-    setCurrentPage(1); 
+    setCurrentPage(1);
   };
 
-  
   const handleSubmitAgregar = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.nombre || !formData.email || !formData.contraseña || !formData.num_telefono || !formData.foto) {
+    if (!formData.nombre || !formData.user || !formData.email || !formData.establecimiento || !formData.password) {
       alert('Por favor, complete todos los campos.');
       return;
     }
     const formDataToSend = new FormData();
     formDataToSend.append('nombre', formData.nombre);
+    formDataToSend.append('user', formData.user);
     formDataToSend.append('email', formData.email);
-    formDataToSend.append('contraseña', formData.contraseña);
-    formDataToSend.append('foto', formData.foto);
-    formDataToSend.append('num_telefono', formData.num_telefono);
+    formDataToSend.append('establecimiento', formData.establecimiento);
+    formDataToSend.append('password', formData.password);
 
     try {
-      const response = await fetch('/api/usuarios', {
+      const response = await fetch('/api/miembros', {
         method: 'POST',
         body: formDataToSend,
       });
       if (response.ok) {
-        alert('Usuario agregado exitosamente');
+        alert('Miembro agregado exitosamente');
         closePopup();
-        fetchUsuarios();
+        fetchMiembros();
       } else {
-        alert('Error al agregar el usuario');
+        alert('Error al agregar el miembro');
       }
     } catch (error) {
       console.error('Error en la solicitud:', error);
     }
   };
 
-  
   const handleSubmitEditar = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.id || !formData.nombre || !formData.email || !formData.num_telefono) {
+    if (!formData.id || !formData.nombre || !formData.user || !formData.email || !formData.establecimiento) {
       alert('Por favor, complete todos los campos obligatorios.');
       return;
     }
     const formDataToSend = new FormData();
     formDataToSend.append('id', formData.id.toString());
     formDataToSend.append('nombre', formData.nombre);
+    formDataToSend.append('user', formData.user);
     formDataToSend.append('email', formData.email);
-    formDataToSend.append('contraseña', formData.contraseña);
-    if (formData.foto) {
-      formDataToSend.append('foto', formData.foto);
-    }
-    formDataToSend.append('num_telefono', formData.num_telefono);
+    formDataToSend.append('establecimiento', formData.establecimiento);
+    formDataToSend.append('password', formData.password);
 
     try {
-      const response = await fetch('/api/usuarios', {
+      const response = await fetch('/api/miembros', {
         method: 'PUT',
         body: formDataToSend,
       });
       if (response.ok) {
-        alert('Usuario actualizado exitosamente');
+        alert('Miembro actualizado exitosamente');
         closePopup();
-        fetchUsuarios();
+        fetchMiembros();
       } else {
-        alert('Error al actualizar el usuario');
+        alert('Error al actualizar el miembro');
       }
     } catch (error) {
       console.error('Error en la solicitud:', error);
     }
   };
 
-  
   const handleDelete = async () => {
-    if (!usuarioAEliminar) return;
+    if (!miembroAEliminar) return;
     try {
-      const response = await fetch(`/api/usuarios/${usuarioAEliminar.id}`, {
+      const response = await fetch(`/api/miembros/${miembroAEliminar.id}`, {
         method: 'DELETE',
       });
       if (response.ok) {
-        alert('Usuario eliminado exitosamente');
+        alert('Miembro eliminado exitosamente');
         closeDeletePopup();
-        fetchUsuarios();
+        fetchMiembros();
       } else {
-        alert('Error al eliminar el usuario');
+        alert('Error al eliminar el miembro');
       }
     } catch (error) {
       console.error('Error en la solicitud:', error);
     }
   };
 
-  const fetchUsuarios = useCallback(async () => {
+  const fetchMiembros = useCallback(async () => {
     try {
-      const response = await fetch(`/api/usuarios?page=${currentPage}&limit=${itemsPerPage}&search=${encodeURIComponent(searchTerm)}`);
+      const response = await fetch(`/api/miembros?page=${currentPage}&limit=${itemsPerPage}&search=${encodeURIComponent(searchTerm)}`);
       if (response.ok) {
-        const data: Usuario[] = await response.json();
-        setUsuarios(data);
+        const data: Miembro[] = await response.json();
+        setMiembros(data);
       } else {
-        console.error('Error al obtener los usuarios');
+        console.error('Error al obtener los miembros');
       }
     } catch (error) {
       console.error('Error en la solicitud:', error);
     }
   }, [currentPage, itemsPerPage, searchTerm]);
 
-  const handleEditar = (usuario: Usuario) => {
-    setUsuarioSeleccionado(usuario);
+  const fetchCentrosCostos = useCallback(async () => {
+    try {
+      const response = await fetch('/api/costos');
+      if (response.ok) {
+        const data: CentroCosto[] = await response.json();
+        setCentrosCostos(data);
+      } else {
+        console.error('Error al obtener los centros de costos');
+      }
+    } catch (error) {
+      console.error('Error en la solicitud:', error);
+    }
+  }, []);
+
+  const handleEditar = (miembro: Miembro) => {
+    setMiembroSeleccionado(miembro);
     setFormData({
-      id: usuario.id,
-      nombre: usuario.nombre,
-      email: usuario.email,
-      contraseña: '',
-      foto: null,
-      num_telefono: usuario.num_telefono,
+      id: miembro.id,
+      nombre: miembro.nombre,
+      user: miembro.user,
+      email: miembro.email,
+      establecimiento: miembro.establecimiento,
+      password: '',
     });
     openPopup('editar');
   };
 
   useEffect(() => {
-    fetchUsuarios();
-  }, [fetchUsuarios]); 
+    fetchMiembros();
+    fetchCentrosCostos(); // Cargar los centros de costos al montar el componente
+  }, [fetchMiembros, fetchCentrosCostos]);
 
-
-  const filteredUsuarios = usuarios.filter((usuario) =>
-    usuario.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    usuario.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    usuario.num_telefono.includes(searchTerm)
+  const filteredMiembros = miembros.filter((miembro) =>
+    miembro.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    miembro.user.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    miembro.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    miembro.establecimiento.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentUsuarios = filteredUsuarios.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(filteredUsuarios.length / itemsPerPage);
-
+  const currentMiembros = filteredMiembros.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredMiembros.length / itemsPerPage);
 
   const handleNextPage = () => {
     if (currentPage < totalPages) {
@@ -215,43 +223,25 @@ export default function Usuarios() {
   };
 
   return (
-    
     <div className="font-sans bg-gray-100 text-gray-900">
       <div className="flex">
         <Navbar />
         <main className="w-4/5 p-8">
-        <div className="space-y-6">
+          <h1 className="text-4xl font-semibold mb-4">Gestión de Miembros</h1>
+          <p className="text-lg text-gray-700 mb-4">
+            Administra los miembros registrados en la plataforma.
+          </p>
+          <div className="flex justify-between mb-4">
+            <button onClick={() => openPopup('agregar')} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+              Agregar Miembro
+            </button>
+        
+          </div>
 
-
-        <h1 
-  className="text-4xl font-bold text-gray-900 mb-4 tracking-tight 
-             bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
-             transition-all duration-300 hover:scale-105 text-center"
->
-  Gestión de Usuarios
-</h1>
-<p 
-  className="text-center text-black leading-relaxed max-w-2xl
-             p-4 rounded-lg transition-all duration-300 hover:shadow-md mx-auto"
->
-
-    Administra los usuarios registrados en la plataforma con facilidad y seguridad.
-  </p>
-</div>
-<div className="flex justify-between mb-4">
-  <button 
-    onClick={() => openPopup('agregar')} 
-    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 m-2"
-  >
-    Agregar Usuario
-  </button>
-</div>
-
-       
           <div className="mb-4">
             <input
               type="text"
-              placeholder="Buscar por nombre, email o teléfono..."
+              placeholder="Buscar por nombre, usuario, email o establecimiento..."
               value={searchTerm}
               onChange={handleSearchChange}
               className="w-2/5 p-2 border border-gray-300 rounded-md"
@@ -263,28 +253,30 @@ export default function Usuarios() {
               <tr className="bg-gray-200">
                 <th className="px-4 py-2 text-left">ID</th>
                 <th className="px-4 py-2 text-left">Nombre</th>
+                <th className="px-4 py-2 text-left">User</th>
                 <th className="px-4 py-2 text-left">Email</th>
-                <th className="px-4 py-2 text-left">Teléfono</th>
+                <th className="px-4 py-2 text-left">Establecimiento</th>
                 <th className="px-4 py-2 text-left">Acciones</th>
               </tr>
             </thead>
             <tbody>
-              {currentUsuarios.length > 0 ? (
-                currentUsuarios.map((usuario, index) => (
-                  <tr className="hover:bg-gray-50" key={usuario.id}>
+              {currentMiembros.length > 0 ? (
+                currentMiembros.map((miembro, index) => (
+                  <tr className="hover:bg-gray-50" key={miembro.id}>
                     <td className="px-4 py-2">{indexOfFirstItem + index + 1}</td>
-                    <td className="px-4 py-2">{usuario.nombre}</td>
-                    <td className="px-4 py-2">{usuario.email}</td>
-                    <td className="px-4 py-2">{usuario.num_telefono}</td>
+                    <td className="px-4 py-2">{miembro.nombre}</td>
+                    <td className="px-4 py-2">{miembro.user}</td>
+                    <td className="px-4 py-2">{miembro.email}</td>
+                    <td className="px-4 py-2">{miembro.establecimiento}</td>
                     <td className="px-4 py-2">
                       <button
-                        onClick={() => handleEditar(usuario)}
+                        onClick={() => handleEditar(miembro)}
                         className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 mr-2"
                       >
                         Editar
                       </button>
                       <button
-                        onClick={() => openDeletePopup(usuario)}
+                        onClick={() => openDeletePopup(miembro)}
                         className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
                       >
                         Eliminar
@@ -294,15 +286,14 @@ export default function Usuarios() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={5} className="px-4 py-2 text-center text-gray-500">
-                    No hay usuarios disponibles.
+                  <td colSpan={6} className="px-4 py-2 text-center text-gray-500">
+                    No hay miembros disponibles.
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
 
-          
           <div className="mt-4 flex justify-between items-center">
             <button
               onClick={handlePrevPage}
@@ -323,21 +314,20 @@ export default function Usuarios() {
             </button>
           </div>
 
-      
           {isPopupOpen && (
-       <div className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md border-4 border-black-500"
-       onClick={(e) => {
-       
-        if (e.target === e.currentTarget) {
-          closePopup();
-        }
-      }} >
-        
+            <div
+              className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md border-4 border-black-500"
+              onClick={(e) => {
+                if (e.target === e.currentTarget) {
+                  closePopup();
+                }
+              }}
+            >
               <div className="bg-white p-6 rounded shadow-lg w-1/3">
                 <h2 className="text-2xl font-semibold mb-4 text-center">
-                  {usuarioSeleccionado ? 'Editar Usuario' : 'Agregar Usuario'}
+                  {miembroSeleccionado ? 'Editar Miembro' : 'Agregar Miembro'}
                 </h2>
-                {usuarioSeleccionado ? (
+                {miembroSeleccionado ? (
                   <form onSubmit={handleSubmitEditar}>
                     <input type="hidden" name="id" value={formData.id} />
                     <label className="block text-center" htmlFor="nombre">Nombre:</label>
@@ -347,9 +337,18 @@ export default function Usuarios() {
                       placeholder="Nombre"
                       value={formData.nombre}
                       onChange={handleInputChange}
-                      className="w-full p-2 mb-2 border border-gray-300 rounded block text-center "
+                      className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
                     />
-                    <label className="block text-center" htmlFor="email">Correo electrónico</label>
+                    <label className="block text-center" htmlFor="user">User:</label>
+                    <input
+                      type="text"
+                      name="user"
+                      placeholder="User"
+                      value={formData.user}
+                      onChange={handleInputChange}
+                      className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
+                    />
+                    <label className="block text-center" htmlFor="email">Email:</label>
                     <input
                       type="email"
                       name="email"
@@ -358,28 +357,26 @@ export default function Usuarios() {
                       onChange={handleInputChange}
                       className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
                     />
-                    <label className="block text-center" htmlFor="contraseña">Contraseña</label>
-                    <input
-                      type="password"
-                      name="contraseña"
-                      placeholder="Contraseña"
-                      value={formData.contraseña}
+                    <label className="block text-center" htmlFor="establecimiento">Establecimiento:</label>
+                    <select
+                      name="establecimiento"
+                      value={formData.establecimiento}
                       onChange={handleInputChange}
                       className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
-                    />
-                    <label className="block text-center" htmlFor="foto">Foto</label>
+                    >
+                      <option value="">Seleccione un establecimiento</option>
+                      {centrosCostos.map((centro) => (
+                        <option key={centro.id} value={centro.nombre_centro_costos}>
+                          {centro.nombre_centro_costos}
+                        </option>
+                      ))}
+                    </select>
+                    <label className="block text-center" htmlFor="password">Password:</label>
                     <input
-                      type="file"
-                      name="foto"
-                      onChange={handleFileChange}
-                      className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
-                    />
-                    <label className="block text-center" htmlFor="num_telefono">Número de teléfono</label>
-                    <input
-                      type="text"
-                      name="num_telefono"
-                      placeholder="Número de Teléfono"
-                      value={formData.num_telefono}
+                      type="password"
+                      name="password"
+                      placeholder="Password"
+                      value={formData.password}
                       onChange={handleInputChange}
                       className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
                     />
@@ -394,7 +391,7 @@ export default function Usuarios() {
                   </form>
                 ) : (
                   <form onSubmit={handleSubmitAgregar}>
-                    <label className="block text-center" htmlFor="nombre">Nombre</label>
+                    <label className="block text-center" htmlFor="nombre">Nombre:</label>
                     <input
                       type="text"
                       name="nombre"
@@ -403,7 +400,16 @@ export default function Usuarios() {
                       onChange={handleInputChange}
                       className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
                     />
-                    <label className="block text-center" htmlFor="email">Correo electrónico</label>
+                    <label className="block text-center" htmlFor="user">User:</label>
+                    <input
+                      type="text"
+                      name="user"
+                      placeholder="User"
+                      value={formData.user}
+                      onChange={handleInputChange}
+                      className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
+                    />
+                    <label className="block text-center" htmlFor="email">Email:</label>
                     <input
                       type="email"
                       name="email"
@@ -412,28 +418,26 @@ export default function Usuarios() {
                       onChange={handleInputChange}
                       className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
                     />
-                    <label className="block text-center" htmlFor="contraseña">Contraseña</label>
-                    <input
-                      type="password"
-                      name="contraseña"
-                      placeholder="Contraseña"
-                      value={formData.contraseña}
+                    <label className="block text-center" htmlFor="establecimiento">Establecimiento:</label>
+                    <select
+                      name="establecimiento"
+                      value={formData.establecimiento}
                       onChange={handleInputChange}
                       className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
-                    />
-                    <label className="block text-center" htmlFor="foto">Foto</label>
+                    >
+                      <option value="">Seleccione un establecimiento</option>
+                      {centrosCostos.map((centro) => (
+                        <option key={centro.id} value={centro.nombre_centro_costos}>
+                          {centro.nombre_centro_costos}
+                        </option>
+                      ))}
+                    </select>
+                    <label className="block text-center" htmlFor="password">Password:</label>
                     <input
-                      type="file"
-                      name="foto"
-                      onChange={handleFileChange}
-                      className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
-                    />
-                    <label className="block text-center" htmlFor="num_telefono">Número de teléfono</label>
-                    <input
-                      type="text"
-                      name="num_telefono"
-                      placeholder="Número de Teléfono"
-                      value={formData.num_telefono}
+                      type="password"
+                      name="password"
+                      placeholder="Password"
+                      value={formData.password}
                       onChange={handleInputChange}
                       className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
                     />
@@ -451,20 +455,19 @@ export default function Usuarios() {
             </div>
           )}
 
-     
-          {isDeletePopupOpen && usuarioAEliminar && (
-            <div className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md border-black"
-            onClick={(e) => {
-              
-              if (e.target === e.currentTarget) {
-                closeDeletePopup();
-              }
-            }}
+          {isDeletePopupOpen && miembroAEliminar && (
+            <div
+              className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md border-black"
+              onClick={(e) => {
+                if (e.target === e.currentTarget) {
+                  closeDeletePopup();
+                }
+              }}
             >
               <div className="bg-white p-6 rounded shadow-lg w-1/3">
                 <h2 className="text-2xl font-semibold mb-4 text-center">Confirmar Eliminación</h2>
                 <p className="text-center mb-4">
-                  ¿Estás seguro que deseas eliminar el usuario {usuarioAEliminar.nombre}?
+                  ¿Estás seguro que deseas eliminar el miembro {miembroAEliminar.nombre}?
                 </p>
                 <div className="flex justify-between">
                   <button onClick={closeDeletePopup} className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500">

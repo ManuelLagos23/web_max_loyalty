@@ -3,16 +3,16 @@
 import { NextResponse } from 'next/server';
 import { Pool } from 'pg';
 
-// Crear un pool de conexión con la base de datos PostgreSQL
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
-// 🚀 Método POST para crear una nueva terminal
+
 export async function POST(request: Request) {
   const formData = await request.formData();
 
-  // Obtener los valores del formulario
+
   const empresa = formData.get('empresa');
   const estacion_servicio = formData.get('estacion_servicio');
   const codigo_terminal = formData.get('codigo_terminal');
@@ -21,7 +21,7 @@ export async function POST(request: Request) {
   try {
     const client = await pool.connect();
 
-    // Insertar los datos en la tabla "terminales"
+   
     await client.query(
       `INSERT INTO terminales (empresa, estacion_servicio, codigo_terminal, nombre_terminal)
       VALUES ($1, $2, $3, $4)`,
@@ -42,7 +42,7 @@ export async function GET() {
   try {
     const client = await pool.connect();
     const result = await client.query(
-      `SELECT id, empresa, estacion_servicio, codigo_terminal, nombre_terminal FROM terminales`
+      `SELECT id, empresa, estacion_servicio, codigo_terminal, nombre_terminal, codigo_activacion, id_activacion FROM terminales`
     );
     client.release();
 
@@ -53,7 +53,10 @@ export async function GET() {
   }
 }
 
-// 🚀 Método PUT para actualizar los datos de una terminal
+
+
+
+
 export async function PUT(request: Request) {
   try {
     const formData = await request.formData();
@@ -62,29 +65,45 @@ export async function PUT(request: Request) {
     const estacion_servicio = formData.get('estacion_servicio');
     const codigo_terminal = formData.get('codigo_terminal');
     const nombre_terminal = formData.get('nombre_terminal');
+    const codigo_activacion = formData.get('codigo_activacion') || null;
 
-    // Validar que el ID esté presente
+   
     if (!id) {
       return NextResponse.json({ message: 'El ID de la terminal es obligatorio' }, { status: 400 });
     }
 
     const client = await pool.connect();
+    let result;
 
-    // Realizar la actualización de los datos
-    const result = await client.query(
-      `UPDATE terminales
-       SET empresa = $1, estacion_servicio = $2, codigo_terminal = $3, nombre_terminal = $4
-       WHERE id = $5
-       RETURNING *`,
-      [empresa, estacion_servicio, codigo_terminal, nombre_terminal, id]
-    );
+    if (formData.has('id_activacion') && formData.get('id_activacion') === '0') {
+      const id_activacion = formData.get('id_activacion');
+      result = await client.query(
+        `UPDATE terminales
+         SET empresa = $1, estacion_servicio = $2, codigo_terminal = $3, nombre_terminal = $4, codigo_activacion = $5, id_activacion = $6
+         WHERE id = $7
+         RETURNING *`,
+        [empresa, estacion_servicio, codigo_terminal, nombre_terminal, codigo_activacion, id_activacion, id]
+      );
+    } else {
+    
+      result = await client.query(
+        `UPDATE terminales
+         SET empresa = $1, estacion_servicio = $2, codigo_terminal = $3, nombre_terminal = $4, codigo_activacion = $5
+         WHERE id = $6
+         RETURNING *`,
+        [empresa, estacion_servicio, codigo_terminal, nombre_terminal, codigo_activacion, id]
+      );
+    }
 
     client.release();
 
-    return NextResponse.json(result.rows, { status: 200 });
+    if (result.rowCount === 0) {
+      return NextResponse.json({ message: 'No se encontró la terminal con ese ID' }, { status: 404 });
+    }
+
+    return NextResponse.json(result.rows[0], { status: 200 });
   } catch (error) {
     console.error('Error al actualizar la terminal:', error);
     return NextResponse.json({ message: 'Error al actualizar la terminal' }, { status: 500 });
   }
 }
-

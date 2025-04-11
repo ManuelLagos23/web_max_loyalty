@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Navbar from '../components/Navbar';
 import SectionNavbar from '../components/SectionNavbar';
 
@@ -17,17 +17,21 @@ export default function Paises() {
   const [paisData, setPaisData] = useState({ pais: '' });
   const [paisToUpdate, setPaisToUpdate] = useState<Pais | null>(null);
   const [paisToDelete, setPaisToDelete] = useState<Pais | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  const fetchPaises = useCallback(async () => {
+    const response = await fetch(`/api/paises?page=${currentPage}&limit=${itemsPerPage}`);
+    if (response.ok) {
+      const data = await response.json();
+      setPaises(data);
+    }
+  }, [currentPage, itemsPerPage]);
 
   useEffect(() => {
-    const fetchPaises = async () => {
-      const response = await fetch('/api/paises');
-      if (response.ok) {
-        const data = await response.json();
-        setPaises(data);
-      }
-    };
     fetchPaises();
-  }, []);
+  }, [fetchPaises]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
@@ -50,6 +54,7 @@ export default function Paises() {
       setPaises((prev) => [...prev, newPais.data]);
       setPaisData({ pais: '' });
       setIsAddModalOpen(false);
+      fetchPaises();
     } else {
       alert('Error al agregar el país');
     }
@@ -77,6 +82,7 @@ export default function Paises() {
         );
         setPaisData({ pais: '' });
         setIsUpdateModalOpen(false);
+        fetchPaises();
       } else {
         alert('Error al actualizar el país');
       }
@@ -93,9 +99,35 @@ export default function Paises() {
         alert('País eliminado exitosamente');
         setPaises((prev) => prev.filter((pais) => pais.id !== paisToDelete.id));
         setIsDeleteModalOpen(false);
+        fetchPaises();
       } else {
         alert('Error al eliminar el país');
       }
+    }
+  };
+
+  const filteredPaises = paises.filter((pais) =>
+    Object.values(pais)
+      .map((value) => String(value))
+      .join(' ')
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase())
+  );
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentPaises = filteredPaises.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredPaises.length / itemsPerPage);
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
     }
   };
 
@@ -104,10 +136,22 @@ export default function Paises() {
       <div className="flex">
         <Navbar />
         <main className="w-full p-8">
-          <h1 className="text-4xl font-semibold mb-4">Paises</h1>
+          <SectionNavbar />
+          <h1 className="text-4xl font-semibold mb-4">Países</h1>
           <p className="text-lg text-gray-700 mb-4">Configura los países disponibles en la aplicación.</p>
 
-          <SectionNavbar />
+          <div className="mb-6">
+            <input
+              type="text"
+              placeholder="Buscar países..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="w-2/5 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
 
           <button
             onClick={() => setIsAddModalOpen(true)}
@@ -116,25 +160,27 @@ export default function Paises() {
             Agregar país
           </button>
 
-          <table className="mt-6 w-full table-auto border-collapse  border-gray-300">
+          <table className="mt-6 w-full table-auto border-collapse border-gray-300">
             <thead className="bg-gray-200">
               <tr>
-                <th className="px-4 py-2 ">ID</th>
-                <th className="px-4 py-2 ">Nombre del País</th>
-                <th className="px-4 py-2 ">Acciones</th>
+                <th className="px-4 py-2">ID</th>
+                <th className="px-4 py-2">Nombre del País</th>
+                <th className="px-4 py-2">Acciones</th>
               </tr>
             </thead>
             <tbody>
-              {paises.length === 0 ? (
+              {currentPaises.length === 0 ? (
                 <tr>
-                  <td colSpan={3} className="px-4 py-2 border text-center">No hay países disponibles</td>
+                  <td colSpan={3} className="px-4 py-2 border text-center">
+                    No hay países disponibles
+                  </td>
                 </tr>
               ) : (
-                paises.map((pais, index) => (
+                currentPaises.map((pais, index) => (
                   <tr key={pais.id}>
-                    <td className="px-4 py-2  text-center">{index + 1}</td>
+                    <td className="px-4 py-2 text-center">{indexOfFirstItem + index + 1}</td>
                     <td className="px-4 py-2 text-center">{pais.pais}</td>
-                    <td className="px-4 py-2 text-center ">
+                    <td className="px-4 py-2 text-center">
                       <button
                         onClick={() => {
                           setPaisToUpdate(pais);
@@ -161,9 +207,36 @@ export default function Paises() {
             </tbody>
           </table>
 
+          <div className="mt-4 flex justify-between items-center">
+            <button
+              onClick={handlePrevPage}
+              disabled={currentPage === 1}
+              className={`px-4 py-2 rounded ${currentPage === 1 ? 'bg-gray-300' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+            >
+              Anterior
+            </button>
+            <span>
+              Página {currentPage} de {totalPages}
+            </span>
+            <button
+              onClick={handleNextPage}
+              disabled={currentPage === totalPages}
+              className={`px-4 py-2 rounded ${currentPage === totalPages ? 'bg-gray-300' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+            >
+              Siguiente
+            </button>
+          </div>
+
           {/* Modal para agregar país */}
           {isAddModalOpen && (
-            <div className="fixed inset-0 flex items-center justify-center z-50">
+            <div
+              className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-md"
+              onClick={(e) => {
+                if (e.target === e.currentTarget) {
+                  setIsAddModalOpen(false);
+                }
+              }}
+            >
               <div className="bg-white p-6 rounded-lg">
                 <h3 className="text-xl font-semibold mb-4">Agregar País</h3>
                 <form onSubmit={handleSubmitAdd}>
@@ -180,7 +253,7 @@ export default function Paises() {
                       className="w-full px-4 py-2 border border-gray-300 rounded-md"
                     />
                   </div>
-                  <div className="flex justify-end space-x-2">
+                  <div className="flex justify-between">
                     <button
                       type="button"
                       onClick={() => setIsAddModalOpen(false)}
@@ -202,7 +275,14 @@ export default function Paises() {
 
           {/* Modal para actualizar país */}
           {isUpdateModalOpen && paisToUpdate && (
-            <div className="fixed inset-0 flex items-center justify-center z-50">
+            <div
+              className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-md"
+              onClick={(e) => {
+                if (e.target === e.currentTarget) {
+                  setIsUpdateModalOpen(false);
+                }
+              }}
+            >
               <div className="bg-white p-6 rounded-lg">
                 <h3 className="text-xl font-semibold mb-4">Actualizar País</h3>
                 <form onSubmit={handleSubmitUpdate}>
@@ -219,7 +299,7 @@ export default function Paises() {
                       className="w-full px-4 py-2 border border-gray-300 rounded-md"
                     />
                   </div>
-                  <div className="flex justify-end space-x-2">
+                  <div className="flex justify-between">
                     <button
                       type="button"
                       onClick={() => setIsUpdateModalOpen(false)}
@@ -241,11 +321,18 @@ export default function Paises() {
 
           {/* Modal para eliminar país */}
           {isDeleteModalOpen && paisToDelete && (
-            <div className="fixed inset-0 flex items-center justify-center z-50">
+            <div
+              className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-md"
+              onClick={(e) => {
+                if (e.target === e.currentTarget) {
+                  setIsDeleteModalOpen(false);
+                }
+              }}
+            >
               <div className="bg-white p-6 rounded-lg">
                 <h3 className="text-xl font-semibold mb-4">Eliminar País</h3>
                 <p>¿Estás seguro de que deseas eliminar el país {paisToDelete.pais}?</p>
-                <div className="flex justify-end space-x-2">
+                <div className="flex justify-between">
                   <button
                     type="button"
                     onClick={() => setIsDeleteModalOpen(false)}

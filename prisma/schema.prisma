@@ -1,0 +1,17 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL") // La URL de la base de datos que tendrás en tu archivo .env
+}
+
+model Usuario {
+  id           Int      @id @default(autoincrement())
+  nombre       String
+  email        String   @unique
+  password     String
+  img          String?  // Campo opcional para la imagen
+  num_telefono String?  // Campo opcional para el número de teléfono
+}

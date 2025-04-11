@@ -19,15 +19,16 @@ export async function POST(request: Request) {
   const ciudad = formData.get('ciudad');
   const alias = formData.get('alias');
   const codigo = formData.get('codigo');
+  const empresa = formData.get('empresa');
 
   try {
     const client = await pool.connect();
 
     // Insertar los datos en la tabla "costos"
     await client.query(
-      `INSERT INTO costos (nombre_centro_costos, pais, estado, ciudad, alias, codigo)
-      VALUES ($1, $2, $3, $4, $5, $6)`,
-      [nombre_centro_costos, pais, estado, ciudad, alias, codigo]
+      `INSERT INTO costos (nombre_centro_costos, pais, estado, ciudad, alias, codigo, empresa)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [nombre_centro_costos, pais, estado, ciudad, alias, codigo, empresa]
     );
 
     client.release();
@@ -44,7 +45,7 @@ export async function GET() {
   try {
     const client = await pool.connect();
     const result = await client.query(
-      `SELECT id, nombre_centro_costos, pais, estado, ciudad, alias, codigo FROM costos`
+      `SELECT id, nombre_centro_costos, pais, estado, ciudad, alias, codigo, empresa FROM costos`
     );
     client.release();
 
@@ -66,6 +67,7 @@ export async function PUT(request: Request) {
     const ciudad = formData.get('ciudad');
     const alias = formData.get('alias');
     const codigo = formData.get('codigo');
+    const empresa = formData.get('empresa');
 
     // Validar que el ID esté presente
     if (!id) {
@@ -77,10 +79,10 @@ export async function PUT(request: Request) {
     // Realizar la actualización de los datos
     const result = await client.query(
       `UPDATE costos
-       SET nombre_centro_costos = $1, pais = $2, estado = $3, ciudad = $4, alias = $5, codigo = $6
-       WHERE id = $7
+       SET nombre_centro_costos = $1, pais = $2, estado = $3, ciudad = $4, alias = $5, codigo = $6, empresa = $7
+       WHERE id = $8
        RETURNING *`,
-      [nombre_centro_costos, pais, estado, ciudad, alias, codigo, id]
+      [nombre_centro_costos, pais, estado, ciudad, alias, codigo, empresa, id]
     );
 
     client.release();

@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
-import SectionNavbar from '../components/SectionNavbar';
 
 type Transaccion = {
   id: number;
@@ -27,23 +26,26 @@ export default function Transacciones() {
   });
   const [transaccionToUpdate, setTransaccionToUpdate] = useState<Transaccion | null>(null);
   const [transaccionToDelete, setTransaccionToDelete] = useState<Transaccion | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     const fetchTransacciones = async () => {
-      const response = await fetch('/api/transacciones');
+      const response = await fetch(`/api/transacciones?page=${currentPage}&limit=${itemsPerPage}`);
       if (response.ok) {
         const data = await response.json();
         setTransacciones(data);
       }
     };
     fetchTransacciones();
-  }, []);
+  }, [currentPage]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setTransaccionData((prevData) => ({
       ...prevData,
-      [name]: value,
+      [name]: name === 'cliente_id' || name === 'establecimiento_id' || name === 'monto' || name === 'terminal_id' ? Number(value) : value,
     }));
   };
 
@@ -65,13 +67,7 @@ export default function Transacciones() {
       const newTransaccion = await response.json();
       alert('Transacción agregada exitosamente');
       setTransacciones((prev) => [...prev, newTransaccion.data]);
-      setTransaccionData({
-        cliente_id: 0,
-        establecimiento_id: 0,
-        fecha: '',
-        monto: 0,
-        terminal_id: 0,
-      });
+      setTransaccionData({ cliente_id: 0, establecimiento_id: 0, fecha: '', monto: 0, terminal_id: 0 });
       setIsAddModalOpen(false);
     } else {
       alert('Error al agregar la transacción');
@@ -102,13 +98,7 @@ export default function Transacciones() {
             transaccion.id === updatedTransaccion.data.id ? updatedTransaccion.data : transaccion
           )
         );
-        setTransaccionData({
-          cliente_id: 0,
-          establecimiento_id: 0,
-          fecha: '',
-          monto: 0,
-          terminal_id: 0,
-        });
+        setTransaccionData({ cliente_id: 0, establecimiento_id: 0, fecha: '', monto: 0, terminal_id: 0 });
         setIsUpdateModalOpen(false);
       } else {
         alert('Error al actualizar la transacción');
@@ -132,15 +122,47 @@ export default function Transacciones() {
     }
   };
 
+  const filteredTransacciones = transacciones.filter((transaccion) =>
+    Object.values(transaccion)
+      .map((value) => String(value))
+      .join(' ')
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase())
+  );
+
+  const totalPages = Math.ceil(filteredTransacciones.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentTransacciones = filteredTransacciones.slice(indexOfFirstItem, indexOfLastItem);
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+  };
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) setCurrentPage(currentPage - 1);
+  };
+
   return (
     <div className="font-sans bg-gray-100 text-gray-900">
       <div className="flex">
         <Navbar />
         <main className="w-full p-8">
           <h1 className="text-4xl font-semibold mb-4">Transacciones</h1>
-          <p className="text-lg text-gray-700 mb-4">Configura las transacciones realizadas en la aplicación.</p>
+          <p className="text-lg text-gray-700 mb-4">Configura lasknock transacciones realizadas en la aplicación.</p>
 
-          <SectionNavbar />
+          <div className="mb-6">
+            <input
+              type="text"
+              placeholder="Buscar transacciones..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="w-2/5 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
 
           <button
             onClick={() => setIsAddModalOpen(true)}
@@ -149,30 +171,31 @@ export default function Transacciones() {
             Agregar Transacción
           </button>
 
-          <table className="mt-6 w-full table-auto border-collapse  border-gray-300">
+          <table className="mt-6 w-full bg-white table-auto border-collapse border-gray-300">
             <thead className="bg-gray-200">
               <tr>
-                <th className="px-4 py-2 ">ID</th>
-                <th className="px-4 py-2 ">Cliente ID</th>
-                <th className="px-4 py-2 ">Establecimiento ID</th>
-                <th className="px-4 py-2 ">Fecha</th>
-                <th className="px-4 py-2 ">Monto</th>
-                <th className="px-4 py-2 ">Terminal ID</th>
-                <th className="px-4 py-2 ">Acciones</th>
+                <th className="px-4 py-2">ID</th>
+                <th className="px-4 py-2">Cliente ID</th>
+                <th className="px-4 py-2">Establecimiento ID</th>
+                <th className="px-4 py-2">Fecha</th>
+                <th className="px-4 py-2">Monto</th>
+                <th className="px-4 py-2">Terminal ID</th>
+                <th className="px-4 py-2">Acciones</th>
               </tr>
             </thead>
             <tbody>
-              {transacciones.length === 0 ? (
+              {currentTransacciones.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-4 py-2 border text-center">No hay transacciones disponibles</td>
                 </tr>
               ) : (
-                transacciones.map((transaccion, index) => (
-                  <tr key={transaccion.id}>
-                    <td className="px-4 py-2  text-center">{index + 1}</td>
+                currentTransacciones.map((transaccion, index) => (
+                  <tr className="hover:bg-gray-50" key={transaccion.id}>
+                    <td className="px-4 py-2 text-center">{indexOfFirstItem + index + 1}</td>
                     <td className="px-4 py-2 text-center">{transaccion.cliente_id}</td>
                     <td className="px-4 py-2 text-center">{transaccion.establecimiento_id}</td>
                     <td className="px-4 py-2 text-center">{transaccion.fecha}</td>
+                    <td className="px-4 py-2">{new Date(transaccion.fecha).toLocaleDateString()}</td>
                     <td className="px-4 py-2 text-center">{transaccion.monto}</td>
                     <td className="px-4 py-2 text-center">{transaccion.terminal_id}</td>
                     <td className="px-4 py-2 text-center">
@@ -208,10 +231,35 @@ export default function Transacciones() {
             </tbody>
           </table>
 
+          <div className="mt-4 flex justify-between items-center">
+            <button
+              onClick={handlePrevPage}
+              disabled={currentPage === 1}
+              className={`px-4 py-2 rounded ${currentPage === 1 ? 'bg-gray-300' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+            >
+              Anterior
+            </button>
+            <span>Página {currentPage} de {totalPages}</span>
+            <button
+              onClick={handleNextPage}
+              disabled={currentPage === totalPages}
+              className={`px-4 py-2 rounded ${currentPage === totalPages ? 'bg-gray-300' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+            >
+              Siguiente
+            </button>
+          </div>
+
           {/* Modal para agregar transacción */}
           {isAddModalOpen && (
-            <div className="fixed inset-0 flex items-center justify-center z-50">
-              <div className="bg-white p-6 rounded-lg">
+            <div
+              className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-md"
+              onClick={(e) => {
+                if (e.target === e.currentTarget) {
+                  setIsAddModalOpen(false);
+                }
+              }}
+            >
+              <div className="bg-white p-6 rounded-lg w-1/3">
                 <h3 className="text-xl font-semibold mb-4">Agregar Transacción</h3>
                 <form onSubmit={handleSubmitAdd}>
                   <div className="mb-4">
@@ -279,7 +327,7 @@ export default function Transacciones() {
                       className="w-full px-4 py-2 border border-gray-300 rounded-md"
                     />
                   </div>
-                  <div className="flex justify-end space-x-2">
+                  <div className="flex justify-between">
                     <button
                       type="button"
                       onClick={() => setIsAddModalOpen(false)}
@@ -291,7 +339,7 @@ export default function Transacciones() {
                       type="submit"
                       className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
                     >
-                      Agregar
+                      Guardar
                     </button>
                   </div>
                 </form>
@@ -301,8 +349,15 @@ export default function Transacciones() {
 
           {/* Modal para actualizar transacción */}
           {isUpdateModalOpen && transaccionToUpdate && (
-            <div className="fixed inset-0 flex items-center justify-center z-50">
-              <div className="bg-white p-6 rounded-lg">
+            <div
+              className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-md"
+              onClick={(e) => {
+                if (e.target === e.currentTarget) {
+                  setIsUpdateModalOpen(false);
+                }
+              }}
+            >
+              <div className="bg-white p-6 rounded-lg w-1/3">
                 <h3 className="text-xl font-semibold mb-4">Actualizar Transacción</h3>
                 <form onSubmit={handleSubmitUpdate}>
                   <div className="mb-4">
@@ -370,7 +425,7 @@ export default function Transacciones() {
                       className="w-full px-4 py-2 border border-gray-300 rounded-md"
                     />
                   </div>
-                  <div className="flex justify-end space-x-2">
+                  <div className="flex justify-between">
                     <button
                       type="button"
                       onClick={() => setIsUpdateModalOpen(false)}
@@ -382,7 +437,7 @@ export default function Transacciones() {
                       type="submit"
                       className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
                     >
-                      Actualizar
+                      Guardar
                     </button>
                   </div>
                 </form>
@@ -392,11 +447,18 @@ export default function Transacciones() {
 
           {/* Modal para eliminar transacción */}
           {isDeleteModalOpen && transaccionToDelete && (
-            <div className="fixed inset-0 flex items-center justify-center z-50">
+            <div
+              className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-md"
+              onClick={(e) => {
+                if (e.target === e.currentTarget) {
+                  setIsDeleteModalOpen(false);
+                }
+              }}
+            >
               <div className="bg-white p-6 rounded-lg">
                 <h3 className="text-xl font-semibold mb-4">Eliminar Transacción</h3>
                 <p>¿Estás seguro de que deseas eliminar esta transacción?</p>
-                <div className="flex justify-end space-x-2">
+                <div className="flex justify-between">
                   <button
                     type="button"
                     onClick={() => setIsDeleteModalOpen(false)}

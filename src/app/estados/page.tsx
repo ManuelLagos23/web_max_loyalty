@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Navbar from '../components/Navbar';
 import SectionNavbar from '../components/SectionNavbar';
 
@@ -17,17 +17,21 @@ export default function Estados() {
   const [estadoData, setEstadoData] = useState({ estado: '' });
   const [estadoToUpdate, setEstadoToUpdate] = useState<Estado | null>(null);
   const [estadoToDelete, setEstadoToDelete] = useState<Estado | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  const fetchEstados = useCallback(async () => {
+    const response = await fetch(`/api/estados?page=${currentPage}&limit=${itemsPerPage}`);
+    if (response.ok) {
+      const data = await response.json();
+      setEstados(data);
+    }
+  }, [currentPage, itemsPerPage]);
 
   useEffect(() => {
-    const fetchEstados = async () => {
-      const response = await fetch('/api/estados');
-      if (response.ok) {
-        const data = await response.json();
-        setEstados(data);
-      }
-    };
     fetchEstados();
-  }, []);
+  }, [fetchEstados]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
@@ -50,6 +54,7 @@ export default function Estados() {
       setEstados((prev) => [...prev, newEstado.data]);
       setEstadoData({ estado: '' });
       setIsAddModalOpen(false);
+      fetchEstados();
     } else {
       alert('Error al agregar el estado');
     }
@@ -77,6 +82,7 @@ export default function Estados() {
         );
         setEstadoData({ estado: '' });
         setIsUpdateModalOpen(false);
+        fetchEstados();
       } else {
         alert('Error al actualizar el estado');
       }
@@ -93,9 +99,35 @@ export default function Estados() {
         alert('Estado eliminado exitosamente');
         setEstados((prev) => prev.filter((estado) => estado.id !== estadoToDelete.id));
         setIsDeleteModalOpen(false);
+        fetchEstados();
       } else {
         alert('Error al eliminar el estado');
       }
+    }
+  };
+
+  const filteredEstados = estados.filter((estado) =>
+    Object.values(estado)
+      .map((value) => String(value))
+      .join(' ')
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase())
+  );
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentEstados = filteredEstados.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredEstados.length / itemsPerPage);
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
     }
   };
 
@@ -104,10 +136,22 @@ export default function Estados() {
       <div className="flex">
         <Navbar />
         <main className="w-full p-8">
+          <SectionNavbar />
           <h1 className="text-4xl font-semibold mb-4">Estados</h1>
           <p className="text-lg text-gray-700 mb-4">Configura los estados disponibles en la aplicación.</p>
 
-          <SectionNavbar />
+          <div className="mb-6">
+            <input
+              type="text"
+              placeholder="Buscar estados..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="w-2/5 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
 
           <button
             onClick={() => setIsAddModalOpen(true)}
@@ -116,25 +160,27 @@ export default function Estados() {
             Agregar estado
           </button>
 
-          <table className="mt-6 w-full table-auto border-collapse  border-gray-300">
+          <table className="mt-6 w-full table-auto border-collapse border-gray-300">
             <thead className="bg-gray-200">
               <tr>
-                <th className="px-4 py-2 ">ID</th>
-                <th className="px-4 py-2 ">Nombre del Estado</th>
-                <th className="px-4 py-2 ">Acciones</th>
+                <th className="px-4 py-2">ID</th>
+                <th className="px-4 py-2">Nombre del Estado</th>
+                <th className="px-4 py-2">Acciones</th>
               </tr>
             </thead>
             <tbody>
-              {estados.length === 0 ? (
+              {currentEstados.length === 0 ? (
                 <tr>
-                  <td colSpan={3} className="px-4 py-2 border text-center">No hay estados disponibles</td>
+                  <td colSpan={3} className="px-4 py-2 border text-center">
+                    No hay estados disponibles
+                  </td>
                 </tr>
               ) : (
-                estados.map((estado, index) => (
+                currentEstados.map((estado, index) => (
                   <tr key={estado.id}>
-                    <td className="px-4 py-2  text-center">{index + 1}</td>
+                    <td className="px-4 py-2 text-center">{indexOfFirstItem + index + 1}</td>
                     <td className="px-4 py-2 text-center">{estado.estado}</td>
-                    <td className="px-4 py-2 text-center ">
+                    <td className="px-4 py-2 text-center">
                       <button
                         onClick={() => {
                           setEstadoToUpdate(estado);
@@ -161,9 +207,36 @@ export default function Estados() {
             </tbody>
           </table>
 
+          <div className="mt-4 flex justify-between items-center">
+            <button
+              onClick={handlePrevPage}
+              disabled={currentPage === 1}
+              className={`px-4 py-2 rounded ${currentPage === 1 ? 'bg-gray-300' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+            >
+              Anterior
+            </button>
+            <span>
+              Página {currentPage} de {totalPages}
+            </span>
+            <button
+              onClick={handleNextPage}
+              disabled={currentPage === totalPages}
+              className={`px-4 py-2 rounded ${currentPage === totalPages ? 'bg-gray-300' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+            >
+              Siguiente
+            </button>
+          </div>
+
           {/* Modal para agregar estado */}
           {isAddModalOpen && (
-            <div className="fixed inset-0 flex items-center justify-center z-50">
+            <div
+              className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-md"
+              onClick={(e) => {
+                if (e.target === e.currentTarget) {
+                  setIsAddModalOpen(false);
+                }
+              }}
+            >
               <div className="bg-white p-6 rounded-lg">
                 <h3 className="text-xl font-semibold mb-4">Agregar Estado</h3>
                 <form onSubmit={handleSubmitAdd}>
@@ -180,7 +253,7 @@ export default function Estados() {
                       className="w-full px-4 py-2 border border-gray-300 rounded-md"
                     />
                   </div>
-                  <div className="flex justify-end space-x-2">
+                  <div className="flex justify-between">
                     <button
                       type="button"
                       onClick={() => setIsAddModalOpen(false)}
@@ -202,7 +275,14 @@ export default function Estados() {
 
           {/* Modal para actualizar estado */}
           {isUpdateModalOpen && estadoToUpdate && (
-            <div className="fixed inset-0 flex items-center justify-center z-50">
+            <div
+              className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-md"
+              onClick={(e) => {
+                if (e.target === e.currentTarget) {
+                  setIsUpdateModalOpen(false);
+                }
+              }}
+            >
               <div className="bg-white p-6 rounded-lg">
                 <h3 className="text-xl font-semibold mb-4">Actualizar Estado</h3>
                 <form onSubmit={handleSubmitUpdate}>
@@ -219,7 +299,7 @@ export default function Estados() {
                       className="w-full px-4 py-2 border border-gray-300 rounded-md"
                     />
                   </div>
-                  <div className="flex justify-end space-x-2">
+                  <div className="flex justify-between">
                     <button
                       type="button"
                       onClick={() => setIsUpdateModalOpen(false)}
@@ -241,11 +321,18 @@ export default function Estados() {
 
           {/* Modal para eliminar estado */}
           {isDeleteModalOpen && estadoToDelete && (
-            <div className="fixed inset-0 flex items-center justify-center z-50">
+            <div
+              className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-md"
+              onClick={(e) => {
+                if (e.target === e.currentTarget) {
+                  setIsDeleteModalOpen(false);
+                }
+              }}
+            >
               <div className="bg-white p-6 rounded-lg">
                 <h3 className="text-xl font-semibold mb-4">Eliminar Estado</h3>
                 <p>¿Estás seguro de que deseas eliminar el estado {estadoToDelete.estado}?</p>
-                <div className="flex justify-end space-x-2">
+                <div className="flex justify-between">
                   <button
                     type="button"
                     onClick={() => setIsDeleteModalOpen(false)}

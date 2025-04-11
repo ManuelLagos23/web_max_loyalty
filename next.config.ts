@@ -1,3 +1,4 @@
+// next.config.js
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
@@ -5,8 +6,8 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/',
-        destination: '/inicio', // Cambia la ruta de inicio a '/nueva-ruta'
-        permanent: true, // El redireccionamiento es permanente
+        destination: '/login',
+        permanent: true, 
       },
     ];
   },

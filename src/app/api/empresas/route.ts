@@ -22,22 +22,21 @@ export async function POST(request: Request) {
   const nfi = formData.get('nfi');
   const prefijo_tarjetas = formData.get('prefijo_tarjetas');
 
-  // Obtener los logos como archivos binarios
-  const logo = formData.get('logo') as Blob;
-  const logo_impreso = formData.get('logo_impreso') as Blob;
+  const logo = formData.get('logo');
+  const logo_impreso = formData.get('logo_impreso');
+
+
+  const logoBuffer = logo instanceof Blob ? Buffer.from(await logo.arrayBuffer()) : null;
+  const logoImpBuffer = logo_impreso instanceof Blob ? Buffer.from(await logo_impreso.arrayBuffer()) : null;
 
   try {
-    // Convertir los logos a buffer
-    const logoBuffer = logo ? Buffer.from(await logo.arrayBuffer()) : null;
-    const logoImpresoBuffer = logo_impreso ? Buffer.from(await logo_impreso.arrayBuffer()) : null;
-
     const client = await pool.connect();
 
-    // Insertar los datos en la tabla "estaciones"
+
     await client.query(
       `INSERT INTO empresas (nombre_empresa, nombre_impreso, logo, logo_impreso, pais, moneda, correo, telefono, nfi, prefijo_tarjetas)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
-      [nombre_empresa, nombre_impreso, logoBuffer, logoImpresoBuffer, pais, moneda, correo, telefono, nfi, prefijo_tarjetas]
+      [nombre_empresa, nombre_impreso, logoBuffer, logoImpBuffer, pais, moneda, correo, telefono, nfi, prefijo_tarjetas]
     );
 
     client.release();
