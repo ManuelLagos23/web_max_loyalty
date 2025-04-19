@@ -1,20 +1,23 @@
+
 // src/app/cuenta/page.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Navbar from '../components/Navbar';
+import Image from 'next/image'; // Importar componente Image de Next.js
 
 interface UserData {
   nombre: string;
   email: string;
   num_telefono: string;
+  img?: string | null; // Campo para la imagen
 }
 
 export default function Cuenta() {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false); // Estado para el modal
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const router = useRouter();
 
   const fetchSession = async () => {
@@ -52,7 +55,7 @@ export default function Cuenta() {
   }, [router]);
 
   const handleLogoutClick = () => {
-    setIsLogoutModalOpen(true); // Mostrar el modal al hacer clic en "Cerrar Sesión"
+    setIsLogoutModalOpen(true);
   };
 
   const confirmLogout = async () => {
@@ -64,7 +67,7 @@ export default function Cuenta() {
       });
       if (response.ok) {
         console.log('Sesión cerrada exitosamente en Cuenta');
-        setIsLogoutModalOpen(false); // Cerrar el modal
+        setIsLogoutModalOpen(false);
         setUserData(null);
         router.push('/login');
       } else {
@@ -78,7 +81,7 @@ export default function Cuenta() {
   };
 
   const cancelLogout = () => {
-    setIsLogoutModalOpen(false); // Cerrar el modal sin cerrar sesión
+    setIsLogoutModalOpen(false);
   };
 
   if (loading) {
@@ -101,19 +104,38 @@ export default function Cuenta() {
           <h1 className="text-4xl font-semibold mb-4">Mi Cuenta</h1>
           <div className="bg-white p-6 rounded-lg shadow-md">
             <h2 className="text-2xl font-semibold mb-4">Bienvenido, {userData.nombre}</h2>
-            <div className="space-y-4">
-              <div>
-                <span className="font-bold">Nombre:</span> {userData.nombre}
+            <div className="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
+              {/* Mostrar la imagen del usuario */}
+              <div className="flex-shrink-0">
+                {userData.img ? (
+                  <Image
+                    src={userData.img}
+                    alt="Foto de perfil"
+                    width={100}
+                    height={100}
+                    className="rounded-full object-cover"
+                    priority
+                  />
+                ) : (
+                  <div className="w-24 h-24 bg-gray-300 rounded-full flex items-center justify-center">
+                    <span className="text-gray-600 text-sm">Sin imagen</span>
+                  </div>
+                )}
               </div>
-              <div>
-                <span className="font-bold">Email:</span> {userData.email}
-              </div>
-              <div>
-                <span className="font-bold">Número de Teléfono:</span> {userData.num_telefono}
+              <div className="space-y-4">
+                <div>
+                  <span className="font-bold">Nombre:</span> {userData.nombre}
+                </div>
+                <div>
+                  <span className="font-bold">Email:</span> {userData.email}
+                </div>
+                <div>
+                  <span className="font-bold">Número de Teléfono:</span> {userData.num_telefono}
+                </div>
               </div>
             </div>
             <button
-              onClick={handleLogoutClick} // Cambiamos a handleLogoutClick
+              onClick={handleLogoutClick}
               className="mt-6 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
             >
               Cerrar Sesión
@@ -122,11 +144,10 @@ export default function Cuenta() {
         </main>
       </div>
 
-      {/* Modal de confirmación */}
       {isLogoutModalOpen && (
-        <div className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md"
-        onClick={(e) => {
-            // Verifica si el clic fue directamente en el contenedor (fuera del modal)
+        <div
+          className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md"
+          onClick={(e) => {
             if (e.target === e.currentTarget) {
               cancelLogout();
             }

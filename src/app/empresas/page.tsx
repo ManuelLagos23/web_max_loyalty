@@ -250,10 +250,10 @@ export default function Empresas() {
     fetchMonedas();
   }, [fetchEmpresas, fetchPaises, fetchMonedas]);
 
-  // Filtrar empresas según el término de búsqueda
+  
   const filteredEmpresas = empresas.filter((empresa) =>
     Object.values(empresa)
-      .filter((value) => typeof value === 'string') // Filtra solo valores string para evitar errores con null
+      .filter((value) => typeof value === 'string') 
       .join(' ')
       .toLowerCase()
       .includes(searchTerm.toLowerCase())
@@ -281,12 +281,34 @@ export default function Empresas() {
       <div className="flex">
         <Navbar />
         <main className="w-4/5 p-8">
-          <h1 className="text-4xl font-semibold mb-4">Gestión de Empresas</h1>
-          <p className="text-lg text-gray-700 mb-4">
-            Administra las empresas registradas en la plataforma.
-          </p>
 
-      
+        <div className="space-y-6">
+
+
+<h1 
+className="text-4xl font-bold text-gray-900 mb-4 tracking-tight 
+bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
+transition-all duration-300 hover:scale-105 text-center"
+>
+Gestión de Empresas
+</h1>
+<p 
+className="text-center text-black leading-relaxed max-w-2xl
+p-4 rounded-lg transition-all duration-300 hover:shadow-md mx-auto"
+>
+
+Administra las empresas registradas en la plataforma.
+</p>
+</div>
+        
+<div className="flex justify-between mb-4">
+            <button onClick={() => openPopup('agregar')} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+              Agregar empresa
+            </button>
+       
+          </div>
+
+          
           <div className="mb-6">
             <input
               type="text"
@@ -300,12 +322,7 @@ export default function Empresas() {
             />
           </div>
 
-          <div className="flex justify-between mb-4">
-            <button onClick={() => openPopup('agregar')} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-              Agregar empresa
-            </button>
        
-          </div>
 
           {isPopupOpen && (
             <div className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md "
@@ -609,7 +626,7 @@ export default function Empresas() {
           <table className="w-full bg-white table-auto mt-8">
             <thead className="bg-gray-200">
               <tr>
-                <th className="p-2 text-left">ID</th>
+                <th className="p-2 text-left">#</th>
                 <th className="p-2 text-left">Nombre Empresa</th>
                 <th className="p-2 text-left">País</th>
                 <th className="p-2 text-left">Moneda</th>

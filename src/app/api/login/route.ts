@@ -14,14 +14,14 @@ export async function POST(request: NextRequest) {
     console.log('Conexión a DB establecida');
    
     const result = await client.query(
-      'SELECT id, nombre, password, email, num_telefono FROM usuarios WHERE nombre = $1',
+      'SELECT id, nombre, password, email, num_telefono FROM usuarios WHERE email = $1',
       [nombre]
     );
     const usuario = result.rows[0];
     client.release();
 
     if (!usuario) {
-      return NextResponse.json({ message: 'Usuario no encontrado' }, { status: 401 });
+      return NextResponse.json({ message: 'Correo no encontrado' }, { status: 401 });
     }
 
    

@@ -164,7 +164,7 @@ export default function Navbar() {
       {isLogoutModalOpen && (
         <div className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md"
         onClick={(e) => {
-          // Verifica si el clic fue directamente en el contenedor (fuera del modal)
+         
           if (e.target === e.currentTarget) {
             cancelLogout();
           }

@@ -8,9 +8,9 @@ export default function Configuracion() {
     
     <div className="font-sans bg-gray-100 text-gray-900">
       <div className="flex">
-        <Navbar /> {/* Navbar principal que puede ser global */}
+        <Navbar /> 
         <main className="w-full p-8">
-          {/* Navbar específico de configuración */}
+          
           <SectionNavbar />
           <h1>Selecciona uno de los items de arriba para configurarlos</h1>
         </main>

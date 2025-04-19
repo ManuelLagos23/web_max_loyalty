@@ -13,9 +13,9 @@ export default function Home() {
 
          
           <main 
-            className="w-3/5 p-8 bg-white bg-opacity-90 rounded-lg" 
+            className="w-5/5 p-8 bg-white bg-opacity-90 rounded-lg" 
             style={{
-              backgroundImage: 'url("/images/logo-max-loyalty-bg.png")',
+              backgroundImage: 'url("/images/logo-max-loyalty-black.png")',
               backgroundSize: 'cover',
               backgroundPosition: 'center',
               backgroundRepeat: 'no-repeat',

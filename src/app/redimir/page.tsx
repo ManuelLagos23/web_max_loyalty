@@ -26,7 +26,7 @@ export default function Canjeados() {
   });
   const [canjeadoSeleccionado, setCanjeadoSeleccionado] = useState<Canjeado | null>(null);
   const [canjeadoAEliminar, setCanjeadoAEliminar] = useState<Canjeado | null>(null);
-  const [searchTerm, setSearchTerm] = useState(''); // Estado para el término de búsqueda
+  const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
 
@@ -168,16 +168,16 @@ export default function Canjeados() {
     fetchCanjeados();
   }, [fetchCanjeados]);
 
-  // Filtrar canjeados según el término de búsqueda
+ 
   const filteredCanjeados = canjeados.filter((canjeado) =>
     Object.values(canjeado)
-      .map((value) => String(value)) // Convertir todos los valores a string
+      .map((value) => String(value))
       .join(' ')
       .toLowerCase()
       .includes(searchTerm.toLowerCase())
   );
 
-  // Cálculo de paginación basado en los canjeados filtrados
+ 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentCanjeados = filteredCanjeados.slice(indexOfFirstItem, indexOfLastItem);
@@ -196,12 +196,36 @@ export default function Canjeados() {
       <div className="flex">
         <Navbar />
         <main className="w-4/5 p-8">
-          <h1 className="text-4xl font-semibold mb-4">Gestión de Canjeados</h1>
-          <p className="text-lg text-gray-700 mb-4">
-            Administra los canjeados registrados en la plataforma.
-          </p>
 
-     
+        <div className="space-y-6">
+
+
+<h1 
+className="text-4xl font-bold text-gray-900 mb-4 tracking-tight 
+bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
+transition-all duration-300 hover:scale-105 text-center"
+>
+Gestión de Canjeados
+</h1>
+<p 
+className="text-center text-black leading-relaxed max-w-2xl
+p-4 rounded-lg transition-all duration-300 hover:shadow-md mx-auto"
+>
+
+Administra los puntos canjeados registrados en la plataforma.
+</p>
+</div>
+
+
+
+<div className="flex justify-between mb-4">
+            <button onClick={() => openPopup('agregar')} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+              Agregar Canjeado
+            </button>
+       
+          </div>
+
+          
           <div className="mb-6">
             <input
               type="text"
@@ -213,13 +237,6 @@ export default function Canjeados() {
               }}
               className="w-2/5 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-          </div>
-
-          <div className="flex justify-between mb-4">
-            <button onClick={() => openPopup('agregar')} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-              Agregar Canjeado
-            </button>
-       
           </div>
 
           {isPopupOpen && (

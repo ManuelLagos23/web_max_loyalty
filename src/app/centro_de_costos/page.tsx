@@ -49,7 +49,7 @@ export default function Costos() {
   });
   const [costoSeleccionado, setCostoSeleccionado] = useState<Costo | null>(null);
   const [costoAEliminar, setCostoAEliminar] = useState<Costo | null>(null);
-  const [searchTerm, setSearchTerm] = useState(''); // Estado para el término de búsqueda
+  const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(5);
 
@@ -246,7 +246,6 @@ export default function Costos() {
     fetchEmpresas();
   }, [fetchCostos, fetchPaises, fetchEstados, fetchEmpresas, currentPage]);
 
-  // Filtrar costos según el término de búsqueda
   const filteredCostos = costos.filter((costo) =>
     Object.values(costo)
       .join(' ')
@@ -276,12 +275,31 @@ export default function Costos() {
       <div className="flex">
         <Navbar />
         <main className="w-4/5 p-8">
-          <h1 className="text-4xl font-semibold mb-4">Gestión de costos</h1>
-          <p className="text-lg text-gray-700 mb-4">
-            Administra los Centros de Costos registrados en la plataforma.
-          </p>
+          <div className="space-y-6">
+            <h1
+              className="text-4xl font-bold text-gray-900 mb-4 tracking-tight 
+              bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
+              transition-all duration-300 hover:scale-105 text-center"
+            >
+              Gestión de Costos
+            </h1>
+            <p
+              className="text-center text-black leading-relaxed max-w-2xl
+              p-4 rounded-lg transition-all duration-300 hover:shadow-md mx-auto"
+            >
+              Administra los Centros de Costos registrados en la plataforma.
+            </p>
+          </div>
 
-          {/* Buscador */}
+          <div className="flex justify-between mb-4">
+            <button
+              onClick={() => openPopup('agregar')}
+              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+            >
+              Agregar costo
+            </button>
+          </div>
+
           <div className="mb-6">
             <input
               type="text"
@@ -289,27 +307,20 @@ export default function Costos() {
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
-                setCurrentPage(1); // Reinicia la paginación al buscar
+                setCurrentPage(1);
               }}
               className="w-2/5 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
-          <div className="flex justify-between mb-4">
-            <button onClick={() => openPopup('agregar')} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-              Agregar costo
-            </button>
-         
-          </div>
-
           {isPopupOpen && (
-            <div className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md"
-            onClick={(e) => {
-            
-              if (e.target === e.currentTarget) {
-                closePopup();
-              }
-            }}
+            <div
+              className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md"
+              onClick={(e) => {
+                if (e.target === e.currentTarget) {
+                  closePopup();
+                }
+              }}
             >
               <div className="bg-white p-6 rounded shadow-lg w-2/5">
                 <h2 className="text-2xl font-semibold mb-4 text-center">
@@ -339,7 +350,7 @@ export default function Costos() {
                       >
                         <option value="">Seleccionar empresa</option>
                         {empresas.map((empresa) => (
-                          <option key={empresa.id} value={empresa.nombre_empresa}>
+                          <option key={empresa.id} value={empresa.id}>
                             {empresa.nombre_empresa}
                           </option>
                         ))}
@@ -347,65 +358,64 @@ export default function Costos() {
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                    <div className="mb-4">
-                      <label htmlFor="pais">País</label>
-                      <select
-                        name="pais"
-                        value={formData.pais}
-                        onChange={handleInputChange}
-                        className="w-full p-2 mb-2 border border-gray-300 rounded"
-                      >
-                        <option value="">Seleccionar país</option>
-                        {paises.map((pais) => (
-                          <option key={pais.id} value={pais.pais}>
-                            {pais.pais}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                
-                    <div className="mb-4">
-                      <label htmlFor="estado">Estado</label>
-                      <select
-                        name="estado"
-                        value={formData.estado}
-                        onChange={handleInputChange}
-                        className="w-full p-2 mb-2 border border-gray-300 rounded"
-                      >
-                        <option value="">Seleccionar estado</option>
-                        {estados.map((estado) => (
-                          <option key={estado.id} value={estado.estado}>
-                            {estado.estado}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                      <div className="mb-4">
+                        <label htmlFor="pais">País</label>
+                        <select
+                          name="pais"
+                          value={formData.pais}
+                          onChange={handleInputChange}
+                          className="w-full p-2 mb-2 border border-gray-300 rounded"
+                        >
+                          <option value="">Seleccionar país</option>
+                          {paises.map((pais) => (
+                            <option key={pais.id} value={pais.pais}>
+                              {pais.pais}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="mb-4">
+                        <label htmlFor="estado">Estado</label>
+                        <select
+                          name="estado"
+                          value={formData.estado}
+                          onChange={handleInputChange}
+                          className="w-full p-2 mb-2 border border-gray-300 rounded"
+                        >
+                          <option value="">Seleccionar estado</option>
+                          {estados.map((estado) => (
+                            <option key={estado.id} value={estado.estado}>
+                              {estado.estado}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                    <div className="mb-4">
-                      <label htmlFor="ciudad">Ciudad</label>
-                      <input
-                        type="text"
-                        name="ciudad"
-                        placeholder="Ciudad"
-                        value={formData.ciudad}
-                        onChange={handleInputChange}
-                        className="w-full p-2 mb-2 border border-gray-300 rounded"
-                      />
+                      <div className="mb-4">
+                        <label htmlFor="ciudad">Ciudad</label>
+                        <input
+                          type="text"
+                          name="ciudad"
+                          placeholder="Ciudad"
+                          value={formData.ciudad}
+                          onChange={handleInputChange}
+                          className="w-full p-2 mb-2 border border-gray-300 rounded"
+                        />
+                      </div>
+                      <div className="mb-4">
+                        <label htmlFor="alias">Alias</label>
+                        <input
+                          type="text"
+                          name="alias"
+                          placeholder="Alias"
+                          value={formData.alias}
+                          onChange={handleInputChange}
+                          className="w-full p-2 mb-2 border border-gray-300 rounded"
+                        />
+                      </div>
                     </div>
-                    <div className="mb-4">
-                      <label htmlFor="alias">Alias</label>
-                      <input
-                        type="text"
-                        name="alias"
-                        placeholder="Alias"
-                        value={formData.alias}
-                        onChange={handleInputChange}
-                        className="w-full p-2 mb-2 border border-gray-300 rounded"
-                      />
-                    </div>
-                  </div>
                     <div className="mb-4">
                       <label htmlFor="codigo">Código</label>
                       <input
@@ -425,7 +435,10 @@ export default function Costos() {
                       >
                         Cancelar
                       </button>
-                      <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                      <button
+                        type="submit"
+                        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                      >
                         Guardar
                       </button>
                     </div>
@@ -453,71 +466,69 @@ export default function Costos() {
                       >
                         <option value="">Seleccionar empresa</option>
                         {empresas.map((empresa) => (
-                          <option key={empresa.id} value={empresa.nombre_empresa}>
+                          <option key={empresa.id} value={empresa.id}>
                             {empresa.nombre_empresa}
                           </option>
                         ))}
                       </select>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
-                    <div className="mb-4">
-                      <label htmlFor="pais">País</label>
-                      <select
-                        name="pais"
-                        value={formData.pais}
-                        onChange={handleInputChange}
-                        className="w-full p-2 mb-2 border border-gray-300 rounded"
-                      >
-                        <option value="">Seleccionar país</option>
-                        {paises.map((pais) => (
-                          <option key={pais.id} value={pais.pais}>
-                            {pais.pais}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="mb-4">
-                      <label htmlFor="estado">Estado</label>
-                      <select
-                        name="estado"
-                        value={formData.estado}
-                        onChange={handleInputChange}
-                        className="w-full p-2 mb-2 border border-gray-300 rounded"
-                      >
-                        <option value="">Seleccionar estado</option>
-                        {estados.map((estado) => (
-                          <option key={estado.id} value={estado.estado}>
-                            {estado.estado}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
+                      <div className="mb-4">
+                        <label htmlFor="pais">País</label>
+                        <select
+                          name="pais"
+                          value={formData.pais}
+                          onChange={handleInputChange}
+                          className="w-full p-2 mb-2 border border-gray-300 rounded"
+                        >
+                          <option value="">Seleccionar país</option>
+                          {paises.map((pais) => (
+                            <option key={pais.id} value={pais.pais}>
+                              {pais.pais}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="mb-4">
+                        <label htmlFor="estado">Estado</label>
+                        <select
+                          name="estado"
+                          value={formData.estado}
+                          onChange={handleInputChange}
+                          className="w-full p-2 mb-2 border border-gray-300 rounded"
+                        >
+                          <option value="">Seleccionar estado</option>
+                          {estados.map((estado) => (
+                            <option key={estado.id} value={estado.estado}>
+                              {estado.estado}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
-                    <div className="mb-4">
-                      <label htmlFor="ciudad">Ciudad</label>
-                      <input
-                        type="text"
-                        name="ciudad"
-                        placeholder="Ciudad"
-                        value={formData.ciudad}
-                        onChange={handleInputChange}
-                        className="w-full p-2 mb-2 border border-gray-300 rounded"
-                      />
-                    </div>
-                    <div className="mb-4">
-                      <label htmlFor="alias">Alias</label>
-                      <input
-                        type="text"
-                        name="alias"
-                        placeholder="Alias"
-                        value={formData.alias}
-                        onChange={handleInputChange}
-                        className="w-full p-2 mb-2 border border-gray-300 rounded"
-                      />
-                    </div>
-
+                      <div className="mb-4">
+                        <label htmlFor="ciudad">Ciudad</label>
+                        <input
+                          type="text"
+                          name="ciudad"
+                          placeholder="Ciudad"
+                          value={formData.ciudad}
+                          onChange={handleInputChange}
+                          className="w-full p-2 mb-2 border border-gray-300 rounded"
+                        />
+                      </div>
+                      <div className="mb-4">
+                        <label htmlFor="alias">Alias</label>
+                        <input
+                          type="text"
+                          name="alias"
+                          placeholder="Alias"
+                          value={formData.alias}
+                          onChange={handleInputChange}
+                          className="w-full p-2 mb-2 border border-gray-300 rounded"
+                        />
+                      </div>
                     </div>
                     <div className="mb-4">
                       <label htmlFor="codigo">Código</label>
@@ -538,7 +549,10 @@ export default function Costos() {
                       >
                         Cancelar
                       </button>
-                      <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                      <button
+                        type="submit"
+                        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                      >
                         Guardar
                       </button>
                     </div>
@@ -549,26 +563,24 @@ export default function Costos() {
           )}
 
           {isDeletePopupOpen && costoAEliminar && (
-            <div className="fixed inset-0 flex justify-center items-center z-50  backdrop-blur-md"
-            onClick={(e) => {
-            
-              if (e.target === e.currentTarget) {
-                closeDeletePopup();
-              }
-            }}
+            <div
+              className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md"
+              onClick={(e) => {
+                if (e.target === e.currentTarget) {
+                  closeDeletePopup();
+                }
+              }}
             >
               <div className="bg-white p-6 rounded shadow-lg w-2/5">
                 <h2 className="text-xl font-semibold mb-4">Eliminar Costo</h2>
                 <p>¿Está seguro de que desea eliminar el costo {costoAEliminar.nombre_centro_costos}?</p>
                 <div className="flex justify-between mt-4">
-              
                   <button
                     onClick={closeDeletePopup}
                     className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
                   >
                     Cancelar
                   </button>
-
                   <button
                     onClick={handleDelete}
                     className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
@@ -583,7 +595,7 @@ export default function Costos() {
           <table className="table-auto bg-white w-full">
             <thead>
               <tr className="bg-gray-200">
-                <th className="px-4 py-2 text-left">ID</th>
+                <th className="px-4 py-2 text-left">#</th>
                 <th className="px-4 py-2 text-left">Centro de Costos</th>
                 <th className="px-4 py-2 text-left">Empresa</th>
                 <th className="px-4 py-2 text-left">País</th>
@@ -600,7 +612,9 @@ export default function Costos() {
                   <tr className="hover:bg-gray-50" key={costo.id}>
                     <td className="px-4 py-2">{indexOfFirstItem + index + 1}</td>
                     <td className="px-4 py-2">{costo.nombre_centro_costos}</td>
-                    <td className="px-4 py-2">{costo.empresa}</td>
+                    <td className="px-4 py-2">
+                      {empresas.find((empresa) => empresa.id === parseInt(costo.empresa))?.nombre_empresa || 'Desconocida'}
+                    </td>
                     <td className="px-4 py-2">{costo.pais}</td>
                     <td className="px-4 py-2">{costo.estado}</td>
                     <td className="px-4 py-2">{costo.ciudad}</td>

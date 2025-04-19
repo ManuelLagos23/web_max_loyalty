@@ -278,13 +278,29 @@ export default function Clientes() {
       <div className="flex">
         <Navbar />
         <main className="w-4/5 p-8">
-          <h1 className="text-4xl font-semibold mb-4">Gestión de consumidores</h1>
-          <p className="text-lg text-gray-700 mb-4">
-            Administra los consumidores registrados en la plataforma.
-          </p>
+
+        <div className="space-y-6">
+
+
+         <h1 
+       className="text-4xl font-bold text-gray-900 mb-4 tracking-tight 
+     bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
+     transition-all duration-300 hover:scale-105 text-center"
+        >
+        Gestión de Consumidores
+       </h1>
+       <p 
+       className="text-center text-black leading-relaxed max-w-2xl
+       p-4 rounded-lg transition-all duration-300 hover:shadow-md mx-auto"
+       >
+
+       Administra los consumidores registrados en la plataforma.
+       </p>
+</div>
+         
           <div className="flex justify-between mb-4">
             <button onClick={() => openPopup('agregar')} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-              Agregar cliente
+              Agregar consumidor
             </button>
        
           </div>
@@ -302,7 +318,7 @@ export default function Clientes() {
           <table className="min-w-full bg-white border border-gray-200 rounded shadow-md">
             <thead>
               <tr className="bg-gray-200">
-                <th className="px-4 py-2 text-left">ID</th>
+                <th className="px-4 py-2 text-left">#</th>
                 <th className="px-4 py-2 text-left">Nombre</th>
                 <th className="px-4 py-2 text-left">País</th>
                 <th className="px-4 py-2 text-left">Estado</th>
@@ -622,7 +638,7 @@ export default function Clientes() {
           {isDeletePopupOpen && (
             <div className="fixed inset-0 flex justify-center items-center z-50   backdrop-blur-md "
             onClick={(e) => {
-              // Verifica si el clic fue directamente en el contenedor (fuera del modal)
+            
               if (e.target === e.currentTarget) {
                 closeDeletePopup();
               }

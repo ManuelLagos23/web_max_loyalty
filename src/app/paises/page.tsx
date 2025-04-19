@@ -137,8 +137,34 @@ export default function Paises() {
         <Navbar />
         <main className="w-full p-8">
           <SectionNavbar />
-          <h1 className="text-4xl font-semibold mb-4">Países</h1>
-          <p className="text-lg text-gray-700 mb-4">Configura los países disponibles en la aplicación.</p>
+          <div className="space-y-6">
+
+
+<h1 
+className="text-4xl font-bold text-gray-900 mb-4 tracking-tight 
+bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
+transition-all duration-300 hover:scale-105 text-center"
+>
+Gestión de Países
+</h1>
+<p 
+className="text-center text-black leading-relaxed max-w-2xl
+p-4 rounded-lg transition-all duration-300 hover:shadow-md mx-auto"
+>
+
+Configura los países disponibles en la aplicación.
+</p>
+</div>
+
+
+<div className="flex justify-between mb-4">
+<button
+            onClick={() => setIsAddModalOpen(true)}
+            className="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          >
+            Agregar país
+          </button>
+          </div>
 
           <div className="mb-6">
             <input
@@ -153,17 +179,11 @@ export default function Paises() {
             />
           </div>
 
-          <button
-            onClick={() => setIsAddModalOpen(true)}
-            className="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          >
-            Agregar país
-          </button>
-
+       
           <table className="mt-6 w-full table-auto border-collapse border-gray-300">
             <thead className="bg-gray-200">
               <tr>
-                <th className="px-4 py-2">ID</th>
+                <th className="px-4 py-2">#</th>
                 <th className="px-4 py-2">Nombre del País</th>
                 <th className="px-4 py-2">Acciones</th>
               </tr>
@@ -273,7 +293,7 @@ export default function Paises() {
             </div>
           )}
 
-          {/* Modal para actualizar país */}
+         
           {isUpdateModalOpen && paisToUpdate && (
             <div
               className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-md"
@@ -319,7 +339,7 @@ export default function Paises() {
             </div>
           )}
 
-          {/* Modal para eliminar país */}
+       
           {isDeleteModalOpen && paisToDelete && (
             <div
               className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-md"

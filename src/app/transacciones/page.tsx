@@ -148,8 +148,35 @@ export default function Transacciones() {
       <div className="flex">
         <Navbar />
         <main className="w-full p-8">
-          <h1 className="text-4xl font-semibold mb-4">Transacciones</h1>
-          <p className="text-lg text-gray-700 mb-4">Configura lasknock transacciones realizadas en la aplicación.</p>
+
+        <div className="space-y-6">
+
+
+<h1 
+className="text-4xl font-bold text-gray-900 mb-4 tracking-tight 
+bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
+transition-all duration-300 hover:scale-105 text-center"
+>
+Gestión de Transacciones
+</h1>
+<p 
+className="text-center text-black leading-relaxed max-w-2xl
+p-4 rounded-lg transition-all duration-300 hover:shadow-md mx-auto"
+>
+
+Administra las transacciones de Max Loyalty.
+</p>
+</div>
+       
+<div className="flex justify-between mb-4">
+           <button
+            onClick={() => setIsAddModalOpen(true)}
+            className="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          >
+            Agregar Transacción
+          </button>
+
+           </div>
 
           <div className="mb-6">
             <input
@@ -164,13 +191,7 @@ export default function Transacciones() {
             />
           </div>
 
-          <button
-            onClick={() => setIsAddModalOpen(true)}
-            className="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          >
-            Agregar Transacción
-          </button>
-
+      
           <table className="mt-6 w-full bg-white table-auto border-collapse border-gray-300">
             <thead className="bg-gray-200">
               <tr>
@@ -194,7 +215,7 @@ export default function Transacciones() {
                     <td className="px-4 py-2 text-center">{indexOfFirstItem + index + 1}</td>
                     <td className="px-4 py-2 text-center">{transaccion.cliente_id}</td>
                     <td className="px-4 py-2 text-center">{transaccion.establecimiento_id}</td>
-                    <td className="px-4 py-2 text-center">{transaccion.fecha}</td>
+                    
                     <td className="px-4 py-2">{new Date(transaccion.fecha).toLocaleDateString()}</td>
                     <td className="px-4 py-2 text-center">{transaccion.monto}</td>
                     <td className="px-4 py-2 text-center">{transaccion.terminal_id}</td>
@@ -249,7 +270,7 @@ export default function Transacciones() {
             </button>
           </div>
 
-          {/* Modal para agregar transacción */}
+         
           {isAddModalOpen && (
             <div
               className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-md"
@@ -347,7 +368,7 @@ export default function Transacciones() {
             </div>
           )}
 
-          {/* Modal para actualizar transacción */}
+    
           {isUpdateModalOpen && transaccionToUpdate && (
             <div
               className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-md"
@@ -445,7 +466,7 @@ export default function Transacciones() {
             </div>
           )}
 
-          {/* Modal para eliminar transacción */}
+          
           {isDeleteModalOpen && transaccionToDelete && (
             <div
               className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-md"

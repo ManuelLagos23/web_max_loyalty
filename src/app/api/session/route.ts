@@ -1,3 +1,4 @@
+
 // app/api/session/route.js
 import { NextRequest, NextResponse } from 'next/server';
 import { pool } from '@/lib/db';
@@ -12,7 +13,7 @@ export async function GET(request: NextRequest) {
     const session = JSON.parse(sessionCookie.value);
     const client = await pool.connect();
     const result = await client.query(
-      'SELECT id, nombre, email, num_telefono FROM usuarios WHERE id = $1',
+      'SELECT id, nombre, email, num_telefono, img FROM usuarios WHERE id = $1',
       [session.id]
     );
     const usuario = result.rows[0];
@@ -22,11 +23,19 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ message: 'Usuario no encontrado' }, { status: 401 });
     }
 
-    return NextResponse.json({ 
-      id: usuario.id, 
-      nombre: usuario.nombre, 
-      email: usuario.email, 
-      num_telefono: usuario.num_telefono 
+    
+    let imgBase64 = null;
+    if (usuario.img) {
+      const buffer = Buffer.from(usuario.img); // Convertir bytea a Buffer
+      imgBase64 = `data:image/jpeg;base64,${buffer.toString('base64')}`; // Crear Data URL
+    }
+
+    return NextResponse.json({
+      id: usuario.id,
+      nombre: usuario.nombre,
+      email: usuario.email,
+      num_telefono: usuario.num_telefono,
+      img: imgBase64, // Incluir la imagen como Data URL o null
     });
   } catch (error) {
     console.error('Error al obtener sesión:', error);

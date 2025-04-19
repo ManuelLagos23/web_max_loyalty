@@ -1,3 +1,5 @@
+
+// src/app/terminales/page.tsx
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -14,6 +16,17 @@ interface Terminal {
   id_activacion?: string | null;
 }
 
+interface Costo {
+  id: number;
+  nombre_centro_costos: string;
+  empresa: string;
+}
+
+interface Empresa {
+  id: number;
+  nombre_empresa: string;
+}
+
 export default function Terminales() {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false);
@@ -21,6 +34,8 @@ export default function Terminales() {
   const [isDeactivationPopupOpen, setIsDeactivationPopupOpen] = useState(false);
   const [activationCode, setActivationCode] = useState('');
   const [terminales, setTerminales] = useState<Terminal[]>([]);
+  const [costos, setCostos] = useState<Costo[]>([]);
+  const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [formData, setFormData] = useState({
     id: 0,
     empresa: '',
@@ -156,7 +171,7 @@ export default function Terminales() {
     setIsActivationPopupOpen(false);
     setActivationCode('');
     setTerminalAActivar(null);
-    window.location.reload(); // Recargar la página al cerrar el modal
+    window.location.reload();
   };
 
   const openPopup = (modo: 'agregar' | 'editar') => {
@@ -185,9 +200,14 @@ export default function Terminales() {
     setIsDeletePopupOpen(false);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    if (name === 'empresa') {
+      // Reiniciar estacion_servicio cuando cambia la empresa
+      setFormData({ ...formData, empresa: value, estacion_servicio: '' });
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
   };
 
   const handleSubmitAgregar = async (e: React.FormEvent) => {
@@ -281,6 +301,34 @@ export default function Terminales() {
     }
   }, [currentPage, itemsPerPage]);
 
+  const fetchCostos = useCallback(async () => {
+    try {
+      const response = await fetch('/api/costos');
+      if (response.ok) {
+        const data: Costo[] = await response.json();
+        setCostos(data);
+      } else {
+        console.error('Error al obtener los costos');
+      }
+    } catch (error) {
+      console.error('Error en la solicitud:', error);
+    }
+  }, []);
+
+  const fetchEmpresas = useCallback(async () => {
+    try {
+      const response = await fetch('/api/empresas');
+      if (response.ok) {
+        const data: Empresa[] = await response.json();
+        setEmpresas(data);
+      } else {
+        console.error('Error al obtener las empresas');
+      }
+    } catch (error) {
+      console.error('Error en la solicitud:', error);
+    }
+  }, []);
+
   const handleEditar = (terminal: Terminal) => {
     setTerminalSeleccionado(terminal);
     setFormData({
@@ -295,7 +343,9 @@ export default function Terminales() {
 
   useEffect(() => {
     fetchTerminales();
-  }, [fetchTerminales]);
+    fetchCostos();
+    fetchEmpresas();
+  }, [fetchTerminales, fetchCostos, fetchEmpresas]);
 
   const filteredTerminales = terminales.filter((terminal) =>
     Object.values(terminal)
@@ -322,16 +372,41 @@ export default function Terminales() {
     }
   };
 
+  // Filtrar centros de costos según la empresa seleccionada
+  const filteredCostos = formData.empresa
+    ? costos.filter((costo) => costo.empresa === formData.empresa)
+    : [];
+
   return (
     <div className="font-sans bg-gray-100 text-gray-900">
       <div className="flex">
         <Navbar />
         <main className="w-full p-8">
           <SectionNavbar />
-          <h1 className="text-4xl font-semibold mb-4">Gestión de terminales</h1>
-          <p className="text-lg text-gray-700 mb-4">
-            Administra los terminales registrados en la plataforma.
-          </p>
+          <div className="space-y-6">
+            <h1
+              className="text-4xl font-bold text-gray-900 mb-4 tracking-tight 
+              bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
+              transition-all duration-300 hover:scale-105 text-center"
+            >
+              Gestión de Terminales
+            </h1>
+            <p
+              className="text-center text-black leading-relaxed max-w-2xl
+              p-4 rounded-lg transition-all duration-300 hover:shadow-md mx-auto"
+            >
+              Administra los terminales registrados en la plataforma.
+            </p>
+          </div>
+
+          <div className="flex justify-between mb-4">
+            <button
+              onClick={() => openPopup('agregar')}
+              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+            >
+              Agregar terminal
+            </button>
+          </div>
 
           <div className="mb-6">
             <input
@@ -346,20 +421,10 @@ export default function Terminales() {
             />
           </div>
 
-          <div className="flex justify-between mb-4">
-            <button
-              onClick={() => openPopup('agregar')}
-              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-            >
-              Agregar terminal
-            </button>
-          
-          </div>
-
           <table className="min-w-full bg-white table-auto">
             <thead className="bg-gray-200">
               <tr className="bg-gray-200">
-                <th className="px-4 py-2 text-left">ID</th>
+                <th className="px-4 py-2 text-left">#</th>
                 <th className="px-4 py-2 text-left">Empresa</th>
                 <th className="px-4 py-2 text-left">Estación de servicio</th>
                 <th className="px-4 py-2 text-left">Código terminal</th>
@@ -374,8 +439,12 @@ export default function Terminales() {
                   return (
                     <tr className="hover:bg-gray-50" key={terminal.id}>
                       <td className="px-4 py-2">{indexOfFirstItem + index + 1}</td>
-                      <td className="px-4 py-2">{terminal.empresa}</td>
-                      <td className="px-4 py-2">{terminal.estacion_servicio}</td>
+                      <td className="px-4 py-2">
+                        {empresas.find((e) => e.id === parseInt(terminal.empresa))?.nombre_empresa || 'Desconocida'}
+                      </td>
+                      <td className="px-4 py-2">
+                        {costos.find((c) => c.id === parseInt(terminal.estacion_servicio))?.nombre_centro_costos || 'Desconocida'}
+                      </td>
                       <td className="px-4 py-2">{terminal.codigo_terminal}</td>
                       <td className="px-4 py-2">{terminal.nombre_terminal}</td>
                       <td className="px-4 py-2">
@@ -453,42 +522,69 @@ export default function Terminales() {
                 {terminalSeleccionado ? (
                   <form onSubmit={handleSubmitEditar}>
                     <input type="hidden" name="id" value={formData.id} />
-                    <label htmlFor="empresa">Empresa</label>
-                    <input
-                      type="text"
-                      name="empresa"
-                      placeholder="Empresa"
-                      value={formData.empresa}
-                      onChange={handleInputChange}
-                      className="w-full p-2 mb-2 border border-gray-300 rounded"
-                    />
-                    <label htmlFor="estacion_servicio">Estación de servicio</label>
-                    <input
-                      type="text"
-                      name="estacion_servicio"
-                      placeholder="Estación de servicio"
-                      value={formData.estacion_servicio}
-                      onChange={handleInputChange}
-                      className="w-full p-2 mb-2 border border-gray-300 rounded"
-                    />
-                    <label htmlFor="codigo_terminal">Código terminal</label>
-                    <input
-                      type="text"
-                      name="codigo_terminal"
-                      placeholder="Código terminal"
-                      value={formData.codigo_terminal}
-                      onChange={handleInputChange}
-                      className="w-full p-2 mb-2 border border-gray-300 rounded"
-                    />
-                    <label htmlFor="nombre_terminal">Nombre terminal</label>
-                    <input
-                      type="text"
-                      name="nombre_terminal"
-                      placeholder="Nombre terminal"
-                      value={formData.nombre_terminal}
-                      onChange={handleInputChange}
-                      className="w-full p-2 mb-2 border border-gray-300 rounded"
-                    />
+                    <div className="mb-4">
+                      <label htmlFor="empresa" className="block text-sm font-medium text-gray-700">
+                        Empresa
+                      </label>
+                      <select
+                        name="empresa"
+                        value={formData.empresa}
+                        onChange={handleInputChange}
+                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">Seleccione una empresa</option>
+                        {empresas.map((empresa) => (
+                          <option key={empresa.id} value={empresa.id}>
+                            {empresa.nombre_empresa}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="mb-4">
+                      <label htmlFor="estacion_servicio" className="block text-sm font-medium text-gray-700">
+                        Estación de servicio
+                      </label>
+                      <select
+                        name="estacion_servicio"
+                        value={formData.estacion_servicio}
+                        onChange={handleInputChange}
+                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        disabled={!formData.empresa}
+                      >
+                        <option value="">Seleccione una estación</option>
+                        {filteredCostos.map((costo) => (
+                          <option key={costo.id} value={costo.id}>
+                            {costo.nombre_centro_costos}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="mb-4">
+                      <label htmlFor="codigo_terminal" className="block text-sm font-medium text-gray-700">
+                        Código terminal
+                      </label>
+                      <input
+                        type="text"
+                        name="codigo_terminal"
+                        placeholder="Código terminal"
+                        value={formData.codigo_terminal}
+                        onChange={handleInputChange}
+                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div className="mb-4">
+                      <label htmlFor="nombre_terminal" className="block text-sm font-medium text-gray-700">
+                        Nombre terminal
+                      </label>
+                      <input
+                        type="text"
+                        name="nombre_terminal"
+                        placeholder="Nombre terminal"
+                        value={formData.nombre_terminal}
+                        onChange={handleInputChange}
+                        className="w-full p-2 border border-gray-300 rounded focus-outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
                     <div className="flex justify-between">
                       <button
                         type="button"
@@ -507,42 +603,69 @@ export default function Terminales() {
                   </form>
                 ) : (
                   <form onSubmit={handleSubmitAgregar}>
-                    <label htmlFor="empresa">Empresa</label>
-                    <input
-                      type="text"
-                      name="empresa"
-                      placeholder="Empresa"
-                      value={formData.empresa}
-                      onChange={handleInputChange}
-                      className="w-full p-2 mb-2 border border-gray-300 rounded"
-                    />
-                    <label htmlFor="estacion_servicio">Estación de servicio</label>
-                    <input
-                      type="text"
-                      name="estacion_servicio"
-                      placeholder="Estación de servicio"
-                      value={formData.estacion_servicio}
-                      onChange={handleInputChange}
-                      className="w-full p-2 mb-2 border border-gray-300 rounded"
-                    />
-                    <label htmlFor="codigo_terminal">Código terminal</label>
-                    <input
-                      type="text"
-                      name="codigo_terminal"
-                      placeholder="Código terminal"
-                      value={formData.codigo_terminal}
-                      onChange={handleInputChange}
-                      className="w-full p-2 mb-2 border border-gray-300 rounded"
-                    />
-                    <label htmlFor="nombre_terminal">Nombre terminal</label>
-                    <input
-                      type="text"
-                      name="nombre_terminal"
-                      placeholder="Nombre terminal"
-                      value={formData.nombre_terminal}
-                      onChange={handleInputChange}
-                      className="w-full p-2 mb-2 border border-gray-300 rounded"
-                    />
+                    <div className="mb-4">
+                      <label htmlFor="empresa" className="block text-sm font-medium text-gray-700">
+                        Empresa
+                      </label>
+                      <select
+                        name="empresa"
+                        value={formData.empresa}
+                        onChange={handleInputChange}
+                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">Seleccione una empresa</option>
+                        {empresas.map((empresa) => (
+                          <option key={empresa.id} value={empresa.id}>
+                            {empresa.nombre_empresa}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="mb-4">
+                      <label htmlFor="estacion_servicio" className="block text-sm font-medium text-gray-700">
+                        Estación de servicio
+                      </label>
+                      <select
+                        name="estacion_servicio"
+                        value={formData.estacion_servicio}
+                        onChange={handleInputChange}
+                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        disabled={!formData.empresa}
+                      >
+                        <option value="">Seleccione una estación</option>
+                        {filteredCostos.map((costo) => (
+                          <option key={costo.id} value={costo.id}>
+                            {costo.nombre_centro_costos}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="mb-4">
+                      <label htmlFor="codigo_terminal" className="block text-sm font-medium text-gray-700">
+                        Código terminal
+                      </label>
+                      <input
+                        type="text"
+                        name="codigo_terminal"
+                        placeholder="Código terminal"
+                        value={formData.codigo_terminal}
+                        onChange={handleInputChange}
+                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div className="mb-4">
+                      <label htmlFor="nombre_terminal" className="block text-sm font-medium text-gray-700">
+                        Nombre terminal
+                      </label>
+                      <input
+                        type="text"
+                        name="nombre_terminal"
+                        placeholder="Nombre terminal"
+                        value={formData.nombre_terminal}
+                        onChange={handleInputChange}
+                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
                     <div className="flex justify-between">
                       <button
                         type="button"

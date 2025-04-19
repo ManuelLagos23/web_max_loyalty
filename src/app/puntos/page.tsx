@@ -26,10 +26,10 @@ export default function Puntos() {
   });
   const [puntoSeleccionado, setPuntoSeleccionado] = useState<Punto | null>(null);
   const [puntoAEliminar, setPuntoAEliminar] = useState<Punto | null>(null);
-  const [searchTerm, setSearchTerm] = useState(''); // Buscador para tabla detallada
-  const [groupedSearchTerm, setGroupedSearchTerm] = useState(''); // Buscador para tabla agrupada
-  const [currentPage, setCurrentPage] = useState(1); // Paginación para tabla detallada
-  const [groupedCurrentPage, setGroupedCurrentPage] = useState(1); // Paginación para tabla agrupada
+  const [searchTerm, setSearchTerm] = useState(''); 
+  const [groupedSearchTerm, setGroupedSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1); 
+  const [groupedCurrentPage, setGroupedCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const [isGrouped, setIsGrouped] = useState(false);
 
@@ -175,7 +175,7 @@ export default function Puntos() {
     fetchPuntos();
   }, [fetchPuntos]);
 
-  // Filtrar puntos según el término de búsqueda (tabla detallada)
+
   const filteredPuntos = puntos.filter((punto) =>
     Object.values(punto)
       .map((value) => String(value))
@@ -184,13 +184,13 @@ export default function Puntos() {
       .includes(searchTerm.toLowerCase())
   );
 
-  // Paginación para tabla detallada
+ 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentPuntos = filteredPuntos.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(filteredPuntos.length / itemsPerPage);
 
-  // Funciones para cambiar de página (tabla detallada)
+ 
   const handleNextPage = () => {
     if (currentPage < totalPages) {
       setCurrentPage(currentPage + 1);
@@ -203,7 +203,7 @@ export default function Puntos() {
     }
   };
 
-  // Interfaz para los datos agrupados
+
   interface GroupedData {
     cliente_id: number;
     sumDebe: number;
@@ -211,7 +211,7 @@ export default function Puntos() {
     diferencia: number;
   }
 
-  // Función para agrupar los datos por cliente_id
+
   const groupByClienteId = (): GroupedData[] => {
     const groupedData = puntos.reduce((acc, punto) => {
       const { cliente_id, debe, haber } = punto;
@@ -233,7 +233,7 @@ export default function Puntos() {
 
   const groupedDataRaw = groupByClienteId();
 
-  // Filtrar datos agrupados según el término de búsqueda
+  
   const filteredGroupedData = groupedDataRaw.filter((item) =>
     Object.values(item)
       .map((value) => String(value))
@@ -242,13 +242,13 @@ export default function Puntos() {
       .includes(groupedSearchTerm.toLowerCase())
   );
 
-  // Paginación para tabla agrupada
+  
   const groupedIndexOfLastItem = groupedCurrentPage * itemsPerPage;
   const groupedIndexOfFirstItem = groupedIndexOfLastItem - itemsPerPage;
   const currentGroupedData = filteredGroupedData.slice(groupedIndexOfFirstItem, groupedIndexOfLastItem);
   const groupedTotalPages = Math.ceil(filteredGroupedData.length / itemsPerPage);
 
-  // Funciones para cambiar de página (tabla agrupada)
+ 
   const handleGroupedNextPage = () => {
     if (groupedCurrentPage < groupedTotalPages) {
       setGroupedCurrentPage(groupedCurrentPage + 1);
@@ -266,12 +266,44 @@ export default function Puntos() {
       <div className="flex">
         <Navbar />
         <main className="w-4/5 p-8">
-          <h1 className="text-4xl font-semibold mb-4">Gestión de Puntos</h1>
-          <p className="text-lg text-gray-700 mb-4">
-            Administra los puntos registrados en la plataforma.
-          </p>
 
-          {/* Buscador para tabla detallada */}
+
+        <div className="space-y-6">
+
+
+<h1 
+className="text-4xl font-bold text-gray-900 mb-4 tracking-tight 
+bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
+transition-all duration-300 hover:scale-105 text-center"
+>
+Gestión de Puntos
+</h1>
+<p 
+className="text-center text-black leading-relaxed max-w-2xl
+p-4 rounded-lg transition-all duration-300 hover:shadow-md mx-auto"
+>
+
+Administra los puntos registrados en la plataforma.
+</p>
+</div>
+
+
+
+           
+          <div className="flex justify-between mb-4">
+            <button onClick={() => openPopup('agregar')} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+              Agregar Punto
+            </button>
+           
+            <button onClick={() => setIsGrouped(!isGrouped)} className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+              {isGrouped ? 'Mostrar Detalles' : 'Agrupar por Cliente'}
+            </button>
+          </div>
+
+       
+
+        
+        
           {!isGrouped && (
             <div className="mb-6">
               <input
@@ -287,7 +319,7 @@ export default function Puntos() {
             </div>
           )}
 
-          {/* Buscador para tabla agrupada */}
+     
           {isGrouped && (
             <div className="mb-6">
               <input
@@ -303,17 +335,6 @@ export default function Puntos() {
             </div>
           )}
 
-          <div className="flex justify-between mb-4">
-            <button onClick={() => openPopup('agregar')} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-              Agregar Punto
-            </button>
-           
-            <button onClick={() => setIsGrouped(!isGrouped)} className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
-              {isGrouped ? 'Mostrar Detalles' : 'Agrupar por Cliente'}
-            </button>
-          </div>
-
-          {/* Modal para agregar o editar */}
           {isPopupOpen && (
             <div
               className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md"
@@ -473,7 +494,7 @@ export default function Puntos() {
             </div>
           )}
 
-          {/* Tabla agrupada */}
+     
           {isGrouped ? (
             <>
               <table className="min-w-full bg-white border border-gray-200 rounded shadow-md">
@@ -505,7 +526,7 @@ export default function Puntos() {
                 </tbody>
               </table>
 
-              {/* Controles de paginación para tabla agrupada */}
+          
               <div className="mt-4 flex justify-between items-center">
                 <button
                   onClick={handleGroupedPrevPage}
@@ -528,7 +549,7 @@ export default function Puntos() {
             </>
           ) : (
             <>
-              {/* Tabla detallada */}
+           
               <table className="min-w-full bg-white border border-gray-200 rounded shadow-md">
                 <thead>
                   <tr className="bg-gray-200">
@@ -577,7 +598,7 @@ export default function Puntos() {
                 </tbody>
               </table>
 
-              {/* Controles de paginación para tabla detallada */}
+           
               <div className="mt-4 flex justify-between items-center">
                 <button
                   onClick={handlePrevPage}
@@ -600,7 +621,7 @@ export default function Puntos() {
             </>
           )}
 
-          {/* Modal de eliminación */}
+        
           {isDeletePopupOpen && puntoAEliminar && (
             <div
               className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md"

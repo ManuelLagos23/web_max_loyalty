@@ -41,13 +41,13 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="bg-white p-12 rounded-lg shadow-lg w-full max-w-lg">
         <div className="flex justify-center mb-6">
-          <Image src="/images/logo-max-loyalty-bg.png" alt="Logo" width={200} height={200} />
+          <Image src="/images/logo-max-loyalty-black.png" alt="Logo" width={250} height={250} />
         </div>
         <h1 className="text-3xl font-bold mb-8 text-center text-gray-800">Iniciar Sesión</h1>
         <form onSubmit={handleSubmit}>
           <div className="mb-6">
             <label htmlFor="nombre" className="block text-center font-medium text-gray-700">
-              Nombre
+              Correo electrónico
             </label>
             <input
               type="text"

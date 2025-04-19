@@ -261,7 +261,7 @@ export default function Usuarios() {
           <table className="min-w-full bg-white table-auto">
             <thead>
               <tr className="bg-gray-200">
-                <th className="px-4 py-2 text-left">ID</th>
+                <th className="px-4 py-2 text-left">#</th>
                 <th className="px-4 py-2 text-left">Nombre</th>
                 <th className="px-4 py-2 text-left">Email</th>
                 <th className="px-4 py-2 text-left">Teléfono</th>
