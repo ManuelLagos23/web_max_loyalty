@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image'; // Añadida la importación de Image
 import Navbar from '../components/Navbar';
 
 interface Usuario {
@@ -323,24 +324,26 @@ export default function Usuarios() {
 
           {isPopupOpen && (
             <div
-              className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md border-4 border-black-500 "
+              className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md border-4 border-black-500"
               onClick={(e) => {
                 if (e.target === e.currentTarget) {
                   closePopup();
                 }
               }}
             >
-              <div className="bg-white p-6 rounded shadow-lg w-1/3  border-1">
-              <div className="text-center">
-  <h2 className="text-3xl font-bold text-gray-800 mb-6 tracking-tight inline-block relative after:block after:h-1  after:w-12 after:mx-auto after:mt-2">
-    {usuarioSeleccionado ? 'Editar Usuario' : 'Agregar Usuario'}
-  </h2>
-</div>
+              <div className="bg-white p-6 rounded shadow-lg w-1/3 border-1">
+                <div className="text-center">
+                  <h2 className="text-3xl font-bold text-gray-800 mb-6 tracking-tight inline-block relative after:block after:h-1 after:w-12 after:mx-auto after:mt-2">
+                    {usuarioSeleccionado ? 'Editar Usuario' : 'Agregar Usuario'}
+                  </h2>
+                </div>
 
                 {usuarioSeleccionado ? (
                   <form onSubmit={handleSubmitEditar}>
                     <input type="hidden" name="id" value={formData.id} />
-                    <label className="block text-center" htmlFor="nombre">Nombre:</label>
+                    <label className="block text-center" htmlFor="nombre">
+                      Nombre:
+                    </label>
                     <input
                       type="text"
                       name="nombre"
@@ -349,7 +352,9 @@ export default function Usuarios() {
                       onChange={handleInputChange}
                       className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
                     />
-                    <label className="block text-center" htmlFor="email">Correo electrónico</label>
+                    <label className="block text-center" htmlFor="email">
+                      Correo electrónico
+                    </label>
                     <input
                       type="email"
                       name="email"
@@ -358,7 +363,9 @@ export default function Usuarios() {
                       onChange={handleInputChange}
                       className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
                     />
-                    <label className="block text-center" htmlFor="contraseña">Contraseña</label>
+                    <label className="block text-center" htmlFor="contraseña">
+                      Contraseña
+                    </label>
                     <input
                       type="password"
                       name="contraseña"
@@ -367,13 +374,18 @@ export default function Usuarios() {
                       onChange={handleInputChange}
                       className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
                     />
-                    <label className="block text-center" htmlFor="foto">Foto</label>
+                    <label className="block text-center" htmlFor="foto">
+                      Foto
+                    </label>
                     {formData.img ? (
                       <div className="mb-2 flex justify-center">
-                        <img
+                        <Image
                           src={formData.img}
                           alt="Foto actual"
-                          className="w-32 h-32 object-cover rounded border border-gray-300"
+                          width={128} // 32rem = 128px
+                          height={128} // 32rem = 128px
+                          className="object-cover rounded border border-gray-300"
+                          onError={() => console.error('Error al cargar la imagen')}
                         />
                       </div>
                     ) : (
@@ -386,7 +398,9 @@ export default function Usuarios() {
                       className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
                       accept="image/*"
                     />
-                    <label className="block text-center" htmlFor="num_telefono">Número de teléfono</label>
+                    <label className="block text-center" htmlFor="num_telefono">
+                      Número de teléfono
+                    </label>
                     <input
                       type="number"
                       name="num_telefono"
@@ -413,16 +427,21 @@ export default function Usuarios() {
                   </form>
                 ) : (
                   <form onSubmit={handleSubmitAgregar}>
-                    <label className="block text-center" htmlFor="nombre">Nombre</label>
+                    <label className="block text-center" htmlFor="nombre">
+                      Nombre
+                    </label>
                     <input
                       type="text"
                       name="nombre"
                       placeholder="Ejemplo: Juan Pérez"
                       value={formData.nombre}
                       onChange={handleInputChange}
-                      className="w-full p-2 mb-2 border border-gray-300 rounded block text-center" autoFocus
+                      className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
+                      autoFocus
                     />
-                    <label className="block text-center" htmlFor="email">Correo electrónico</label>
+                    <label className="block text-center" htmlFor="email">
+                      Correo electrónico
+                    </label>
                     <input
                       type="email"
                       name="email"
@@ -431,7 +450,9 @@ export default function Usuarios() {
                       onChange={handleInputChange}
                       className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
                     />
-                    <label className="block text-center" htmlFor="contraseña">Contraseña</label>
+                    <label className="block text-center" htmlFor="contraseña">
+                      Contraseña
+                    </label>
                     <input
                       type="password"
                       name="contraseña"
@@ -440,7 +461,9 @@ export default function Usuarios() {
                       onChange={handleInputChange}
                       className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
                     />
-                    <label className="block text-center" htmlFor="foto">Foto</label>
+                    <label className="block text-center" htmlFor="foto">
+                      Foto
+                    </label>
                     <input
                       type="file"
                       name="foto"
@@ -448,7 +471,9 @@ export default function Usuarios() {
                       className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
                       accept="image/*"
                     />
-                    <label className="block text-center" htmlFor="num_telefono">Número de teléfono</label>
+                    <label className="block text-center" htmlFor="num_telefono">
+                      Número de teléfono
+                    </label>
                     <input
                       type="number"
                       name="num_telefono"

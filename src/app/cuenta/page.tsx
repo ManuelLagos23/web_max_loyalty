@@ -94,14 +94,11 @@ export default function Cuenta() {
     return null;
   }
 
-  // Determinar el tipo de imagen (JPEG o PNG) o usar un fallback
   const getImageSrc = (img: string | null | undefined) => {
     if (!img) return null;
     // Probar con JPEG
     const jpegSrc = `data:image/jpeg;base64,${img}`;
-    // Probar con PNG si JPEG falla
-    const pngSrc = `data:image/png;base64,${img}`;
-    // Retornar JPEG por defecto, pero podrías implementar lógica para detectar el tipo
+    // Retornar JPEG por defecto
     return jpegSrc;
   };
 

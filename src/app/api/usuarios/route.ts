@@ -53,6 +53,14 @@ export async function GET() {
   }
 }
 
+
+
+
+
+
+
+
+
 export async function PUT(request: Request) {
   try {
     const formData = await request.formData();
@@ -74,7 +82,7 @@ export async function PUT(request: Request) {
     let query = `
       UPDATE usuarios 
       SET nombre = $1, email = $2, num_telefono = $3`;
-    let values: any[] = [nombre, email, numTelefono];
+    const values: (string | Buffer)[] = [nombre, email, numTelefono];
 
     if (contraseña) {
       query += `, contraseña = $${values.length + 1}`;

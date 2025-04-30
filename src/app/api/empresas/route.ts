@@ -71,7 +71,16 @@ export async function GET() {
   }
 }
 
-// 🚀 Método PUT para actualizar los datos de una estación
+
+
+
+
+
+
+
+
+
+
 export async function PUT(request: Request) {
   try {
     const formData = await request.formData();
@@ -96,7 +105,7 @@ export async function PUT(request: Request) {
     let query = `
       UPDATE empresas 
       SET nombre_empresa = $1, nombre_impreso = $2, pais = $3, moneda = $4, correo = $5, telefono = $6, nfi = $7, prefijo_tarjetas = $8`;
-    let values: any[] = [nombre_empresa, nombre_impreso, pais, moneda, correo, telefono, nfi, prefijo_tarjetas];
+    const values: (string | Buffer)[] = [nombre_empresa, nombre_impreso, pais, moneda, correo, telefono, nfi, prefijo_tarjetas];
 
     if (logo && typeof logo !== 'string') {
       const logoBuffer = Buffer.from(await (logo as File).arrayBuffer());

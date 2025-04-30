@@ -56,6 +56,9 @@ export async function GET() {
   }
 }
 
+
+
+
 export async function PUT(request: Request) {
   try {
     const formData = await request.formData();
@@ -77,7 +80,7 @@ export async function PUT(request: Request) {
     let query = `
       UPDATE clientes 
       SET nombre = $1, pais = $2, estado = $3, ciudad = $4, email = $5, telefono = $6, nfi = $7`;
-    let values: any[] = [nombre, pais, estado, ciudad, email, telefono, nfi];
+    const values: (string | Buffer)[] = [nombre, pais, estado, ciudad, email, telefono, nfi];
 
     if (logo && typeof logo !== 'string') {
       const arrayBuffer = await (logo as File).arrayBuffer();
