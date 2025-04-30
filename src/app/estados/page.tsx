@@ -183,7 +183,7 @@ Configura los estados disponibles en la aplicación.
           </div>
 
         
-          <table className="mt-6 w-full table-auto border-collapse border-gray-300">
+          <table className="mt-6 w-full table-auto border-collapse bg-white border-gray-300">
             <thead className="bg-gray-200">
               <tr>
                 <th className="px-4 py-2">#</th>
@@ -260,20 +260,25 @@ Configura los estados disponibles en la aplicación.
                 }
               }}
             >
-              <div className="bg-white p-6 rounded-lg">
-                <h3 className="text-xl font-semibold mb-4">Agregar Estado</h3>
+              <div className="bg-white p-6 rounded-lg w-1/5">
+              <div className="text-center">
+              <h2 className="text-3xl font-bold text-gray-800 mb-6 tracking-tight inline-block relative after:block after:h-1 after:w-12 after:mx-auto after:mt-2">
+                  Agregar Estado
+                  </h2>
+                  </div>
                 <form onSubmit={handleSubmitAdd}>
                   <div className="mb-4">
-                    <label className="block text-sm font-medium mb-2" htmlFor="estado">
+                    <label className="block text-center font-medium mb-2" htmlFor="estado">
                       Nombre del Estado
                     </label>
                     <input
                       type="text"
                       id="estado"
                       name="estado"
+                      placeholder="Ejemplo: El Paraíso"
                       value={estadoData.estado}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md block text-center"
                     />
                   </div>
                   <div className="flex justify-between">
@@ -307,19 +312,24 @@ Configura los estados disponibles en la aplicación.
               }}
             >
               <div className="bg-white p-6 rounded-lg">
-                <h3 className="text-xl font-semibold mb-4">Actualizar Estado</h3>
+              <div className="text-center">
+              <h2 className="text-3xl font-bold text-gray-800 mb-6 tracking-tight inline-block relative after:block after:h-1 after:w-12 after:mx-auto after:mt-2">
+                  Actualizar Estado
+                  </h2>
+                  </div>
                 <form onSubmit={handleSubmitUpdate}>
                   <div className="mb-4">
-                    <label className="block text-sm font-medium mb-2" htmlFor="estado">
+                    <label className="block text-center font-medium mb-2" htmlFor="estado">
                       Nombre del Estado
                     </label>
                     <input
                       type="text"
                       id="estado"
                       name="estado"
+                      placeholder="Ejemplo: El Paraíso"
                       value={estadoData.estado}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md block text-center "
                     />
                   </div>
                   <div className="flex justify-between">

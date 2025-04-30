@@ -515,22 +515,24 @@ export default function Terminales() {
                 }
               }}
             >
-              <div className="bg-white p-6 rounded shadow-lg w-1/3">
-                <h2 className="text-2xl font-semibold mb-4 text-center">
+              <div className="bg-white p-6 rounded shadow-lg w-1/3 border-1">
+              <div className="text-center">
+              <h2 className="text-3xl font-bold text-gray-800 mb-6 tracking-tight inline-block relative after:block after:h-1 after:w-12 after:mx-auto after:mt-2">
                   {terminalSeleccionado ? 'Editar Terminal' : 'Agregar Terminal'}
                 </h2>
+                </div>
                 {terminalSeleccionado ? (
                   <form onSubmit={handleSubmitEditar}>
                     <input type="hidden" name="id" value={formData.id} />
                     <div className="mb-4">
-                      <label htmlFor="empresa" className="block text-sm font-medium text-gray-700">
+                      <label htmlFor="empresa" className="block text-center font-medium text-gray-700">
                         Empresa
                       </label>
                       <select
                         name="empresa"
                         value={formData.empresa}
                         onChange={handleInputChange}
-                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 block text-center"
                       >
                         <option value="">Seleccione una empresa</option>
                         {empresas.map((empresa) => (
@@ -541,14 +543,14 @@ export default function Terminales() {
                       </select>
                     </div>
                     <div className="mb-4">
-                      <label htmlFor="estacion_servicio" className="block text-sm font-medium text-gray-700">
+                      <label htmlFor="estacion_servicio" className="block text-center font-medium text-gray-700">
                         Estación de servicio
                       </label>
                       <select
                         name="estacion_servicio"
                         value={formData.estacion_servicio}
                         onChange={handleInputChange}
-                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 block text-center"
                         disabled={!formData.empresa}
                       >
                         <option value="">Seleccione una estación</option>
@@ -560,29 +562,29 @@ export default function Terminales() {
                       </select>
                     </div>
                     <div className="mb-4">
-                      <label htmlFor="codigo_terminal" className="block text-sm font-medium text-gray-700">
+                      <label htmlFor="codigo_terminal" className="block text-center font-medium text-gray-700">
                         Código terminal
                       </label>
                       <input
                         type="text"
                         name="codigo_terminal"
-                        placeholder="Código terminal"
+                        placeholder="Ejemplo: TER-001"
                         value={formData.codigo_terminal}
                         onChange={handleInputChange}
-                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 block text-center"
                       />
                     </div>
                     <div className="mb-4">
-                      <label htmlFor="nombre_terminal" className="block text-sm font-medium text-gray-700">
+                      <label htmlFor="nombre_terminal" className="block text-center font-medium text-gray-700">
                         Nombre terminal
                       </label>
                       <input
                         type="text"
                         name="nombre_terminal"
-                        placeholder="Nombre terminal"
+                        placeholder="Ejemplo: Terminal GSIE El Paraíso"
                         value={formData.nombre_terminal}
                         onChange={handleInputChange}
-                        className="w-full p-2 border border-gray-300 rounded focus-outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full p-2 border border-gray-300 rounded focus-outline-none focus:ring-2 focus:ring-blue-500 block text-center"
                       />
                     </div>
                     <div className="flex justify-between">
@@ -604,14 +606,14 @@ export default function Terminales() {
                 ) : (
                   <form onSubmit={handleSubmitAgregar}>
                     <div className="mb-4">
-                      <label htmlFor="empresa" className="block text-sm font-medium text-gray-700">
+                      <label htmlFor="empresa" className="block text-center font-medium text-gray-700">
                         Empresa
                       </label>
                       <select
                         name="empresa"
                         value={formData.empresa}
                         onChange={handleInputChange}
-                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 block text-center"
                       >
                         <option value="">Seleccione una empresa</option>
                         {empresas.map((empresa) => (
@@ -622,14 +624,14 @@ export default function Terminales() {
                       </select>
                     </div>
                     <div className="mb-4">
-                      <label htmlFor="estacion_servicio" className="block text-sm font-medium text-gray-700">
+                      <label htmlFor="estacion_servicio" className="block text-center font-medium text-gray-700">
                         Estación de servicio
                       </label>
                       <select
                         name="estacion_servicio"
                         value={formData.estacion_servicio}
                         onChange={handleInputChange}
-                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 block text-center"
                         disabled={!formData.empresa}
                       >
                         <option value="">Seleccione una estación</option>
@@ -641,29 +643,29 @@ export default function Terminales() {
                       </select>
                     </div>
                     <div className="mb-4">
-                      <label htmlFor="codigo_terminal" className="block text-sm font-medium text-gray-700">
+                      <label htmlFor="codigo_terminal" className="block text-center font-medium text-gray-700">
                         Código terminal
                       </label>
                       <input
                         type="text"
                         name="codigo_terminal"
-                        placeholder="Código terminal"
+                        placeholder="Ejemplo: TER-001"
                         value={formData.codigo_terminal}
                         onChange={handleInputChange}
-                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 block text-center"
                       />
                     </div>
                     <div className="mb-4">
-                      <label htmlFor="nombre_terminal" className="block text-sm font-medium text-gray-700">
+                      <label htmlFor="nombre_terminal" className="block text-center font-medium text-gray-700">
                         Nombre terminal
                       </label>
                       <input
                         type="text"
                         name="nombre_terminal"
-                        placeholder="Nombre terminal"
+                        placeholder="Ejemplo: Terminal GSIE El Paraíso"
                         value={formData.nombre_terminal}
                         onChange={handleInputChange}
-                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 block text-center"
                       />
                     </div>
                     <div className="flex justify-between">
@@ -696,7 +698,7 @@ export default function Terminales() {
                 }
               }}
             >
-              <div className="bg-white p-6 rounded shadow-lg w-1/3">
+              <div className="bg-white p-6 rounded shadow-lg w-1/3 border-1">
                 <h2 className="text-xl font-semibold mb-4">¿Estás seguro de eliminar este terminal?</h2>
                 <div className="flex justify-between">
                   <button

@@ -1,8 +1,8 @@
-// src/app/clientes/page.tsx
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
 import Navbar from '../components/Navbar';
+import Image from 'next/image';
 
 interface Cliente {
   id: number;
@@ -13,6 +13,7 @@ interface Cliente {
   email: string;
   telefono: string;
   nfi: string;
+  logo?: string | null; // Campo para el logo (Base64 string)
 }
 
 interface Pais {
@@ -143,9 +144,8 @@ export default function Clientes() {
     formDataToSend.append('telefono', formData.telefono);
     formDataToSend.append('nfi', formData.nfi);
     if (formData.logo) {
-      formDataToSend.append('foto', formData.logo);
+      formDataToSend.append('logo', formData.logo); // Corregido de 'foto' a 'logo'
     }
-    formDataToSend.append('num_telefono', formData.telefono);
 
     try {
       const response = await fetch('/api/clientes', {
@@ -187,6 +187,7 @@ export default function Clientes() {
       const response = await fetch(`/api/clientes?page=${currentPage}&limit=${itemsPerPage}&search=${encodeURIComponent(searchTerm)}`);
       if (response.ok) {
         const data: Cliente[] = await response.json();
+        console.log('Clientes obtenidos:', data); // Depuración
         setClientes(data);
       } else {
         console.error('Error al obtener los clientes');
@@ -273,36 +274,37 @@ export default function Clientes() {
     }
   };
 
+  // Función para obtener la fuente de la imagen (Base64)
+  const getLogoSrc = (logo: string | null | undefined) => {
+    if (!logo) return null;
+    return `data:image/jpeg;base64,${logo}`; // Cambia a PNG si es necesario
+  };
+
   return (
     <div className="font-sans bg-gray-100 text-gray-900">
       <div className="flex">
         <Navbar />
         <main className="w-4/5 p-8">
+          <div className="space-y-6">
+            <h1
+              className="text-4xl font-bold text-gray-900 mb-4 tracking-tight 
+              bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
+              transition-all duration-300 hover:scale-105 text-center"
+            >
+              Gestión de Consumidores
+            </h1>
+            <p
+              className="text-center text-black leading-relaxed max-w-2xl
+              p-4 rounded-lg transition-all duration-300 hover:shadow-md mx-auto"
+            >
+              Administra los consumidores registrados en la plataforma.
+            </p>
+          </div>
 
-        <div className="space-y-6">
-
-
-         <h1 
-       className="text-4xl font-bold text-gray-900 mb-4 tracking-tight 
-     bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
-     transition-all duration-300 hover:scale-105 text-center"
-        >
-        Gestión de Consumidores
-       </h1>
-       <p 
-       className="text-center text-black leading-relaxed max-w-2xl
-       p-4 rounded-lg transition-all duration-300 hover:shadow-md mx-auto"
-       >
-
-       Administra los consumidores registrados en la plataforma.
-       </p>
-</div>
-         
           <div className="flex justify-between mb-4">
             <button onClick={() => openPopup('agregar')} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
               Agregar consumidor
             </button>
-       
           </div>
 
           <div className="mb-4">
@@ -319,6 +321,7 @@ export default function Clientes() {
             <thead>
               <tr className="bg-gray-200">
                 <th className="px-4 py-2 text-left">#</th>
+                <th className="px-4 py-2 text-left">Logo</th>
                 <th className="px-4 py-2 text-left">Nombre</th>
                 <th className="px-4 py-2 text-left">País</th>
                 <th className="px-4 py-2 text-left">Estado</th>
@@ -334,6 +337,20 @@ export default function Clientes() {
                 currentClientes.map((cliente, index) => (
                   <tr key={cliente.id} className="hover:bg-gray-50">
                     <td className="px-4 py-2">{indexOfFirstItem + index + 1}</td>
+                    <td className="px-4 py-2">
+                      {cliente.logo && getLogoSrc(cliente.logo) ? (
+                        <Image
+                          src={getLogoSrc(cliente.logo)!}
+                          alt="Logo del cliente"
+                          width={40}
+                          height={40}
+                          className="object-cover rounded"
+                          onError={() => console.error('Error al cargar el logo')} // Depuración
+                        />
+                      ) : (
+                        <span className="text-gray-500">Sin logo</span>
+                      )}
+                    </td>
                     <td className="px-4 py-2">{cliente.nombre}</td>
                     <td className="px-4 py-2">{cliente.pais}</td>
                     <td className="px-4 py-2">{cliente.estado}</td>
@@ -359,7 +376,7 @@ export default function Clientes() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={9} className="px-4 py-2 text-center text-gray-500">
+                  <td colSpan={10} className="px-4 py-2 text-center text-gray-500">
                     No hay clientes disponibles.
                   </td>
                 </tr>
@@ -388,38 +405,41 @@ export default function Clientes() {
           </div>
 
           {isPopupOpen && (
-            <div className="fixed inset-0 flex justify-center items-center z-50  backdrop-blur-md "
-            onClick={(e) => {
-            
-              if (e.target === e.currentTarget) {
-                closePopup();
-              }
-            }}>
-              <div className="bg-white p-6 rounded shadow-lg w-2/5">
-                <h2 className="text-2xl font-semibold mb-4 text-center">
-                  {clienteSeleccionado ? 'Editar Cliente' : 'Agregar Cliente'}
-                </h2>
+            <div
+              className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md"
+              onClick={(e) => {
+                if (e.target === e.currentTarget) {
+                  closePopup();
+                }
+              }}
+            >
+              <div className="bg-white p-6 rounded shadow-lg w-2/5 border-1">
+                <div className="text-center">
+                  <h2 className="text-3xl font-bold text-gray-800 mb-6 tracking-tight inline-block relative after:block after:h-1 after:w-12 after:mx-auto after:mt-2">
+                    {clienteSeleccionado ? 'Editar Cliente' : 'Agregar Cliente'}
+                  </h2>
+                </div>
                 {clienteSeleccionado ? (
                   <form onSubmit={handleSubmitEditar}>
                     <input type="hidden" name="id" value={formData.id} />
                     <div className="mb-4">
-                      <label htmlFor="nombre">Nombre</label>
+                      <label htmlFor="nombre" className="block text-center">Nombre</label>
                       <input
                         type="text"
                         name="nombre"
-                        placeholder="Nombre"
+                        placeholder="Ejemplo: Juan Pérez"
                         value={formData.nombre}
                         onChange={handleInputChange}
-                        className="w-full p-2 mb-2 border border-gray-300 rounded"
+                        className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
                       />
                     </div>
                     <div className="mb-4">
-                      <label htmlFor="pais">País</label>
+                      <label htmlFor="pais" className="block text-center">País</label>
                       <select
                         name="pais"
                         value={formData.pais}
                         onChange={handleInputChange}
-                        className="w-full p-2 mb-2 border border-gray-300 rounded"
+                        className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
                       >
                         <option value="">Seleccionar país</option>
                         {paises.map((pais) => (
@@ -430,12 +450,12 @@ export default function Clientes() {
                       </select>
                     </div>
                     <div className="mb-4">
-                      <label htmlFor="estado">Estado</label>
+                      <label htmlFor="estado" className="block text-center">Estado</label>
                       <select
                         name="estado"
                         value={formData.estado}
                         onChange={handleInputChange}
-                        className="w-full p-2 mb-2 border border-gray-300 rounded"
+                        className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
                       >
                         <option value="">Seleccionar estado</option>
                         {estados.map((estado) => (
@@ -447,60 +467,82 @@ export default function Clientes() {
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="mb-4">
-                        <label htmlFor="ciudad">Ciudad</label>
+                        <label htmlFor="ciudad" className="block text-center">Ciudad</label>
                         <input
                           type="text"
                           name="ciudad"
-                          placeholder="Ciudad"
+                          placeholder="Ejemplo: El Paraíso"
                           value={formData.ciudad}
                           onChange={handleInputChange}
-                          className="w-full p-2 mb-2 border border-gray-300 rounded"
+                          className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
                         />
                       </div>
                       <div className="mb-4">
-                        <label htmlFor="email">Correo electrónico</label>
+                        <label htmlFor="email" className="block text-center">Correo electrónico</label>
                         <input
                           type="email"
                           name="email"
-                          placeholder="Correo electrónico"
+                          placeholder="Ejemplo: juanperez@gmail.com"
                           value={formData.email}
                           onChange={handleInputChange}
-                          className="w-full p-2 mb-2 border border-gray-300 rounded"
+                          className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="mb-4">
+                        <label htmlFor="telefono" className="block text-center">Teléfono</label>
+                        <input
+                          type="number"
+                          name="telefono"
+                          placeholder="Ejemplo: 8888-8888"
+                          value={formData.telefono}
+                          onChange={handleInputChange}
+                          className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
+                        />
+                      </div>
+                      <div className="mb-4">
+                        <label htmlFor="nfi" className="block text-center">NFI</label>
+                        <input
+                          type="text"
+                          name="nfi"
+                          placeholder="Ejemplo: 0801-1970-00350"
+                          value={formData.nfi}
+                          onChange={handleInputChange}
+                          className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
                         />
                       </div>
                     </div>
                     <div className="mb-4">
-                      <label htmlFor="telefono">Teléfono</label>
+                      <label htmlFor="logo" className="block text-center">Logo</label>
+                      {clienteSeleccionado.logo && getLogoSrc(clienteSeleccionado.logo) ? (
+                        <div className="flex justify-center mb-2">
+                          <Image
+                            src={getLogoSrc(clienteSeleccionado.logo)!}
+                            alt="Logo actual del cliente"
+                            width={100}
+                            height={100}
+                            className="object-cover rounded"
+                            onError={() => console.error('Error al cargar el logo actual')} // Depuración
+                          />
+                        </div>
+                      ) : (
+                        <div className="flex justify-center mb-2">
+                          <span className="text-gray-500">Sin logo actual</span>
+                        </div>
+                      )}
                       <input
-                        type="text"
-                        name="telefono"
-                        placeholder="Teléfono"
-                        value={formData.telefono}
-                        onChange={handleInputChange}
-                        className="w-full p-2 mb-2 border border-gray-300 rounded"
+                        type="file"
+                        name="logo"
+                        onChange={handleFileChange}
+                        className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
+                        accept="image/jpeg,image/png"
                       />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="mb-4">
-                        <label htmlFor="nfi">NFI</label>
-                        <input
-                          type="text"
-                          name="nfi"
-                          placeholder="NFI"
-                          value={formData.nfi}
-                          onChange={handleInputChange}
-                          className="w-full p-2 mb-2 border border-gray-300 rounded"
-                        />
-                      </div>
-                      <div className="mb-4">
-                        <label htmlFor="logo">Logo</label>
-                        <input
-                          type="file"
-                          name="logo"
-                          onChange={handleFileChange}
-                          className="w-full p-2 mb-2 border border-gray-300 rounded"
-                        />
-                      </div>
+                      {formData.logo && (
+                        <div className="text-center text-sm text-gray-600 mt-1">
+                          Nuevo logo seleccionado: {formData.logo.name}
+                        </div>
+                      )}
                     </div>
                     <div className="flex justify-between">
                       <button
@@ -518,23 +560,23 @@ export default function Clientes() {
                 ) : (
                   <form onSubmit={handleSubmitAgregar}>
                     <div className="mb-4">
-                      <label htmlFor="nombre">Nombre</label>
+                      <label htmlFor="nombre" className="block text-center">Nombre</label>
                       <input
                         type="text"
                         name="nombre"
-                        placeholder="Nombre"
+                        placeholder="Ejemplo: Juan Pérez"
                         value={formData.nombre}
                         onChange={handleInputChange}
-                        className="w-full p-2 mb-2 border border-gray-300 rounded"
+                        className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
                       />
                     </div>
                     <div className="mb-4">
-                      <label htmlFor="pais">País</label>
+                      <label htmlFor="pais" className="block text-center">País</label>
                       <select
                         name="pais"
                         value={formData.pais}
                         onChange={handleInputChange}
-                        className="w-full p-2 mb-2 border border-gray-300 rounded"
+                        className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
                       >
                         <option value="">Seleccionar país</option>
                         {paises.map((pais) => (
@@ -545,12 +587,12 @@ export default function Clientes() {
                       </select>
                     </div>
                     <div className="mb-4">
-                      <label htmlFor="estado">Estado</label>
+                      <label htmlFor="estado" className="block text-center">Estado</label>
                       <select
                         name="estado"
                         value={formData.estado}
                         onChange={handleInputChange}
-                        className="w-full p-2 mb-2 border border-gray-300 rounded"
+                        className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
                       >
                         <option value="">Seleccionar estado</option>
                         {estados.map((estado) => (
@@ -562,60 +604,66 @@ export default function Clientes() {
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="mb-4">
-                        <label htmlFor="ciudad">Ciudad</label>
+                        <label htmlFor="ciudad" className="block text-center">Ciudad</label>
                         <input
                           type="text"
                           name="ciudad"
-                          placeholder="Ciudad"
+                          placeholder="Ejemplo: El Paraíso"
                           value={formData.ciudad}
                           onChange={handleInputChange}
-                          className="w-full p-2 mb-2 border border-gray-300 rounded"
+                          className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
                         />
                       </div>
                       <div className="mb-4">
-                        <label htmlFor="email">Correo electrónico</label>
+                        <label htmlFor="email" className="block text-center">Correo electrónico</label>
                         <input
                           type="email"
                           name="email"
-                          placeholder="Correo electrónico"
+                          placeholder="Ejemplo: Juan Pérez"
                           value={formData.email}
                           onChange={handleInputChange}
-                          className="w-full p-2 mb-2 border border-gray-300 rounded"
+                          className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
                         />
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="mb-4">
-                        <label htmlFor="telefono">Teléfono</label>
+                        <label htmlFor="telefono" className="block text-center">Teléfono</label>
                         <input
-                          type="text"
+                          type="number"
                           name="telefono"
-                          placeholder="Teléfono"
+                          placeholder="Ejemplo: 8888-8888"
                           value={formData.telefono}
                           onChange={handleInputChange}
-                          className="w-full p-2 mb-2 border border-gray-300 rounded"
+                          className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
                         />
                       </div>
                       <div className="mb-4">
-                        <label htmlFor="nfi">NFI</label>
+                        <label htmlFor="nfi" className="block text-center">NFI</label>
                         <input
                           type="text"
                           name="nfi"
-                          placeholder="NFI"
+                          placeholder="Ejemplo: 0801-1970-00350"
                           value={formData.nfi}
                           onChange={handleInputChange}
-                          className="w-full p-2 mb-2 border border-gray-300 rounded"
+                          className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
                         />
                       </div>
                     </div>
                     <div className="mb-4">
-                      <label htmlFor="logo">Logo</label>
+                      <label htmlFor="logo" className="block text-center">Logo</label>
                       <input
                         type="file"
                         name="logo"
                         onChange={handleFileChange}
-                        className="w-full p-2 mb-2 border border-gray-300 rounded"
+                        className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
+                        accept="image/jpeg,image/png"
                       />
+                      {formData.logo && (
+                        <div className="text-center text-sm text-gray-600 mt-1">
+                          Logo seleccionado: {formData.logo.name}
+                        </div>
+                      )}
                     </div>
                     <div className="flex justify-between">
                       <button
@@ -636,15 +684,15 @@ export default function Clientes() {
           )}
 
           {isDeletePopupOpen && (
-            <div className="fixed inset-0 flex justify-center items-center z-50   backdrop-blur-md "
-            onClick={(e) => {
-            
-              if (e.target === e.currentTarget) {
-                closeDeletePopup();
-              }
-            }}
+            <div
+              className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md"
+              onClick={(e) => {
+                if (e.target === e.currentTarget) {
+                  closeDeletePopup();
+                }
+              }}
             >
-              <div className="bg-white p-6 rounded shadow-lg w-1/3">
+              <div className="bg-white p-6 rounded shadow-lg w-1/3 border-1">
                 <h2 className="text-xl font-semibold mb-4 text-center">Confirmar Eliminación</h2>
                 <p className="text-center mb-4">
                   ¿Estás seguro de que deseas eliminar al cliente {clienteAEliminar?.nombre}?

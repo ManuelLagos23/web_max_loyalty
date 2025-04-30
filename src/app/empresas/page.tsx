@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Navbar from '../components/Navbar';
+import Image from 'next/image';
 
 interface Empresa {
   id: number;
@@ -49,7 +50,7 @@ export default function Empresas() {
 
   const [empresaSeleccionada, setEmpresaSeleccionada] = useState<Empresa | null>(null);
   const [empresaAEliminar, setEmpresaAEliminar] = useState<Empresa | null>(null);
-  const [searchTerm, setSearchTerm] = useState(''); // Estado para el término de búsqueda
+  const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(5);
 
@@ -97,15 +98,26 @@ export default function Empresas() {
 
   const handleSubmitAgregar = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.nombre_empresa || !formData.pais || !formData.moneda || !formData.correo || !formData.telefono || !formData.nfi || !formData.prefijo_tarjetas) {
-      alert('Por favor, complete todos los campos obligatorios.');
+    if (
+      !formData.nombre_empresa ||
+      !formData.nombre_impreso ||
+      !formData.pais ||
+      !formData.moneda ||
+      !formData.correo ||
+      !formData.telefono ||
+      !formData.nfi ||
+      !formData.prefijo_tarjetas ||
+      !formData.logo ||
+      !formData.logo_impreso
+    ) {
+      alert('Por favor, complete todos los campos obligatorios, incluyendo ambos logos.');
       return;
     }
     const formDataToSend = new FormData();
     formDataToSend.append('nombre_empresa', formData.nombre_empresa);
     formDataToSend.append('nombre_impreso', formData.nombre_impreso);
-    if (formData.logo) formDataToSend.append('logo', formData.logo);
-    if (formData.logo_impreso) formDataToSend.append('logo_impreso', formData.logo_impreso);
+    formDataToSend.append('logo', formData.logo!);
+    formDataToSend.append('logo_impreso', formData.logo_impreso!);
     formDataToSend.append('pais', formData.pais);
     formDataToSend.append('moneda', formData.moneda);
     formDataToSend.append('correo', formData.correo);
@@ -132,8 +144,18 @@ export default function Empresas() {
 
   const handleSubmitEditar = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.id || !formData.nombre_empresa || !formData.pais || !formData.moneda || !formData.correo || !formData.telefono || !formData.nfi || !formData.prefijo_tarjetas) {
-      alert('Por favor, complete todos los campos obligatorios.');
+    if (
+      !formData.id ||
+      !formData.nombre_empresa ||
+      !formData.nombre_impreso ||
+      !formData.pais ||
+      !formData.moneda ||
+      !formData.correo ||
+      !formData.telefono ||
+      !formData.nfi ||
+      !formData.prefijo_tarjetas
+    ) {
+      alert('Por favor, complete todos los campos obligatorios (los logos son opcionales al editar).');
       return;
     }
     const formDataToSend = new FormData();
@@ -186,9 +208,12 @@ export default function Empresas() {
 
   const fetchEmpresas = useCallback(async () => {
     try {
-      const response = await fetch(`/api/empresas?page=${currentPage}&limit=${itemsPerPage}`);
+      const response = await fetch(
+        `/api/empresas?page=${currentPage}&limit=${itemsPerPage}&search=${encodeURIComponent(searchTerm)}`
+      );
       if (response.ok) {
         const data: Empresa[] = await response.json();
+        console.log('Empresas obtenidas:', data); // Depuración
         setEmpresas(data);
       } else {
         console.error('Error al obtener las empresas');
@@ -196,7 +221,7 @@ export default function Empresas() {
     } catch (error) {
       console.error('Error en la solicitud:', error);
     }
-  }, [currentPage, itemsPerPage]);
+  }, [currentPage, itemsPerPage, searchTerm]);
 
   const fetchPaises = useCallback(async () => {
     try {
@@ -250,10 +275,9 @@ export default function Empresas() {
     fetchMonedas();
   }, [fetchEmpresas, fetchPaises, fetchMonedas]);
 
-  
   const filteredEmpresas = empresas.filter((empresa) =>
     Object.values(empresa)
-      .filter((value) => typeof value === 'string') 
+      .filter((value) => typeof value === 'string')
       .join(' ')
       .toLowerCase()
       .includes(searchTerm.toLowerCase())
@@ -276,39 +300,44 @@ export default function Empresas() {
     }
   };
 
+  // Funciones para obtener la fuente de las imágenes (Base64)
+  const getLogoSrc = (logo: string | null | undefined) => {
+    if (!logo) return null;
+    return `data:image/jpeg;base64,${logo}`; // Cambia a PNG si es necesario
+  };
+
+  const getLogoImpresoSrc = (logoImpreso: string | null | undefined) => {
+    if (!logoImpreso) return null;
+    return `data:image/jpeg;base64,${logoImpreso}`; // Cambia a PNG si es necesario
+  };
+
   return (
     <div className="font-sans bg-gray-100 text-gray-900">
       <div className="flex">
         <Navbar />
         <main className="w-4/5 p-8">
+          <div className="space-y-6">
+            <h1
+              className="text-4xl font-bold text-gray-900 mb-4 tracking-tight 
+              bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
+              transition-all duration-300 hover:scale-105 text-center"
+            >
+              Gestión de Empresas
+            </h1>
+            <p
+              className="text-center text-black leading-relaxed max-w-2xl
+              p-4 rounded-lg transition-all duration-300 hover:shadow-md mx-auto"
+            >
+              Administra las empresas registradas en la plataforma.
+            </p>
+          </div>
 
-        <div className="space-y-6">
-
-
-<h1 
-className="text-4xl font-bold text-gray-900 mb-4 tracking-tight 
-bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
-transition-all duration-300 hover:scale-105 text-center"
->
-Gestión de Empresas
-</h1>
-<p 
-className="text-center text-black leading-relaxed max-w-2xl
-p-4 rounded-lg transition-all duration-300 hover:shadow-md mx-auto"
->
-
-Administra las empresas registradas en la plataforma.
-</p>
-</div>
-        
-<div className="flex justify-between mb-4">
+          <div className="flex justify-between mb-4">
             <button onClick={() => openPopup('agregar')} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
               Agregar empresa
             </button>
-       
           </div>
 
-          
           <div className="mb-6">
             <input
               type="text"
@@ -316,317 +345,18 @@ Administra las empresas registradas en la plataforma.
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
-                setCurrentPage(1); 
+                setCurrentPage(1);
               }}
               className="w-2/5 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
-       
-
-          {isPopupOpen && (
-            <div className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md "
-
-            onClick={(e) => {
-            
-              if (e.target === e.currentTarget) {
-                closePopup();
-              }
-            }}
-            
-            >
-              <div className="bg-white p-6 rounded shadow-lg w-2/5">
-                <h2 className="text-2xl font-semibold mb-4 text-center">
-                  {empresaSeleccionada ? 'Editar Empresa' : 'Agregar Empresa'}
-                </h2>
-                {empresaSeleccionada ? (
-                  <form onSubmit={handleSubmitEditar}>
-                    <input type="hidden" name="id" value={formData.id} />
-                    <div className="grid grid-cols-1 gap-4">
-                      <div>
-                        <label htmlFor="nombre_empresa">Nombre de la Empresa</label>
-                        <input
-                          type="text"
-                          name="nombre_empresa"
-                          placeholder="Nombre de la empresa"
-                          value={formData.nombre_empresa}
-                          onChange={handleInputChange}
-                          className="w-full p-2 border border-gray-300 rounded"
-                        />
-                      </div>
-                      <div>
-                        <label htmlFor="nombre_impreso">Nombre impreso</label>
-                        <input
-                          type="text"
-                          name="nombre_impreso"
-                          placeholder="Nombre impreso"
-                          value={formData.nombre_impreso}
-                          onChange={handleInputChange}
-                          className="w-full p-2 border border-gray-300 rounded"
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label htmlFor="pais">País</label>
-                          <select
-                            name="pais"
-                            value={formData.pais}
-                            onChange={handleInputChange}
-                            className="w-full p-2 border border-gray-300 rounded"
-                          >
-                            <option value="">Seleccionar país</option>
-                            {paises.map((pais) => (
-                              <option key={pais.id} value={pais.pais}>
-                                {pais.pais}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                        <div>
-                          <label htmlFor="moneda">Moneda</label>
-                          <select
-                            name="moneda"
-                            value={formData.moneda}
-                            onChange={handleInputChange}
-                            className="w-full p-2 border border-gray-300 rounded"
-                          >
-                            <option value="">Seleccionar moneda</option>
-                            {monedas.map((moneda) => (
-                              <option key={moneda.id} value={moneda.moneda}>
-                                {moneda.moneda}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label htmlFor="correo">Correo</label>
-                          <input
-                            type="email"
-                            name="correo"
-                            placeholder="Correo"
-                            value={formData.correo}
-                            onChange={handleInputChange}
-                            className="w-full p-2 border border-gray-300 rounded"
-                          />
-                        </div>
-                        <div>
-                          <label htmlFor="telefono">Teléfono</label>
-                          <input
-                            type="tel"
-                            name="telefono"
-                            placeholder="Teléfono"
-                            value={formData.telefono}
-                            onChange={handleInputChange}
-                            className="w-full p-2 border border-gray-300 rounded"
-                          />
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label htmlFor="nfi">NFI</label>
-                          <input
-                            type="text"
-                            name="nfi"
-                            placeholder="NFI"
-                            value={formData.nfi}
-                            onChange={handleInputChange}
-                            className="w-full p-2 border border-gray-300 rounded"
-                          />
-                        </div>
-                        <div>
-                          <label htmlFor="prefijo_tarjetas">Prefijo Tarjetas</label>
-                          <input
-                            type="text"
-                            name="prefijo_tarjetas"
-                            placeholder="Prefijo Tarjetas"
-                            value={formData.prefijo_tarjetas}
-                            onChange={handleInputChange}
-                            className="w-full p-2 border border-gray-300 rounded"
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <label htmlFor="logo">Logo</label>
-                        <input
-                          type="file"
-                          name="logo"
-                          onChange={handleFileChange}
-                          className="w-full p-2 border border-gray-300 rounded"
-                        />
-                      </div>
-                      <div>
-                        <label htmlFor="logo_impreso">Logo impreso</label>
-                        <input
-                          type="file"
-                          name="logo_impreso"
-                          onChange={handleFileChange}
-                          className="w-full p-2 border border-gray-300 rounded"
-                        />
-                      </div>
-                    </div>
-                    <div className="flex justify-between mt-4">
-                      <button
-                        type="button"
-                        onClick={closePopup}
-                        className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
-                      >
-                        Cancelar
-                      </button>
-                      <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-                        Guardar
-                      </button>
-                    </div>
-                  </form>
-                ) : (
-                  <form onSubmit={handleSubmitAgregar}>
-                    <div className="grid grid-cols-1 gap-4">
-                      <div>
-                        <label htmlFor="nombre_empresa">Nombre de la Empresa</label>
-                        <input
-                          type="text"
-                          name="nombre_empresa"
-                          placeholder="Nombre de la empresa"
-                          value={formData.nombre_empresa}
-                          onChange={handleInputChange}
-                          className="w-full p-2 border border-gray-300 rounded"
-                        />
-                      </div>
-                      <div>
-                        <label htmlFor="nombre_impreso">Nombre impreso</label>
-                        <input
-                          type="text"
-                          name="nombre_impreso"
-                          placeholder="Nombre impreso"
-                          value={formData.nombre_impreso}
-                          onChange={handleInputChange}
-                          className="w-full p-2 border border-gray-300 rounded"
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label htmlFor="pais">País</label>
-                          <select
-                            name="pais"
-                            value={formData.pais}
-                            onChange={handleInputChange}
-                            className="w-full p-2 border border-gray-300 rounded"
-                          >
-                            <option value="">Seleccionar país</option>
-                            {paises.map((pais) => (
-                              <option key={pais.id} value={pais.pais}>
-                                {pais.pais}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                        <div>
-                          <label htmlFor="moneda">Moneda</label>
-                          <select
-                            name="moneda"
-                            value={formData.moneda}
-                            onChange={handleInputChange}
-                            className="w-full p-2 border border-gray-300 rounded"
-                          >
-                            <option value="">Seleccionar moneda</option>
-                            {monedas.map((moneda) => (
-                              <option key={moneda.id} value={moneda.moneda}>
-                                {moneda.moneda}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label htmlFor="correo">Correo</label>
-                          <input
-                            type="email"
-                            name="correo"
-                            placeholder="Correo"
-                            value={formData.correo}
-                            onChange={handleInputChange}
-                            className="w-full p-2 border border-gray-300 rounded"
-                          />
-                        </div>
-                        <div>
-                          <label htmlFor="telefono">Teléfono</label>
-                          <input
-                            type="tel"
-                            name="telefono"
-                            placeholder="Teléfono"
-                            value={formData.telefono}
-                            onChange={handleInputChange}
-                            className="w-full p-2 border border-gray-300 rounded"
-                          />
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label htmlFor="nfi">NFI</label>
-                          <input
-                            type="text"
-                            name="nfi"
-                            placeholder="NFI"
-                            value={formData.nfi}
-                            onChange={handleInputChange}
-                            className="w-full p-2 border border-gray-300 rounded"
-                          />
-                        </div>
-                        <div>
-                          <label htmlFor="prefijo_tarjetas">Prefijo Tarjetas</label>
-                          <input
-                            type="text"
-                            name="prefijo_tarjetas"
-                            placeholder="Prefijo Tarjetas"
-                            value={formData.prefijo_tarjetas}
-                            onChange={handleInputChange}
-                            className="w-full p-2 border border-gray-300 rounded"
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <label htmlFor="logo">Logo</label>
-                        <input
-                          type="file"
-                          name="logo"
-                          onChange={handleFileChange}
-                          className="w-full p-2 border border-gray-300 rounded"
-                        />
-                      </div>
-                      <div>
-                        <label htmlFor="logo_impreso">Logo impreso</label>
-                        <input
-                          type="file"
-                          name="logo_impreso"
-                          onChange={handleFileChange}
-                          className="w-full p-2 border border-gray-300 rounded"
-                        />
-                      </div>
-                    </div>
-                    <div className="flex justify-between mt-4">
-                      <button
-                        type="button"
-                        onClick={closePopup}
-                        className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
-                      >
-                        Cancelar
-                      </button>
-                      <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-                        Guardar
-                      </button>
-                    </div>
-                  </form>
-                )}
-              </div>
-            </div>
-          )}
-
-          <table className="w-full bg-white table-auto mt-8">
+          <table className="w-full bg-white table-auto mt-8 border border-gray-200 rounded shadow-md">
             <thead className="bg-gray-200">
               <tr>
                 <th className="p-2 text-left">#</th>
+                <th className="p-2 text-left">Logo</th>
+                <th className="p-2 text-left">Logo Impreso</th>
                 <th className="p-2 text-left">Nombre Empresa</th>
                 <th className="p-2 text-left">País</th>
                 <th className="p-2 text-left">Moneda</th>
@@ -642,6 +372,34 @@ Administra las empresas registradas en la plataforma.
                 currentEmpresas.map((empresa, index) => (
                   <tr className="hover:bg-gray-50" key={empresa.id}>
                     <td className="p-2">{indexOfFirstItem + index + 1}</td>
+                    <td className="p-2">
+                      {empresa.logo && getLogoSrc(empresa.logo) ? (
+                        <Image
+                          src={getLogoSrc(empresa.logo)!}
+                          alt="Logo de la empresa"
+                          width={40}
+                          height={40}
+                          className="object-cover rounded"
+                          onError={() => console.error('Error al cargar el logo')} // Depuración
+                        />
+                      ) : (
+                        <span className="text-gray-500">Sin logo</span>
+                      )}
+                    </td>
+                    <td className="p-2">
+                      {empresa.logo_impreso && getLogoImpresoSrc(empresa.logo_impreso) ? (
+                        <Image
+                          src={getLogoImpresoSrc(empresa.logo_impreso)!}
+                          alt="Logo impreso de la empresa"
+                          width={40}
+                          height={40}
+                          className="object-cover rounded"
+                          onError={() => console.error('Error al cargar el logo impreso')} // Depuración
+                        />
+                      ) : (
+                        <span className="text-gray-500">Sin logo impreso</span>
+                      )}
+                    </td>
                     <td className="p-2">{empresa.nombre_empresa}</td>
                     <td className="p-2">{empresa.pais}</td>
                     <td className="p-2">{empresa.moneda}</td>
@@ -667,7 +425,7 @@ Administra las empresas registradas en la plataforma.
                 ))
               ) : (
                 <tr>
-                  <td colSpan={9} className="p-2 text-center text-gray-500">
+                  <td colSpan={11} className="p-2 text-center text-gray-500">
                     No hay empresas disponibles.
                   </td>
                 </tr>
@@ -695,18 +453,373 @@ Administra las empresas registradas en la plataforma.
             </button>
           </div>
 
+          {isPopupOpen && (
+            <div
+              className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md"
+              onClick={(e) => {
+                if (e.target === e.currentTarget) {
+                  closePopup();
+                }
+              }}
+            >
+              <div className="bg-white p-6 rounded shadow-lg w-2/5 border-1">
+                <h2 className="text-2xl font-semibold mb-4 text-center">
+                  {empresaSeleccionada ? 'Editar Empresa' : 'Agregar Empresa'}
+                </h2>
+                {empresaSeleccionada ? (
+                  <form onSubmit={handleSubmitEditar}>
+                    <input type="hidden" name="id" value={formData.id} />
+                    <div className="grid grid-cols-1 gap-4">
+                      <div>
+                        <label htmlFor="nombre_empresa" className="block text-center">Nombre de la Empresa</label>
+                        <input
+                          type="text"
+                          name="nombre_empresa"
+                          placeholder="Ejemplo: Grupo GSIE"
+                          value={formData.nombre_empresa}
+                          onChange={handleInputChange}
+                          className="w-full p-2 border border-gray-300 rounded block text-center"
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="nombre_impreso" className="block text-center">Nombre Impreso</label>
+                        <input
+                          type="text"
+                          name="nombre_impreso"
+                          placeholder="Ejemplo: GSIE"
+                          value={formData.nombre_impreso}
+                          onChange={handleInputChange}
+                          className="w-full p-2 border border-gray-300 rounded block text-center"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label htmlFor="pais" className="block text-center">País</label>
+                          <select
+                            name="pais"
+                            value={formData.pais}
+                            onChange={handleInputChange}
+                            className="w-full p-2 border border-gray-300 rounded block text-center"
+                          >
+                            <option value="">Seleccionar país</option>
+                            {paises.map((pais) => (
+                              <option key={pais.id} value={pais.pais}>
+                                {pais.pais}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label htmlFor="moneda" className="block text-center">Moneda</label>
+                          <select
+                            name="moneda"
+                            value={formData.moneda}
+                            onChange={handleInputChange}
+                            className="w-full p-2 border border-gray-300 rounded block text-center"
+                          >
+                            <option value="">Seleccionar moneda</option>
+                            {monedas.map((moneda) => (
+                              <option key={moneda.id} value={moneda.moneda}>
+                                {moneda.moneda}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label htmlFor="correo" className="block text-center">Correo</label>
+                          <input
+                            type="email"
+                            name="correo"
+                            placeholder="Ejemplo: info@gsie.hn"
+                            value={formData.correo}
+                            onChange={handleInputChange}
+                            className="w-full p-2 border border-gray-300 rounded block text-center"
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor="telefono" className="block text-center">Teléfono</label>
+                          <input
+                            type="number"
+                            name="telefono"
+                            placeholder="Ejemplo: 8888-8888"
+                            value={formData.telefono}
+                            onChange={handleInputChange}
+                            className="w-full p-2 border border-gray-300 rounded block text-center"
+                          />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label htmlFor="nfi" className="block text-center">NFI</label>
+                          <input
+                            type="text"
+                            name="nfi"
+                            placeholder="Ejemplo: 0801-1970-00350"
+                            value={formData.nfi}
+                            onChange={handleInputChange}
+                            className="w-full p-2 border border-gray-300 rounded block text-center"
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor="prefijo_tarjetas" className="block text-center">Prefijo Tarjetas</label>
+                          <input
+                            type="text"
+                            name="prefijo_tarjetas"
+                            placeholder="Ejemplo: 0704"
+                            value={formData.prefijo_tarjetas}
+                            onChange={handleInputChange}
+                            className="w-full p-2 border border-gray-300 rounded block text-center"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label htmlFor="logo" className="block text-center">Logo</label>
+                        {empresaSeleccionada.logo && getLogoSrc(empresaSeleccionada.logo) ? (
+                          <div className="flex justify-center mb-2">
+                            <Image
+                              src={getLogoSrc(empresaSeleccionada.logo)!}
+                              alt="Logo actual de la empresa"
+                              width={100}
+                              height={100}
+                              className="object-cover rounded"
+                              onError={() => console.error('Error al cargar el logo actual')} 
+                            />
+                          </div>
+                        ) : (
+                          <div className="flex justify-center mb-2">
+                            <span className="text-gray-500">Sin logo actual</span>
+                          </div>
+                        )}
+                        <input
+                          type="file"
+                          name="logo"
+                          onChange={handleFileChange}
+                          className="w-full p-2 border border-gray-300 rounded block text-center"
+                          accept="image/jpeg,image/png"
+                        />
+                        {formData.logo && (
+                          <div className="text-center text-sm text-gray-600 mt-1">
+                            Nuevo logo seleccionado: {formData.logo.name}
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <label htmlFor="logo_impreso" className="block text-center">Logo Impreso</label>
+                        {empresaSeleccionada.logo_impreso && getLogoImpresoSrc(empresaSeleccionada.logo_impreso) ? (
+                          <div className="flex justify-center mb-2">
+                            <Image
+                              src={getLogoImpresoSrc(empresaSeleccionada.logo_impreso)!}
+                              alt="Logo impreso actual de la empresa"
+                              width={100}
+                              height={100}
+                              className="object-cover rounded"
+                              onError={() => console.error('Error al cargar el logo impreso actual')} 
+                            />
+                          </div>
+                        ) : (
+                          <div className="flex justify-center mb-2">
+                            <span className="text-gray-500">Sin logo impreso actual</span>
+                          </div>
+                        )}
+                        <input
+                          type="file"
+                          name="logo_impreso"
+                          onChange={handleFileChange}
+                          className="w-full p-2 border border-gray-300 rounded block text-center"
+                          accept="image/jpeg,image/png"
+                        />
+                        {formData.logo_impreso && (
+                          <div className="text-center text-sm text-gray-600 mt-1">
+                            Nuevo logo impreso seleccionado: {formData.logo_impreso.name}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex justify-between mt-4">
+                      <button
+                        type="button"
+                        onClick={closePopup}
+                        className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+                      >
+                        Cancelar
+                      </button>
+                      <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                        Guardar
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <form onSubmit={handleSubmitAgregar}>
+                    <div className="grid grid-cols-1 gap-4">
+                      <div>
+                        <label htmlFor="nombre_empresa" className="block text-center">Nombre de la Empresa</label>
+                        <input
+                          type="text"
+                          name="nombre_empresa"
+                          placeholder="Ejemplo: Grupo GSIE"
+                          value={formData.nombre_empresa}
+                          onChange={handleInputChange}
+                          className="w-full p-2 border border-gray-300 rounded block text-center"
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="nombre_impreso" className="block text-center">Nombre Impreso</label>
+                        <input
+                          type="text"
+                          name="nombre_impreso"
+                          placeholder="Ejemplo: GSIE"
+                          value={formData.nombre_impreso}
+                          onChange={handleInputChange}
+                          className="w-full p-2 border border-gray-300 rounded block text-center"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label htmlFor="pais" className="block text-center">País</label>
+                          <select
+                            name="pais"
+                            value={formData.pais}
+                            onChange={handleInputChange}
+                            className="w-full p-2 border border-gray-300 rounded block text-center"
+                          >
+                            <option value="">Seleccionar país</option>
+                            {paises.map((pais) => (
+                              <option key={pais.id} value={pais.pais}>
+                                {pais.pais}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label htmlFor="moneda" className="block text-center">Moneda</label>
+                          <select
+                            name="moneda"
+                            value={formData.moneda}
+                            onChange={handleInputChange}
+                            className="w-full p-2 border border-gray-300 rounded block text-center"
+                          >
+                            <option value="">Seleccionar moneda</option>
+                            {monedas.map((moneda) => (
+                              <option key={moneda.id} value={moneda.moneda}>
+                                {moneda.moneda}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label htmlFor="correo" className="block text-center">Correo</label>
+                          <input
+                            type="email"
+                            name="correo"
+                            placeholder="Ejemplo: info@gsie.hn"
+                            value={formData.correo}
+                            onChange={handleInputChange}
+                            className="w-full p-2 border border-gray-300 rounded block text-center"
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor="telefono" className="block text-center">Teléfono</label>
+                          <input
+                            type="number"
+                            name="telefono"
+                            placeholder="Ejemplo: 8888-8888"
+                            value={formData.telefono}
+                            onChange={handleInputChange}
+                            className="w-full p-2 border border-gray-300 rounded block text-center"
+                          />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label htmlFor="nfi" className="block text-center">NFI</label>
+                          <input
+                            type="text"
+                            name="nfi"
+                            placeholder="Ejemplo: 0801-1970-00350"
+                            value={formData.nfi}
+                            onChange={handleInputChange}
+                            className="w-full p-2 border border-gray-300 rounded block text-center"
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor="prefijo_tarjetas" className="block text-center">Prefijo Tarjetas</label>
+                          <input
+                            type="text"
+                            name="prefijo_tarjetas"
+                            placeholder="Ejemplo: 0704"
+                            value={formData.prefijo_tarjetas}
+                            onChange={handleInputChange}
+                            className="w-full p-2 border border-gray-300 rounded block text-center"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label htmlFor="logo" className="block text-center">Logo</label>
+                        <input
+                          type="file"
+                          name="logo"
+                          onChange={handleFileChange}
+                          className="w-full p-2 border border-gray-300 rounded block text-center"
+                          accept="image/jpeg,image/png"
+                        />
+                        {formData.logo && (
+                          <div className="text-center text-sm text-gray-600 mt-1">
+                            Logo seleccionado: {formData.logo.name}
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <label htmlFor="logo_impreso" className="block text-center">Logo Impreso</label>
+                        <input
+                          type="file"
+                          name="logo_impreso"
+                          onChange={handleFileChange}
+                          className="w-full p-2 border border-gray-300 rounded block text-center"
+                          accept="image/jpeg,image/png"
+                        />
+                        {formData.logo_impreso && (
+                          <div className="text-center text-sm text-gray-600 mt-1">
+                            Logo impreso seleccionado: {formData.logo_impreso.name}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex justify-between mt-4">
+                      <button
+                        type="button"
+                        onClick={closePopup}
+                        className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+                      >
+                        Cancelar
+                      </button>
+                      <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                        Guardar
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
+            </div>
+          )}
+
           {isDeletePopupOpen && empresaAEliminar && (
-            <div className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md"
-            onClick={(e) => {
-            
-              if (e.target === e.currentTarget) {
-                closeDeletePopup();
-              }
-            }}
+            <div
+              className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md"
+              onClick={(e) => {
+                if (e.target === e.currentTarget) {
+                  closeDeletePopup();
+                }
+              }}
             >
               <div className="bg-white p-6 rounded shadow-lg w-2/5">
-                <h2 className="text-2xl font-semibold mb-4">Eliminar Empresa</h2>
-                <p>¿Estás seguro de que deseas eliminar la empresa {empresaAEliminar.nombre_empresa}?</p>
+                <h2 className="text-2xl font-semibold mb-4 text-center">Eliminar Empresa</h2>
+                <p className="text-center">
+                  ¿Estás seguro de que deseas eliminar la empresa {empresaAEliminar.nombre_empresa}?
+                </p>
                 <div className="flex justify-between mt-4">
                   <button
                     onClick={closeDeletePopup}

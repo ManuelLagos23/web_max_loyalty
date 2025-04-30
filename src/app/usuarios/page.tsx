@@ -9,6 +9,7 @@ interface Usuario {
   email: string;
   contraseña: string;
   num_telefono: string;
+  img?: string; // Base64 string for the image
 }
 
 export default function Usuarios() {
@@ -21,16 +22,14 @@ export default function Usuarios() {
     email: '',
     contraseña: '',
     foto: null as File | null,
+    img: '', // Base64 string for display
     num_telefono: '',
   });
-  const [searchTerm, setSearchTerm] = useState(''); 
-
+  const [searchTerm, setSearchTerm] = useState('');
   const [usuarioSeleccionado, setUsuarioSeleccionado] = useState<Usuario | null>(null);
   const [usuarioAEliminar, setUsuarioAEliminar] = useState<Usuario | null>(null);
-
-  
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(5);
+  const [itemsPerPage] = useState(10);
 
   const openPopup = (modo: 'agregar' | 'editar') => {
     setIsPopupOpen(true);
@@ -42,6 +41,7 @@ export default function Usuarios() {
         email: '',
         contraseña: '',
         foto: null,
+        img: '',
         num_telefono: '',
       });
     }
@@ -63,17 +63,25 @@ export default function Usuarios() {
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setFormData({ ...formData, foto: e.target.files[0] });
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onload = () => {
+        setFormData({
+          ...formData,
+          foto: file,
+          img: reader.result as string, // Vista previa de la nueva imagen
+        });
+      };
+      reader.readAsDataURL(file);
     }
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
-    setCurrentPage(1); 
+    setCurrentPage(1);
   };
 
-  
   const handleSubmitAgregar = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.nombre || !formData.email || !formData.contraseña || !formData.num_telefono || !formData.foto) {
@@ -104,7 +112,6 @@ export default function Usuarios() {
     }
   };
 
-  
   const handleSubmitEditar = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.id || !formData.nombre || !formData.email || !formData.num_telefono) {
@@ -138,7 +145,6 @@ export default function Usuarios() {
     }
   };
 
-  
   const handleDelete = async () => {
     if (!usuarioAEliminar) return;
     try {
@@ -179,6 +185,7 @@ export default function Usuarios() {
       email: usuario.email,
       contraseña: '',
       foto: null,
+      img: usuario.img ? `data:image/jpeg;base64,${usuario.img}` : '', // Cargar imagen Base64
       num_telefono: usuario.num_telefono,
     });
     openPopup('editar');
@@ -186,8 +193,7 @@ export default function Usuarios() {
 
   useEffect(() => {
     fetchUsuarios();
-  }, [fetchUsuarios]); 
-
+  }, [fetchUsuarios]);
 
   const filteredUsuarios = usuarios.filter((usuario) =>
     usuario.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -195,12 +201,10 @@ export default function Usuarios() {
     usuario.num_telefono.includes(searchTerm)
   );
 
-  
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentUsuarios = filteredUsuarios.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(filteredUsuarios.length / itemsPerPage);
-
 
   const handleNextPage = () => {
     if (currentPage < totalPages) {
@@ -215,39 +219,34 @@ export default function Usuarios() {
   };
 
   return (
-    
     <div className="font-sans bg-gray-100 text-gray-900">
       <div className="flex">
         <Navbar />
         <main className="w-4/5 p-8">
-        <div className="space-y-6">
+          <div className="space-y-6">
+            <h1
+              className="text-4xl font-bold text-gray-900 mb-4 tracking-tight
+                         bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
+                         transition-all duration-300 hover:scale-105 text-center"
+            >
+              Gestión de Usuarios
+            </h1>
+            <p
+              className="text-center text-black leading-relaxed max-w-2xl
+                         p-4 rounded-lg transition-all duration-300 hover:shadow-md mx-auto"
+            >
+              Administra los usuarios registrados en la plataforma con facilidad y seguridad.
+            </p>
+          </div>
+          <div className="flex justify-between mb-4">
+            <button
+              onClick={() => openPopup('agregar')}
+              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 m-2"
+            >
+              Agregar Usuario
+            </button>
+          </div>
 
-
-        <h1 
-  className="text-4xl font-bold text-gray-900 mb-4 tracking-tight 
-             bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
-             transition-all duration-300 hover:scale-105 text-center"
->
-  Gestión de Usuarios
-</h1>
-<p 
-  className="text-center text-black leading-relaxed max-w-2xl
-             p-4 rounded-lg transition-all duration-300 hover:shadow-md mx-auto"
->
-
-    Administra los usuarios registrados en la plataforma con facilidad y seguridad.
-  </p>
-</div>
-<div className="flex justify-between mb-4">
-  <button 
-    onClick={() => openPopup('agregar')} 
-    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 m-2"
-  >
-    Agregar Usuario
-  </button>
-</div>
-
-       
           <div className="mb-4">
             <input
               type="text"
@@ -302,7 +301,6 @@ export default function Usuarios() {
             </tbody>
           </table>
 
-          
           <div className="mt-4 flex justify-between items-center">
             <button
               onClick={handlePrevPage}
@@ -323,20 +321,22 @@ export default function Usuarios() {
             </button>
           </div>
 
-      
           {isPopupOpen && (
-       <div className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md border-4 border-black-500"
-       onClick={(e) => {
-       
-        if (e.target === e.currentTarget) {
-          closePopup();
-        }
-      }} >
-        
-              <div className="bg-white p-6 rounded shadow-lg w-1/3">
-                <h2 className="text-2xl font-semibold mb-4 text-center">
-                  {usuarioSeleccionado ? 'Editar Usuario' : 'Agregar Usuario'}
-                </h2>
+            <div
+              className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md border-4 border-black-500 "
+              onClick={(e) => {
+                if (e.target === e.currentTarget) {
+                  closePopup();
+                }
+              }}
+            >
+              <div className="bg-white p-6 rounded shadow-lg w-1/3  border-1">
+              <div className="text-center">
+  <h2 className="text-3xl font-bold text-gray-800 mb-6 tracking-tight inline-block relative after:block after:h-1  after:w-12 after:mx-auto after:mt-2">
+    {usuarioSeleccionado ? 'Editar Usuario' : 'Agregar Usuario'}
+  </h2>
+</div>
+
                 {usuarioSeleccionado ? (
                   <form onSubmit={handleSubmitEditar}>
                     <input type="hidden" name="id" value={formData.id} />
@@ -344,16 +344,16 @@ export default function Usuarios() {
                     <input
                       type="text"
                       name="nombre"
-                      placeholder="Nombre"
+                      placeholder="Ejemplo: Juan Pérez"
                       value={formData.nombre}
                       onChange={handleInputChange}
-                      className="w-full p-2 mb-2 border border-gray-300 rounded block text-center "
+                      className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
                     />
                     <label className="block text-center" htmlFor="email">Correo electrónico</label>
                     <input
                       type="email"
                       name="email"
-                      placeholder="Email"
+                      placeholder="Ejemplo: juanperez@gmail.com"
                       value={formData.email}
                       onChange={handleInputChange}
                       className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
@@ -362,32 +362,51 @@ export default function Usuarios() {
                     <input
                       type="password"
                       name="contraseña"
-                      placeholder="Contraseña"
+                      placeholder="Ejemplo: Contraseña_Segura"
                       value={formData.contraseña}
                       onChange={handleInputChange}
                       className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
                     />
                     <label className="block text-center" htmlFor="foto">Foto</label>
+                    {formData.img ? (
+                      <div className="mb-2 flex justify-center">
+                        <img
+                          src={formData.img}
+                          alt="Foto actual"
+                          className="w-32 h-32 object-cover rounded border border-gray-300"
+                        />
+                      </div>
+                    ) : (
+                      <p className="text-center text-gray-500 mb-2">No hay foto cargada</p>
+                    )}
                     <input
                       type="file"
                       name="foto"
                       onChange={handleFileChange}
                       className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
+                      accept="image/*"
                     />
                     <label className="block text-center" htmlFor="num_telefono">Número de teléfono</label>
                     <input
-                      type="text"
+                      type="number"
                       name="num_telefono"
-                      placeholder="Número de Teléfono"
+                      placeholder="Ejemplo: 8888-8888"
                       value={formData.num_telefono}
                       onChange={handleInputChange}
                       className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
                     />
                     <div className="flex justify-between">
-                      <button type="button" onClick={closePopup} className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500">
+                      <button
+                        type="button"
+                        onClick={closePopup}
+                        className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
+                      >
                         Cancelar
                       </button>
-                      <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                      <button
+                        type="submit"
+                        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                      >
                         Guardar
                       </button>
                     </div>
@@ -398,16 +417,16 @@ export default function Usuarios() {
                     <input
                       type="text"
                       name="nombre"
-                      placeholder="Nombre"
+                      placeholder="Ejemplo: Juan Pérez"
                       value={formData.nombre}
                       onChange={handleInputChange}
-                      className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
+                      className="w-full p-2 mb-2 border border-gray-300 rounded block text-center" autoFocus
                     />
                     <label className="block text-center" htmlFor="email">Correo electrónico</label>
                     <input
                       type="email"
                       name="email"
-                      placeholder="Email"
+                      placeholder="Ejemplo: juanperez@gmail.com"
                       value={formData.email}
                       onChange={handleInputChange}
                       className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
@@ -416,7 +435,7 @@ export default function Usuarios() {
                     <input
                       type="password"
                       name="contraseña"
-                      placeholder="Contraseña"
+                      placeholder="Ejemplo: Contraseña_Segura"
                       value={formData.contraseña}
                       onChange={handleInputChange}
                       className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
@@ -427,21 +446,29 @@ export default function Usuarios() {
                       name="foto"
                       onChange={handleFileChange}
                       className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
+                      accept="image/*"
                     />
                     <label className="block text-center" htmlFor="num_telefono">Número de teléfono</label>
                     <input
-                      type="text"
+                      type="number"
                       name="num_telefono"
-                      placeholder="Número de Teléfono"
+                      placeholder="Ejemplo: 8888-8888"
                       value={formData.num_telefono}
                       onChange={handleInputChange}
                       className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
                     />
                     <div className="flex justify-between">
-                      <button type="button" onClick={closePopup} className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500">
+                      <button
+                        type="button"
+                        onClick={closePopup}
+                        className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
+                      >
                         Cancelar
                       </button>
-                      <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                      <button
+                        type="submit"
+                        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                      >
                         Guardar
                       </button>
                     </div>
@@ -451,26 +478,31 @@ export default function Usuarios() {
             </div>
           )}
 
-     
           {isDeletePopupOpen && usuarioAEliminar && (
-            <div className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md border-black"
-            onClick={(e) => {
-              
-              if (e.target === e.currentTarget) {
-                closeDeletePopup();
-              }
-            }}
+            <div
+              className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md border-black"
+              onClick={(e) => {
+                if (e.target === e.currentTarget) {
+                  closeDeletePopup();
+                }
+              }}
             >
-              <div className="bg-white p-6 rounded shadow-lg w-1/3">
+              <div className="bg-white p-6 border-1 rounded shadow-lg w-1/3">
                 <h2 className="text-2xl font-semibold mb-4 text-center">Confirmar Eliminación</h2>
                 <p className="text-center mb-4">
                   ¿Estás seguro que deseas eliminar el usuario {usuarioAEliminar.nombre}?
                 </p>
                 <div className="flex justify-between">
-                  <button onClick={closeDeletePopup} className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500">
+                  <button
+                    onClick={closeDeletePopup}
+                    className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
+                  >
                     Cancelar
                   </button>
-                  <button onClick={handleDelete} className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+                  <button
+                    onClick={handleDelete}
+                    className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                  >
                     Eliminar
                   </button>
                 </div>

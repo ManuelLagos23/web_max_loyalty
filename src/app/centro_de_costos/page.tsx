@@ -322,7 +322,7 @@ export default function Costos() {
                 }
               }}
             >
-              <div className="bg-white p-6 rounded shadow-lg w-2/5">
+              <div className="bg-white p-6 rounded shadow-lg w-2/5 border-1">
                 <h2 className="text-2xl font-semibold mb-4 text-center">
                   {costoSeleccionado ? 'Editar Costo' : 'Agregar Costo'}
                 </h2>
@@ -330,23 +330,23 @@ export default function Costos() {
                   <form onSubmit={handleSubmitEditar}>
                     <input type="hidden" name="id" value={formData.id} />
                     <div className="mb-4">
-                      <label htmlFor="nombre_centro_costos">Nombre Centro de Costos</label>
+                      <label htmlFor="nombre_centro_costos"  className="block text-center">Nombre Centro de Costos</label>
                       <input
                         type="text"
                         name="nombre_centro_costos"
-                        placeholder="Nombre del Centro de Costos"
+                        placeholder="Ejemplo: GSIE El Paraíso"
                         value={formData.nombre_centro_costos}
                         onChange={handleInputChange}
-                        className="w-full p-2 mb-2 border border-gray-300 rounded"
+                        className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
                       />
                     </div>
                     <div className="mb-4">
-                      <label htmlFor="empresa">Empresa</label>
+                      <label htmlFor="empresa"  className="block text-center">Empresa</label>
                       <select
                         name="empresa"
                         value={formData.empresa}
                         onChange={handleInputChange}
-                        className="w-full p-2 mb-2 border border-gray-300 rounded"
+                        className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
                       >
                         <option value="">Seleccionar empresa</option>
                         {empresas.map((empresa) => (
@@ -359,12 +359,12 @@ export default function Costos() {
 
                     <div className="grid grid-cols-2 gap-4">
                       <div className="mb-4">
-                        <label htmlFor="pais">País</label>
+                        <label htmlFor="pais"  className="block text-center">País</label>
                         <select
                           name="pais"
                           value={formData.pais}
                           onChange={handleInputChange}
-                          className="w-full p-2 mb-2 border border-gray-300 rounded"
+                          className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
                         >
                           <option value="">Seleccionar país</option>
                           {paises.map((pais) => (
@@ -375,12 +375,12 @@ export default function Costos() {
                         </select>
                       </div>
                       <div className="mb-4">
-                        <label htmlFor="estado">Estado</label>
+                        <label htmlFor="estado"  className="block text-center">Estado</label>
                         <select
                           name="estado"
                           value={formData.estado}
                           onChange={handleInputChange}
-                          className="w-full p-2 mb-2 border border-gray-300 rounded"
+                          className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
                         >
                           <option value="">Seleccionar estado</option>
                           {estados.map((estado) => (
@@ -394,44 +394,44 @@ export default function Costos() {
 
                     <div className="grid grid-cols-2 gap-4">
                       <div className="mb-4">
-                        <label htmlFor="ciudad">Ciudad</label>
+                        <label htmlFor="ciudad"  className="block text-center">Ciudad</label>
                         <input
                           type="text"
                           name="ciudad"
-                          placeholder="Ciudad"
+                          placeholder="Ejemplo: El Paraíso"
                           value={formData.ciudad}
                           onChange={handleInputChange}
-                          className="w-full p-2 mb-2 border border-gray-300 rounded"
+                          className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
                         />
                       </div>
                       <div className="mb-4">
-                        <label htmlFor="alias">Alias</label>
+                        <label htmlFor="alias"  className="block text-center">Alias</label>
                         <input
                           type="text"
                           name="alias"
-                          placeholder="Alias"
+                          placeholder="Ejemplo: GSIE HN"
                           value={formData.alias}
                           onChange={handleInputChange}
-                          className="w-full p-2 mb-2 border border-gray-300 rounded"
+                          className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
                         />
                       </div>
                     </div>
                     <div className="mb-4">
-                      <label htmlFor="codigo">Código</label>
+                      <label htmlFor="codigo"  className="block text-center">Código</label>
                       <input
                         type="text"
                         name="codigo"
-                        placeholder="Código"
+                        placeholder="Ejemplo: CTR-001"
                         value={formData.codigo}
                         onChange={handleInputChange}
-                        className="w-full p-2 mb-2 border border-gray-300 rounded"
+                        className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
                       />
                     </div>
                     <div className="flex justify-between">
                       <button
                         type="button"
                         onClick={closePopup}
-                        className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+                        className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 "
                       >
                         Cancelar
                       </button>
@@ -446,23 +446,23 @@ export default function Costos() {
                 ) : (
                   <form onSubmit={handleSubmitAgregar}>
                     <div className="mb-4">
-                      <label htmlFor="nombre_centro_costos">Nombre Centro de Costos</label>
+                      <label htmlFor="nombre_centro_costos"  className="block text-center">Nombre Centro de Costos</label>
                       <input
                         type="text"
                         name="nombre_centro_costos"
-                        placeholder="Nombre del Centro de Costos"
+                        placeholder="Ejemplo: GSIE El Paraíso"
                         value={formData.nombre_centro_costos}
                         onChange={handleInputChange}
-                        className="w-full p-2 mb-2 border border-gray-300 rounded"
+                        className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
                       />
                     </div>
                     <div className="mb-4">
-                      <label htmlFor="empresa">Empresa</label>
+                      <label htmlFor="empresa"  className="block text-center">Empresa</label>
                       <select
                         name="empresa"
                         value={formData.empresa}
                         onChange={handleInputChange}
-                        className="w-full p-2 mb-2 border border-gray-300 rounded"
+                        className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
                       >
                         <option value="">Seleccionar empresa</option>
                         {empresas.map((empresa) => (
@@ -474,12 +474,12 @@ export default function Costos() {
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="mb-4">
-                        <label htmlFor="pais">País</label>
+                        <label htmlFor="pais"  className="block text-center">País</label>
                         <select
                           name="pais"
                           value={formData.pais}
                           onChange={handleInputChange}
-                          className="w-full p-2 mb-2 border border-gray-300 rounded"
+                          className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
                         >
                           <option value="">Seleccionar país</option>
                           {paises.map((pais) => (
@@ -490,12 +490,12 @@ export default function Costos() {
                         </select>
                       </div>
                       <div className="mb-4">
-                        <label htmlFor="estado">Estado</label>
+                        <label htmlFor="estado"  className="block text-center">Estado</label>
                         <select
                           name="estado"
                           value={formData.estado}
                           onChange={handleInputChange}
-                          className="w-full p-2 mb-2 border border-gray-300 rounded"
+                          className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
                         >
                           <option value="">Seleccionar estado</option>
                           {estados.map((estado) => (
@@ -508,37 +508,37 @@ export default function Costos() {
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="mb-4">
-                        <label htmlFor="ciudad">Ciudad</label>
+                        <label htmlFor="ciudad"  className="block text-center">Ciudad</label>
                         <input
                           type="text"
                           name="ciudad"
-                          placeholder="Ciudad"
+                          placeholder="Ejemplo: El Paraíso"
                           value={formData.ciudad}
                           onChange={handleInputChange}
-                          className="w-full p-2 mb-2 border border-gray-300 rounded"
+                          className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
                         />
                       </div>
                       <div className="mb-4">
-                        <label htmlFor="alias">Alias</label>
+                        <label htmlFor="alias"  className="block text-center">Alias</label>
                         <input
                           type="text"
                           name="alias"
-                          placeholder="Alias"
+                          placeholder="Ejemplo: GSIE HN"
                           value={formData.alias}
                           onChange={handleInputChange}
-                          className="w-full p-2 mb-2 border border-gray-300 rounded"
+                          className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
                         />
                       </div>
                     </div>
                     <div className="mb-4">
-                      <label htmlFor="codigo">Código</label>
+                      <label htmlFor="codigo"  className="block text-center">Código</label>
                       <input
                         type="text"
                         name="codigo"
-                        placeholder="Código"
+                        placeholder="Ejemplo: CTR-001"
                         value={formData.codigo}
                         onChange={handleInputChange}
-                        className="w-full p-2 mb-2 border border-gray-300 rounded"
+                        className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
                       />
                     </div>
                     <div className="flex justify-between">
@@ -571,7 +571,7 @@ export default function Costos() {
                 }
               }}
             >
-              <div className="bg-white p-6 rounded shadow-lg w-2/5">
+              <div className="bg-white p-6 rounded shadow-lg w-2/5 border-1">
                 <h2 className="text-xl font-semibold mb-4">Eliminar Costo</h2>
                 <p>¿Está seguro de que desea eliminar el costo {costoAEliminar.nombre_centro_costos}?</p>
                 <div className="flex justify-between mt-4">

@@ -340,10 +340,13 @@ Administra los miembros registrados en el APK de Max Loyalty Mobile.
                 }
               }}
             >
-              <div className="bg-white p-6 rounded shadow-lg w-1/3">
-                <h2 className="text-2xl font-semibold mb-4 text-center">
+              <div className="bg-white p-6 rounded shadow-lg w-1/3  border-1" >
+              <div className="text-center">
+              <h2 className="text-3xl font-bold text-gray-800 mb-6 tracking-tight inline-block relative after:block after:h-1  after:w-12 after:mx-auto after:mt-2">
                   {miembroSeleccionado ? 'Editar Miembro' : 'Agregar Miembro'}
                 </h2>
+                </div>
+
                 {miembroSeleccionado ? (
                   <form onSubmit={handleSubmitEditar}>
                     <input type="hidden" name="id" value={formData.id} />
@@ -351,7 +354,7 @@ Administra los miembros registrados en el APK de Max Loyalty Mobile.
                     <input
                       type="text"
                       name="nombre"
-                      placeholder="Nombre"
+                      placeholder="Ejemplo: Grupo GSIE"
                       value={formData.nombre}
                       onChange={handleInputChange}
                       className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
@@ -360,7 +363,7 @@ Administra los miembros registrados en el APK de Max Loyalty Mobile.
                     <input
                       type="text"
                       name="user"
-                      placeholder="User"
+                      placeholder="gsie@hn"
                       value={formData.user}
                       onChange={handleInputChange}
                       className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
@@ -369,7 +372,7 @@ Administra los miembros registrados en el APK de Max Loyalty Mobile.
                     <input
                       type="email"
                       name="email"
-                      placeholder="Email"
+                      placeholder="Ejemplo: grupogsie@gmail.com"
                       value={formData.email}
                       onChange={handleInputChange}
                       className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
@@ -392,7 +395,7 @@ Administra los miembros registrados en el APK de Max Loyalty Mobile.
                     <input
                       type="password"
                       name="password"
-                      placeholder="Password"
+                      placeholder="Ejemplo: Tu contraseña segura"
                       value={formData.password}
                       onChange={handleInputChange}
                       className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
@@ -412,7 +415,7 @@ Administra los miembros registrados en el APK de Max Loyalty Mobile.
                     <input
                       type="text"
                       name="nombre"
-                      placeholder="Nombre"
+                      placeholder="Ejemplo: Grupo GSIE"
                       value={formData.nombre}
                       onChange={handleInputChange}
                       className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
@@ -421,7 +424,7 @@ Administra los miembros registrados en el APK de Max Loyalty Mobile.
                     <input
                       type="text"
                       name="user"
-                      placeholder="User"
+                      placeholder="Ejemplo: gsie@hn"
                       value={formData.user}
                       onChange={handleInputChange}
                       className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
@@ -430,7 +433,7 @@ Administra los miembros registrados en el APK de Max Loyalty Mobile.
                     <input
                       type="email"
                       name="email"
-                      placeholder="Email"
+                      placeholder="Ejemplo: grupogsie@hn"
                       value={formData.email}
                       onChange={handleInputChange}
                       className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
@@ -453,7 +456,7 @@ Administra los miembros registrados en el APK de Max Loyalty Mobile.
                     <input
                       type="password"
                       name="password"
-                      placeholder="Password"
+                      placeholder="Ejemplo: Tu contraseña segura"
                       value={formData.password}
                       onChange={handleInputChange}
                       className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
@@ -481,7 +484,7 @@ Administra los miembros registrados en el APK de Max Loyalty Mobile.
                 }
               }}
             >
-              <div className="bg-white p-6 rounded shadow-lg w-1/3">
+              <div className="bg-white p-6 rounded shadow-lg w-1/3 border-1">
                 <h2 className="text-2xl font-semibold mb-4 text-center">Confirmar Eliminación</h2>
                 <p className="text-center mb-4">
                   ¿Estás seguro que deseas eliminar el miembro {miembroAEliminar.nombre}?

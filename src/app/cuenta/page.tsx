@@ -1,17 +1,15 @@
-
-// src/app/cuenta/page.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Navbar from '../components/Navbar';
-import Image from 'next/image'; // Importar componente Image de Next.js
+import Image from 'next/image';
 
 interface UserData {
   nombre: string;
   email: string;
   num_telefono: string;
-  img?: string | null; // Campo para la imagen
+  img?: string | null; // Campo para la imagen (Base64 string)
 }
 
 export default function Cuenta() {
@@ -27,7 +25,7 @@ export default function Cuenta() {
       });
       if (response.ok) {
         const data = await response.json();
-        console.log('Sesión obtenida en Cuenta:', data);
+        console.log('Sesión obtenida en Cuenta:', data); // Depuración
         return data;
       } else {
         console.log('No hay sesión activa o error en Cuenta:', response.status);
@@ -96,6 +94,17 @@ export default function Cuenta() {
     return null;
   }
 
+  // Determinar el tipo de imagen (JPEG o PNG) o usar un fallback
+  const getImageSrc = (img: string | null | undefined) => {
+    if (!img) return null;
+    // Probar con JPEG
+    const jpegSrc = `data:image/jpeg;base64,${img}`;
+    // Probar con PNG si JPEG falla
+    const pngSrc = `data:image/png;base64,${img}`;
+    // Retornar JPEG por defecto, pero podrías implementar lógica para detectar el tipo
+    return jpegSrc;
+  };
+
   return (
     <div className="font-sans bg-gray-100 text-gray-900 min-h-screen">
       <div className="flex">
@@ -107,14 +116,15 @@ export default function Cuenta() {
             <div className="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
               {/* Mostrar la imagen del usuario */}
               <div className="flex-shrink-0">
-                {userData.img ? (
+                {userData.img && getImageSrc(userData.img) ? (
                   <Image
-                    src={userData.img}
+                    src={getImageSrc(userData.img)!}
                     alt="Foto de perfil"
                     width={100}
                     height={100}
                     className="rounded-full object-cover"
                     priority
+                    onError={() => console.error('Error al cargar la imagen')} // Depuración
                   />
                 ) : (
                   <div className="w-24 h-24 bg-gray-300 rounded-full flex items-center justify-center">

@@ -80,95 +80,104 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="w-full sm:w-72 md:w-64 bg-gray-800 text-white h-screen p-4 space-y-2">
-      <Link href="/inicio">
-        <Image src="/images/logo-max-loyalty-white.png" alt="Logo" width={250} height={250} />
-      </Link>
-      <ul className="space-y-2">
-        <li>
-          <Link href="#" className="flex items-center p-2 rounded hover:bg-gray-700">
-            Bienvenido: {userName || 'Invitado'} 
-          </Link>
-        </li>
-        <li>
-          <Link href="/usuarios" className="flex items-center p-2 rounded hover:bg-gray-700">
-            Usuario
-          </Link>
-        </li>
-        <li>
-          <Link href="/miembros" className="flex items-center p-2 rounded hover:bg-gray-700">
-            Miembros APK
-          </Link>
-        </li>
-        <li>
-          <Link href="/clientes" className="block p-2 rounded hover:bg-gray-700">
-            Consumidores
-          </Link>
-        </li>
-        <li>
-          <Link href="/centro_de_costos" className="block p-2 rounded hover:bg-gray-700">
-            Centros de costos
-          </Link>
-        </li>
-        <li>
-          <Link href="/empresas" className="block p-2 rounded hover:bg-gray-700">
-            Empresas
-          </Link>
-        </li>
-        <li>
-          <details>
-            <summary className="block p-2 rounded hover:bg-gray-700 cursor-pointer flex items-center justify-between">
-              Movimientos
-              <span className="transition-transform duration-200 details-open:rotate-180">▼</span>
-            </summary>
-            <ul className="ml-4 space-y-2 mt-2">
-              <li>
-                <Link href="/transacciones" className="block p-2 rounded hover:bg-gray-700">
-                  * Transacciones
-                </Link>
-              </li>
-              <li>
-                <Link href="/puntos" className="block p-2 rounded hover:bg-gray-700">
-                  * Puntos
-                </Link>
-              </li>
-              <li>
-                <Link href="/redimir" className="block p-2 rounded hover:bg-gray-700">
-                  * Redimir puntos
-                </Link>
-              </li>
-            </ul>
-          </details>
-        </li>
-        <li>
-          <Link href="/configuraciones" className="block p-2 rounded hover:bg-gray-700">
-            Configuración
-          </Link>
-        </li>
-        <li>
-          <Link href="/cuenta" className="block p-2 rounded hover:bg-gray-700">
-            Mi cuenta
-          </Link>
-        </li>
-        <li>
-          <Link
-            href="#"
-            onClick={handleLogoutClick}
-            className="block p-2 rounded hover:bg-gray-700"
-          >
-            Cerrar sesión
-          </Link>
-        </li>
-      </ul>
+    <div className="relative">
+      {/* Logout Button at Top-Right */}
+      <button
+        onClick={handleLogoutClick}
+        className="fixed top-4 right-4 bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-700 z-50"
+      >
+        Cerrar sesión
+      </button>
 
+      {/* Sidebar Navigation */}
+      <nav className="w-full sm:w-72 md:w-64 bg-gray-800 text-white h-screen p-4 space-y-2">
+        <Link href="/inicio">
+          <Image src="/images/logo-max-loyalty-white.png" alt="Logo" width={250} height={250} />
+        </Link>
+        <ul className="space-y-2">
+          <li>
+            <Link href="#" className="flex items-center p-2 rounded hover:bg-gray-700">
+              Bienvenido: {userName || 'Invitado'} 
+            </Link>
+          </li>
+          <li>
+            <Link href="/miembros" className="flex items-center p-2 rounded hover:bg-gray-700">
+              Miembros APK
+            </Link>
+          </li>
+        
+          <li>
+            <Link href="/clientes" className="block p-2 rounded hover:bg-gray-700">
+              Clientes
+            </Link>
+          </li>
+          <li>
+            <Link href="/empresas" className="block p-2 rounded hover:bg-gray-700">
+              Empresas
+            </Link>
+          </li>
+          <li>
+            <Link href="/centro_de_costos" className="block p-2 rounded hover:bg-gray-700">
+              Centros de costos
+            </Link>
+          </li>
+          <li>
+            <details>
+              <summary className="block p-2 rounded hover:bg-gray-700 cursor-pointer flex items-center justify-between">
+                Movimientos
+                <span className="transition-transform duration-200 details-open:rotate-180">▼</span>
+              </summary>
+              <ul className="ml-4 space-y-2 mt-2">
+                <li>
+                  <Link href="/transacciones" className="block p-2 rounded hover:bg-gray-700">
+                    * Transacciones
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/puntos" className="block p-2 rounded hover:bg-gray-700">
+                    * Puntos
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/redimir" className="block p-2 rounded hover:bg-gray-700">
+                    * Redimir puntos
+                  </Link>
+                </li>
+              </ul>
+            </details>
+          </li>
+          <li>
+            <Link href="/configuraciones" className="block p-2 rounded hover:bg-gray-700">
+              Configuración
+            </Link>
+          </li>
+          <li>
+            <Link href="/cuenta" className="block p-2 rounded hover:bg-gray-700">
+              Mi cuenta
+            </Link>
+          </li>
+          <li>
+            <Link href="/usuarios" className="flex items-center p-2 rounded hover:bg-gray-700">
+              Usuarios
+            </Link>
+          </li>
+          <li>
+            <Link href="#" className="flex items-center p-2 rounded hover:bg-gray-700">
+              Tarjetas
+            </Link>
+          </li>
+        </ul>
+      </nav>
+
+      {/* Logout Confirmation Modal */}
       {isLogoutModalOpen && (
-        <div className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md"
-        onClick={(e) => {
-         
-          if (e.target === e.currentTarget) {
-            cancelLogout();
-          }
-        }}
+        <div
+          className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              cancelLogout();
+            }
+          }}
         >
           <div className="bg-gray-200 p-6 rounded-lg shadow-lg w-11/12 sm:w-1/3">
             <h2 className="text-xl font-semibold mb-4 text-center text-gray-900">
@@ -194,6 +203,6 @@ export default function Navbar() {
           </div>
         </div>
       )}
-    </nav>
+    </div>
   );
 }

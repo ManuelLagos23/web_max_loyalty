@@ -1,6 +1,4 @@
-// src/app/api/usuarios/route.ts
-
-import { NextResponse  } from 'next/server';
+import { NextResponse } from 'next/server';
 import { Pool } from 'pg';
 
 const pool = new Pool({
@@ -8,88 +6,102 @@ const pool = new Pool({
 });
 
 export async function POST(request: Request) {
-  const formData = await request.formData();
-  const nombre = formData.get('nombre');
-  const email = formData.get('email');
-  const contraseña = formData.get('contraseña');
-  const foto = formData.get('foto');
-  const numTelefono = formData.get('num_telefono');
-
   try {
-    const client = await pool.connect();
+    const formData = await request.formData();
+    const nombre = formData.get('nombre')?.toString();
+    const email = formData.get('email')?.toString();
+    const contraseña = formData.get('contraseña')?.toString();
+    const foto = formData.get('foto');
+    const numTelefono = formData.get('num_telefono')?.toString();
 
-    await client.query(
-      `INSERT INTO usuarios (nombre, email, password, img, num_telefono)
-      VALUES ($1, $2, $3, $4, $5)`,
-      [nombre, email, contraseña, foto, numTelefono]
+    if (!nombre || !email || !contraseña || !numTelefono || !foto) {
+      return NextResponse.json({ message: 'Todos los campos son obligatorios' }, { status: 400 });
+    }
+
+    const client = await pool.connect();
+    const arrayBuffer = await (foto as File).arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    const result = await client.query(
+      `
+      INSERT INTO usuarios (nombre, email, contraseña, img, num_telefono)
+      VALUES ($1, $2, $3, $4, $5)
+      RETURNING id, nombre, email, num_telefono, encode(img, 'base64') as img
+      `,
+      [nombre, email, contraseña, buffer, numTelefono]
     );
 
     client.release();
-
-    return NextResponse.json({ message: 'Usuario creado con éxito' });
+    return NextResponse.json(result.rows[0], { status: 201 });
   } catch (error) {
-    console.error('Error al guardar el usuario:', error);
-    return NextResponse.json({ message: 'Error al crear el usuario' }, { status: 500 });
+    console.error('Error al agregar el usuario:', error);
+    return NextResponse.json({ message: 'Error al agregar el usuario' }, { status: 500 });
   }
 }
 
-
-
-// 🚀 Nuevo método GET para obtener los usuarios
 export async function GET() {
   try {
     const client = await pool.connect();
     const result = await client.query(
-      `SELECT id, nombre, email, img, num_telefono FROM usuarios`
+      `SELECT id, nombre, email, num_telefono, encode(img, 'base64') as img FROM usuarios`
     );
     client.release();
-
-    return NextResponse.json(result.rows);
+    return NextResponse.json(result.rows, { status: 200 });
   } catch (error) {
     console.error('Error al obtener los usuarios:', error);
     return NextResponse.json({ message: 'Error al obtener los usuarios' }, { status: 500 });
   }
 }
 
-
-
-
 export async function PUT(request: Request) {
-    try {
-      // Extraer los datos enviados en el formulario
-      const formData = await request.formData();
-      const id = formData.get('id');
-      const nombre = formData.get('nombre');
-      const email = formData.get('email');
-      const numTelefono = formData.get('num_telefono');
-  
-      // Validar que el ID esté presente
-      if (!id) {
-        return NextResponse.json({ message: 'El ID del usuario es obligatorio' }, { status: 400 });
-      }
-  
-      const client = await pool.connect();
-  
-      // Realiza la actualización del usuario y devuelve la fila actualizada
-      const result = await client.query(
-        `UPDATE usuarios 
-         SET nombre = $1, email = $2,  num_telefono = $3 
-         WHERE id = $4
-         RETURNING *`,
-        [nombre, email,  numTelefono, id]
+  try {
+    const formData = await request.formData();
+    const id = formData.get('id')?.toString();
+    const nombre = formData.get('nombre')?.toString();
+    const email = formData.get('email')?.toString();
+    const contraseña = formData.get('contraseña')?.toString();
+    const numTelefono = formData.get('num_telefono')?.toString();
+    const foto = formData.get('foto');
+
+    if (!id || !nombre || !email || !numTelefono) {
+      return NextResponse.json(
+        { message: 'El ID, nombre, email y número de teléfono son obligatorios' },
+        { status: 400 }
       );
-  
-      client.release();
-  
-      return NextResponse.json(result.rows, { status: 200 });
-    } catch (error) {
-      console.error('Error al actualizar el usuario:', error);
-      return NextResponse.json({ message: 'Error al actualizar el usuario' }, { status: 500 });
     }
+
+    const client = await pool.connect();
+    let query = `
+      UPDATE usuarios 
+      SET nombre = $1, email = $2, num_telefono = $3`;
+    let values: any[] = [nombre, email, numTelefono];
+
+    if (contraseña) {
+      query += `, contraseña = $${values.length + 1}`;
+      values.push(contraseña);
+    }
+
+    if (foto && typeof foto !== 'string') {
+      const arrayBuffer = await (foto as File).arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      query += `, img = $${values.length + 1}`;
+      values.push(buffer);
+    }
+
+    query += ` WHERE id = $${values.length + 1} RETURNING id, nombre, email, num_telefono, encode(img, 'base64') as img`;
+    values.push(id);
+
+    const result = await client.query(query, values);
+
+    client.release();
+
+    if (result.rowCount === 0) {
+      return NextResponse.json({ message: 'Usuario no encontrado' }, { status: 404 });
+    }
+
+    return NextResponse.json(result.rows[0], { status: 200 });
+  } catch (error) {
+    console.error('Error al actualizar el usuario:', error);
+    return NextResponse.json({ message: 'Error al actualizar el usuario' }, { status: 500 });
   }
-
-
-
-
-
-
+}
