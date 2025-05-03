@@ -140,15 +140,19 @@ export default function Miembros() {
         console.error(errorText);
         setErrorMessage(errorText);
       }
-    } catch (error: any) {
-      if (error.name === 'AbortError') {
+    } catch (error: unknown) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
         console.error('La solicitud para obtener los detalles de la terminal ha excedido el tiempo límite');
         setErrorMessage('No se pudo obtener los detalles de la terminal: Tiempo de espera excedido');
-      } else {
+      } else if (error instanceof Error) {
         console.error('Error en la solicitud de la terminal:', error);
         setErrorMessage(`Error al obtener los detalles de la terminal: ${error.message}`);
+      } else {
+        console.error('Error desconocido:', error);
+        setErrorMessage('Ocurrió un error desconocido al obtener los detalles de la terminal');
       }
     }
+    
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
