@@ -8,7 +8,7 @@ interface Miembro {
   nombre: string;
   user: string;
   email: string;
-  establecimiento: number; // Cambiado a number, ya que es un entero en la base de datos
+  establecimiento: number;
   empresa_id: number;
   terminal_id: number;
   empresa_nombre: string;
@@ -30,7 +30,7 @@ interface Terminal {
   id: number;
   nombre_terminal: string;
   empresa_id: number;
-  establecimiento: number; // Cambiado a number, ya que es un entero
+  establecimiento: number;
 }
 
 export default function Miembros() {
@@ -45,7 +45,7 @@ export default function Miembros() {
     nombre: '',
     user: '',
     email: '',
-    establecimiento: 0, // Cambiado a number
+    establecimiento: 0,
     empresa_id: 0,
     terminal_id: 0,
     password: '',
@@ -56,7 +56,6 @@ export default function Miembros() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(5);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
 
   const openPopup = (modo: 'agregar' | 'editar') => {
     setIsPopupOpen(true);
@@ -73,7 +72,7 @@ export default function Miembros() {
         terminal_id: 0,
         password: '',
       });
-    } else if (modo === 'editar' && miembroSeleccionado && !isLoading) {
+    } else if (modo === 'editar' && miembroSeleccionado) {
       setFormData({
         id: miembroSeleccionado.id,
         nombre: miembroSeleccionado.nombre,
@@ -118,7 +117,6 @@ export default function Miembros() {
   const fetchTerminalDetails = async (terminalId: number) => {
     try {
       setErrorMessage(null);
-
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
 
@@ -133,7 +131,7 @@ export default function Miembros() {
         setFormData((prevData) => ({
           ...prevData,
           empresa_id: terminalData.empresa_id,
-          establecimiento: terminalData.establecimiento, // Ya es un número
+          establecimiento: terminalData.establecimiento,
         }));
       } else {
         const errorText = `Error al obtener los detalles de la terminal: ${response.status} ${response.statusText}`;
@@ -152,7 +150,6 @@ export default function Miembros() {
         setErrorMessage('Ocurrió un error desconocido al obtener los detalles de la terminal');
       }
     }
-    
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -184,7 +181,7 @@ export default function Miembros() {
     formDataToSend.append('nombre', formData.nombre);
     formDataToSend.append('user', formData.user);
     formDataToSend.append('email', formData.email);
-    formDataToSend.append('establecimiento', formData.establecimiento.toString()); // Enviado como string para FormData, pero es un número en formData
+    formDataToSend.append('establecimiento', formData.establecimiento.toString());
     formDataToSend.append('empresa_id', formData.empresa_id.toString());
     formDataToSend.append('terminal_id', formData.terminal_id.toString());
     formDataToSend.append('password', formData.password);
@@ -221,7 +218,7 @@ export default function Miembros() {
     formDataToSend.append('nombre', formData.nombre);
     formDataToSend.append('user', formData.user);
     formDataToSend.append('email', formData.email);
-    formDataToSend.append('establecimiento', formData.establecimiento.toString()); // Enviado como string para FormData, pero es un número en formData
+    formDataToSend.append('establecimiento', formData.establecimiento.toString());
     formDataToSend.append('empresa_id', formData.empresa_id.toString());
     formDataToSend.append('terminal_id', formData.terminal_id.toString());
     formDataToSend.append('password', formData.password);
@@ -360,12 +357,10 @@ export default function Miembros() {
   useEffect(() => {
     const loadData = async () => {
       await Promise.all([fetchMiembros(), fetchCentrosCostos(), fetchEmpresas(), fetchTerminales()]);
-      setIsLoading(false);
     };
     loadData();
   }, [fetchMiembros, fetchCentrosCostos, fetchEmpresas, fetchTerminales]);
 
-  // Función para obtener el nombre del establecimiento a partir de su ID
   const getNombreEstablecimiento = (establecimientoId: number) => {
     const centro = centrosCostos.find((c) => c.id === establecimientoId);
     return centro ? centro.nombre_centro_costos : '';
@@ -376,7 +371,7 @@ export default function Miembros() {
       miembro.nombre,
       miembro.user,
       miembro.email,
-      getNombreEstablecimiento(miembro.establecimiento), // Buscar por nombre del establecimiento
+      getNombreEstablecimiento(miembro.establecimiento),
       miembro.empresa_nombre,
       miembro.terminal_nombre,
     ].some((field) => field.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -424,7 +419,6 @@ export default function Miembros() {
             <button
               onClick={() => openPopup('agregar')}
               className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-              disabled={isLoading}
             >
               Agregar Miembro
             </button>
@@ -470,14 +464,12 @@ export default function Miembros() {
                       <button
                         onClick={() => handleEditar(miembro)}
                         className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 mr-2"
-                        disabled={isLoading}
                       >
                         Editar
                       </button>
                       <button
                         onClick={() => openDeletePopup(miembro)}
                         className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-                        disabled={isLoading}
                       >
                         Eliminar
                       </button>
@@ -497,8 +489,8 @@ export default function Miembros() {
           <div className="mt-4 flex justify-between items-center">
             <button
               onClick={handlePrevPage}
-              disabled={currentPage === 1 || isLoading}
-              className={`px-4 py-2 rounded ${currentPage === 1 || isLoading ? 'bg-gray-300' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+              disabled={currentPage === 1}
+              className={`px-4 py-2 rounded ${currentPage === 1 ? 'bg-gray-300' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
             >
               Anterior
             </button>
@@ -507,8 +499,8 @@ export default function Miembros() {
             </span>
             <button
               onClick={handleNextPage}
-              disabled={currentPage === totalPages || isLoading}
-              className={`px-4 py-2 rounded ${currentPage === totalPages || isLoading ? 'bg-gray-300' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+              disabled={currentPage === totalPages}
+              className={`px-4 py-2 rounded ${currentPage === totalPages ? 'bg-gray-300' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
             >
               Siguiente
             </button>

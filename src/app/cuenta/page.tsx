@@ -9,12 +9,11 @@ interface UserData {
   nombre: string;
   email: string;
   num_telefono: string;
-  img?: string | null; // Campo para la imagen (Base64 string)
+  img?: string | null;
 }
 
 export default function Cuenta() {
   const [userData, setUserData] = useState<UserData | null>(null);
-  const [loading, setLoading] = useState(true);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const router = useRouter();
 
@@ -25,7 +24,7 @@ export default function Cuenta() {
       });
       if (response.ok) {
         const data = await response.json();
-        console.log('Sesión obtenida en Cuenta:', data); // Depuración
+        console.log('Sesión obtenida en Cuenta:', data);
         return data;
       } else {
         console.log('No hay sesión activa o error en Cuenta:', response.status);
@@ -45,7 +44,6 @@ export default function Cuenta() {
         router.push('/login');
       } else {
         setUserData(session);
-        setLoading(false);
       }
     };
 
@@ -82,26 +80,13 @@ export default function Cuenta() {
     setIsLogoutModalOpen(false);
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <p>Cargando...</p>
-      </div>
-    );
-  }
-
-  if (!userData) {
-    return null;
-  }
-
   const getImageSrc = (img: string | null | undefined) => {
     if (!img) return null;
-    // Probar con JPEG
     const jpegSrc = `data:image/jpeg;base64,${img}`;
-    // Retornar JPEG por defecto
     return jpegSrc;
   };
 
+  // Renderizar la estructura básica incluso si userData no está listo
   return (
     <div className="font-sans bg-gray-100 text-gray-900 min-h-screen">
       <div className="flex">
@@ -109,44 +94,51 @@ export default function Cuenta() {
         <main className="w-4/5 p-8">
           <h1 className="text-4xl font-semibold mb-4">Mi Cuenta</h1>
           <div className="bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-2xl font-semibold mb-4">Bienvenido, {userData.nombre}</h2>
-            <div className="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
-              {/* Mostrar la imagen del usuario */}
-              <div className="flex-shrink-0">
-                {userData.img && getImageSrc(userData.img) ? (
-                  <Image
-                    src={getImageSrc(userData.img)!}
-                    alt="Foto de perfil"
-                    width={100}
-                    height={100}
-                    className="rounded-full object-cover"
-                    priority
-                    onError={() => console.error('Error al cargar la imagen')} // Depuración
-                  />
-                ) : (
-                  <div className="w-24 h-24 bg-gray-300 rounded-full flex items-center justify-center">
-                    <span className="text-gray-600 text-sm">Sin imagen</span>
+            {!userData ? (
+              <div className="h-48 flex items-center justify-center">
+                <span className="text-gray-500">Verificando sesión...</span>
+              </div>
+            ) : (
+              <>
+                <h2 className="text-2xl font-semibold mb-4">Bienvenido, {userData.nombre}</h2>
+                <div className="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
+                  <div className="flex-shrink-0">
+                    {userData.img && getImageSrc(userData.img) ? (
+                      <Image
+                        src={getImageSrc(userData.img)!}
+                        alt="Foto de perfil"
+                        width={100}
+                        height={100}
+                        className="rounded-full object-cover"
+                        priority
+                        onError={() => console.error('Error al cargar la imagen')}
+                      />
+                    ) : (
+                      <div className="w-24 h-24 bg-gray-300 rounded-full flex items-center justify-center">
+                        <span className="text-gray-600 text-sm">Sin imagen</span>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-              <div className="space-y-4">
-                <div>
-                  <span className="font-bold">Nombre:</span> {userData.nombre}
+                  <div className="space-y-4">
+                    <div>
+                      <span className="font-bold">Nombre:</span> {userData.nombre}
+                    </div>
+                    <div>
+                      <span className="font-bold">Email:</span> {userData.email}
+                    </div>
+                    <div>
+                      <span className="font-bold">Número de Teléfono:</span> {userData.num_telefono}
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <span className="font-bold">Email:</span> {userData.email}
-                </div>
-                <div>
-                  <span className="font-bold">Número de Teléfono:</span> {userData.num_telefono}
-                </div>
-              </div>
-            </div>
-            <button
-              onClick={handleLogoutClick}
-              className="mt-6 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-            >
-              Cerrar Sesión
-            </button>
+                <button
+                  onClick={handleLogoutClick}
+                  className="mt-6 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                >
+                  Cerrar Sesión
+                </button>
+              </>
+            )}
           </div>
         </main>
       </div>
