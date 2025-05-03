@@ -368,7 +368,7 @@ export default function Costos() {
                         >
                           <option value="">Seleccionar país</option>
                           {paises.map((pais) => (
-                            <option key={pais.id} value={pais.pais}>
+                            <option key={pais.id} value={pais.id}>
                               {pais.pais}
                             </option>
                           ))}
@@ -384,7 +384,7 @@ export default function Costos() {
                         >
                           <option value="">Seleccionar estado</option>
                           {estados.map((estado) => (
-                            <option key={estado.id} value={estado.estado}>
+                            <option key={estado.id} value={estado.id}>
                               {estado.estado}
                             </option>
                           ))}
@@ -483,7 +483,7 @@ export default function Costos() {
                         >
                           <option value="">Seleccionar país</option>
                           {paises.map((pais) => (
-                            <option key={pais.id} value={pais.pais}>
+                            <option key={pais.id} value={pais.id}>
                               {pais.pais}
                             </option>
                           ))}
@@ -499,7 +499,7 @@ export default function Costos() {
                         >
                           <option value="">Seleccionar estado</option>
                           {estados.map((estado) => (
-                            <option key={estado.id} value={estado.estado}>
+                            <option key={estado.id} value={estado.id}>
                               {estado.estado}
                             </option>
                           ))}

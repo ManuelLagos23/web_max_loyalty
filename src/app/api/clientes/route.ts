@@ -46,7 +46,19 @@ export async function GET() {
   try {
     const client = await pool.connect();
     const result = await client.query(
-      `SELECT id, nombre, pais, estado, ciudad, email, telefono, nfi, encode(logo, 'base64') as logo FROM clientes`
+      `SELECT 
+         c.id, 
+         c.nombre, 
+         p.pais AS pais, 
+         e.estado AS estado, 
+         c.ciudad, 
+         c.email, 
+         c.telefono, 
+         c.nfi, 
+         encode(c.logo, 'base64') as logo
+       FROM clientes c
+       LEFT JOIN paises p ON c.pais = p.id
+       LEFT JOIN estados e ON c.estado = e.id`
     );
     client.release();
     return NextResponse.json(result.rows, { status: 200 });
@@ -55,8 +67,6 @@ export async function GET() {
     return NextResponse.json({ message: 'Error al obtener los clientes' }, { status: 500 });
   }
 }
-
-
 
 
 export async function PUT(request: Request) {

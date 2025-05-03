@@ -40,12 +40,28 @@ export async function POST(request: Request) {
   }
 }
 
+
+
+
+
+
 // 🚀 Método GET para obtener todos los centros de costos
 export async function GET() {
   try {
     const client = await pool.connect();
     const result = await client.query(
-      `SELECT id, nombre_centro_costos, pais, estado, ciudad, alias, codigo, empresa FROM costos`
+      `SELECT 
+         c.id, 
+         c.nombre_centro_costos, 
+         p.pais AS pais, 
+         e.estado AS estado, 
+         c.ciudad, 
+         c.alias, 
+         c.codigo, 
+         c.empresa
+       FROM costos c
+       LEFT JOIN paises p ON c.pais = p.id
+       LEFT JOIN estados e ON c.estado = e.id`
     );
     client.release();
 
@@ -55,6 +71,7 @@ export async function GET() {
     return NextResponse.json({ message: 'Error al obtener los centros de costos' }, { status: 500 });
   }
 }
+
 
 // 🚀 Método PUT para actualizar los datos de un centro de costos
 export async function PUT(request: Request) {

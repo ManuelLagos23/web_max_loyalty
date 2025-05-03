@@ -47,7 +47,7 @@ export default function Clientes() {
   const [clienteSeleccionado, setClienteSeleccionado] = useState<Cliente | null>(null);
   const [clienteAEliminar, setClienteAEliminar] = useState<Cliente | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(5);
+  const [itemsPerPage] = useState(10);
 
   const openPopup = (modo: 'agregar' | 'editar') => {
     setIsPopupOpen(true);
@@ -443,7 +443,7 @@ export default function Clientes() {
                       >
                         <option value="">Seleccionar país</option>
                         {paises.map((pais) => (
-                          <option key={pais.id} value={pais.pais}>
+                          <option key={pais.id} value={pais.id}>
                             {pais.pais}
                           </option>
                         ))}
@@ -459,7 +459,7 @@ export default function Clientes() {
                       >
                         <option value="">Seleccionar estado</option>
                         {estados.map((estado) => (
-                          <option key={estado.id} value={estado.estado}>
+                          <option key={estado.id} value={estado.id}>
                             {estado.estado}
                           </option>
                         ))}
@@ -580,7 +580,7 @@ export default function Clientes() {
                       >
                         <option value="">Seleccionar país</option>
                         {paises.map((pais) => (
-                          <option key={pais.id} value={pais.pais}>
+                          <option key={pais.id} value={pais.id}>
                             {pais.pais}
                           </option>
                         ))}
@@ -596,7 +596,7 @@ export default function Clientes() {
                       >
                         <option value="">Seleccionar estado</option>
                         {estados.map((estado) => (
-                          <option key={estado.id} value={estado.estado}>
+                          <option key={estado.id} value={estado.id}>
                             {estado.estado}
                           </option>
                         ))}
