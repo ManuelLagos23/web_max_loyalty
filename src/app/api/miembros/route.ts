@@ -1,4 +1,3 @@
-// src/app/api/miembros/route.ts
 
 import { NextResponse } from 'next/server';
 import { Pool } from 'pg';
@@ -13,15 +12,17 @@ export async function POST(request: Request) {
   const user = formData.get('user');
   const email = formData.get('email');
   const establecimiento = formData.get('establecimiento');
+  const empresa_id = formData.get('empresa_id');
+  const terminal_id = formData.get('terminal_id');
   const password = formData.get('password');
 
   try {
     const client = await pool.connect();
 
     await client.query(
-      `INSERT INTO miembros (nombre, "user", email, establecimiento, password)
-       VALUES ($1, $2, $3, $4, $5)`,
-      [nombre, user, email, establecimiento, password]
+      `INSERT INTO miembros (nombre, "user", email, establecimiento, empresa_id, terminal_id, password)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [nombre, user, email, establecimiento, empresa_id, terminal_id, password]
     );
 
     client.release();
@@ -37,7 +38,18 @@ export async function GET() {
   try {
     const client = await pool.connect();
     const result = await client.query(
-      `SELECT id, nombre, "user", email, establecimiento FROM miembros`
+      `SELECT 
+    m.id, 
+    m.nombre, 
+    m."user", 
+    m.email, 
+    e.nombre_empresa AS empresa_id, 
+    t.nombre_terminal AS terminal_id, 
+    es.nombre_centro_costos AS establecimiento
+FROM miembros m
+LEFT JOIN empresas e ON m.empresa_id = e.id
+LEFT JOIN terminales t ON m.terminal_id = t.id
+LEFT JOIN costos es ON m.establecimiento = es.id;`
     );
     client.release();
 
@@ -56,6 +68,8 @@ export async function PUT(request: Request) {
     const user = formData.get('user');
     const email = formData.get('email');
     const establecimiento = formData.get('establecimiento');
+    const empresa_id = formData.get('empresa_id');
+    const terminal_id = formData.get('terminal_id');
 
     if (!id) {
       return NextResponse.json({ message: 'El ID del miembro es obligatorio' }, { status: 400 });
@@ -65,10 +79,10 @@ export async function PUT(request: Request) {
 
     const result = await client.query(
       `UPDATE miembros 
-       SET nombre = $1, "user" = $2, email = $3, establecimiento = $4
-       WHERE id = $5
+       SET nombre = $1, "user" = $2, email = $3, establecimiento = $4, empresa_id = $5, terminal_id = $6
+       WHERE id = $7
        RETURNING *`,
-      [nombre, user, email, establecimiento, id]
+      [nombre, user, email, establecimiento, empresa_id, terminal_id, id]
     );
 
     client.release();

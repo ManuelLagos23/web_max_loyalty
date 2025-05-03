@@ -41,7 +41,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="bg-white p-12 rounded-lg shadow-lg w-full max-w-lg">
         <div className="flex justify-center mb-6">
-          <Image src="/images/logo-max-loyalty-black.png" alt="Logo" width={250} height={250} />
+          <Image src="/images/logo-max-loyalty-black.png" alt="Logo" width={550} height={450} />
         </div>
         <h1 className="text-3xl font-bold mb-8 text-center text-gray-800">Iniciar Sesión</h1>
         <form onSubmit={handleSubmit}>

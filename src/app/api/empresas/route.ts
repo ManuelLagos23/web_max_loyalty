@@ -51,15 +51,29 @@ export async function POST(request: Request) {
   }
 }
 
-// 🚀 Método GET para obtener todas las estaciones
+
+
+// 🚀 Método GET para obtener todas las estaciones con nombres reales de país y moneda
 export async function GET() {
   try {
     const client = await pool.connect();
     const result = await client.query(
       `
-      SELECT id, nombre_empresa, nombre_impreso, pais, moneda, correo, telefono, nfi, prefijo_tarjetas, 
-             encode(logo, 'base64') as logo, encode(logo_impreso, 'base64') as logo_impreso 
-      FROM empresas
+      SELECT 
+        e.id,
+        e.nombre_empresa,
+        e.nombre_impreso,
+        p.pais AS pais,
+        m.moneda AS moneda,
+        e.correo,
+        e.telefono,
+        e.nfi,
+        e.prefijo_tarjetas,
+        encode(e.logo, 'base64') as logo,
+        encode(e.logo_impreso, 'base64') as logo_impreso
+      FROM empresas e
+      JOIN paises p ON e.pais = p.id
+      JOIN monedas m ON e.moneda = m.id
       `
     );
     client.release();
@@ -70,7 +84,6 @@ export async function GET() {
     return NextResponse.json({ message: 'Error al obtener las estaciones' }, { status: 500 });
   }
 }
-
 
 
 

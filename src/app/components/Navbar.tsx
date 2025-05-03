@@ -162,7 +162,7 @@ export default function Navbar() {
             </Link>
           </li>
           <li>
-            <Link href="#" className="flex items-center p-2 rounded hover:bg-gray-700">
+            <Link href="/tarjetas" className="flex items-center p-2 rounded hover:bg-gray-700">
               Tarjetas
             </Link>
           </li>

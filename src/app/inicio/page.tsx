@@ -23,7 +23,7 @@ export default function Home() {
           >
             <h1 className="text-4xl font-semibold mb-4 text-gray-900">Bienvenido a Max Loyalty</h1>
             <p className="text-lg text-gray-700">
-              Esta es tu plataforma para gestionar tu fidelidad. Utiliza el menú de la izquierda para navegar entre las opciones disponibles.
+              Esta es tu plataforma para gestionar tu fidelidad.
             </p>
           </main>
         </div>

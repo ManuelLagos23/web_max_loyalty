@@ -503,7 +503,7 @@ export default function Empresas() {
                           >
                             <option value="">Seleccionar país</option>
                             {paises.map((pais) => (
-                              <option key={pais.id} value={pais.pais}>
+                              <option key={pais.id} value={pais.id}>
                                 {pais.pais}
                               </option>
                             ))}
@@ -519,7 +519,7 @@ export default function Empresas() {
                           >
                             <option value="">Seleccionar moneda</option>
                             {monedas.map((moneda) => (
-                              <option key={moneda.id} value={moneda.moneda}>
+                              <option key={moneda.id} value={moneda.id}>
                                 {moneda.moneda}
                               </option>
                             ))}
@@ -686,7 +686,7 @@ export default function Empresas() {
                           >
                             <option value="">Seleccionar país</option>
                             {paises.map((pais) => (
-                              <option key={pais.id} value={pais.pais}>
+                              <option key={pais.id} value={pais.id}>
                                 {pais.pais}
                               </option>
                             ))}
@@ -702,7 +702,7 @@ export default function Empresas() {
                           >
                             <option value="">Seleccionar moneda</option>
                             {monedas.map((moneda) => (
-                              <option key={moneda.id} value={moneda.moneda}>
+                              <option key={moneda.id} value={moneda.id}>
                                 {moneda.moneda}
                               </option>
                             ))}
