@@ -6,11 +6,12 @@ import Navbar from '../components/Navbar';
 type Transaccion = {
   id: number;
   cliente_id: number;
-  cliente_nombre: string | null; // Agregado para el nombre del cliente
+  cliente_nombre: string | null;
   establecimiento_id: number;
   fecha: string;
   monto: number;
   terminal_id: number;
+  numero_tarjeta: string | null; // Agregado para el número de tarjeta
 };
 
 export default function Transacciones() {
@@ -197,13 +198,14 @@ export default function Transacciones() {
                 <th className="px-4 py-2">Fecha</th>
                 <th className="px-4 py-2">Monto</th>
                 <th className="px-4 py-2">Terminal</th>
+                <th className="px-4 py-2">Número de Tarjeta</th>
                 <th className="px-4 py-2">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {currentTransacciones.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-2  text-center">No hay transacciones disponibles</td>
+                  <td colSpan={9} className="px-4 py-2 text-center">No hay transacciones disponibles</td>
                 </tr>
               ) : (
                 currentTransacciones.map((transaccion, index) => (
@@ -215,6 +217,7 @@ export default function Transacciones() {
                     <td className="px-4 py-2">{new Date(transaccion.fecha).toLocaleDateString()}</td>
                     <td className="px-4 py-2 text-center">{transaccion.monto}</td>
                     <td className="px-4 py-2 text-center">{transaccion.terminal_id}</td>
+                    <td className="px-4 py-2 text-center">{transaccion.numero_tarjeta ?? 'Sin tarjeta'}</td>
                     <td className="px-4 py-2 text-center">
                       <button
                         onClick={() => {

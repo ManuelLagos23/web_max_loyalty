@@ -44,17 +44,16 @@ export async function POST(request: Request) {
   }
 }
 
-// Método GET para obtener todos los canjeados
 export async function GET() {
   try {
     const client = await pool.connect();
     const result = await client.query(
-      `SELECT c.id, c.cliente_id, cl.nombre AS cliente_nombre, cs.nombre_centro_costos as establecimiento_id, 
-       tr.nombre_terminal as terminal_id,   c.created_at, c.puntos_canjeados
+      `SELECT c.id, c.cliente_id, cl.nombre AS cliente_nombre, cs.nombre_centro_costos AS establecimiento_id, 
+       tr.nombre_terminal AS terminal_id, c.created_at, c.puntos_canjeados, c.numero_tarjeta
        FROM canjeados c
        LEFT JOIN clientes cl ON c.cliente_id = cl.id
-	     LEFT JOIN costos cs ON c.establecimiento_id = cs.id
-		     LEFT JOIN terminales tr  ON c.terminal_id = tr.id`
+       LEFT JOIN costos cs ON c.establecimiento_id = cs.id
+       LEFT JOIN terminales tr ON c.terminal_id = tr.id`
     );
     client.release();
 
@@ -64,7 +63,6 @@ export async function GET() {
     return NextResponse.json({ message: 'Error al obtener los canjeados' }, { status: 500 });
   }
 }
-
 // Método PUT para actualizar un canjeado
 export async function PUT(request: Request) {
   try {

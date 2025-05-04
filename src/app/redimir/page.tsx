@@ -6,11 +6,12 @@ import Navbar from '../components/Navbar';
 interface Canjeado {
   id: number;
   cliente_id: number;
-  cliente_nombre: string | null; // Agregado para el nombre del cliente
+  cliente_nombre: string | null;
   establecimiento_id: number;
   created_at: string;
   puntos_canjeados: number;
   terminal_id: number;
+  numero_tarjeta: string | null; // Agregado para el número de tarjeta
 }
 
 export default function Canjeados() {
@@ -382,12 +383,13 @@ export default function Canjeados() {
             <thead>
               <tr className="bg-gray-200">
                 <th className="px-4 py-2 text-left">#</th>
-                <th className="px-4 py-2 text-left"hidden>ID Cliente</th>
+                <th className="px-4 py-2 text-left" hidden>ID Cliente</th>
                 <th className="px-4 py-2 text-left">Cliente</th>
                 <th className="px-4 py-2 text-left">Establecimiento</th>
                 <th className="px-4 py-2 text-left">Fecha</th>
                 <th className="px-4 py-2 text-left">Puntos Canjeados</th>
                 <th className="px-4 py-2 text-left">Terminal</th>
+                <th className="px-4 py-2 text-left">Número de Tarjeta</th>
                 <th className="px-4 py-2 text-left">Acciones</th>
               </tr>
             </thead>
@@ -402,6 +404,7 @@ export default function Canjeados() {
                     <td className="px-4 py-2">{new Date(canjeado.created_at).toLocaleDateString()}</td>
                     <td className="px-4 py-2">{canjeado.puntos_canjeados}</td>
                     <td className="px-4 py-2">{canjeado.terminal_id}</td>
+                    <td className="px-4 py-2">{canjeado.numero_tarjeta ?? 'Sin tarjeta'}</td>
                     <td className="px-4 py-2">
                       <button
                         onClick={() => handleEditar(canjeado)}
@@ -420,7 +423,7 @@ export default function Canjeados() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={8} className="px-4 py-2 text-center text-gray-500">
+                  <td colSpan={9} className="px-4 py-2 text-center text-gray-500">
                     No hay canjeados disponibles.
                   </td>
                 </tr>

@@ -44,18 +44,18 @@ export async function POST(request: Request) {
   }
 }
 
-// Método GET para obtener todas las transacciones
+
 export async function GET() {
   try {
     const client = await pool.connect();
     const result = await client.query(
       `
-SELECT t.id, t.cliente_id, c.nombre AS cliente_nombre, te.nombre_terminal as terminal_id, 
-    ct.nombre_centro_costos as establecimiento_id,    t.fecha, t.monto
+SELECT t.id, t.cliente_id, c.nombre AS cliente_nombre, te.nombre_terminal AS terminal_id, 
+    ct.nombre_centro_costos AS establecimiento_id, t.fecha, t.monto, t.numero_tarjeta
        FROM transacciones t
        LEFT JOIN clientes c ON t.cliente_id = c.id
-	   LEFT JOIN terminales te on t.terminal_id = te.id
-	     LEFT JOIN costos ct on t.establecimiento_id = ct.id`
+       LEFT JOIN terminales te ON t.terminal_id = te.id
+       LEFT JOIN costos ct ON t.establecimiento_id = ct.id`
     );
     client.release();
 
@@ -65,7 +65,6 @@ SELECT t.id, t.cliente_id, c.nombre AS cliente_nombre, te.nombre_terminal as ter
     return NextResponse.json({ message: 'Error al obtener las transacciones' }, { status: 500 });
   }
 }
-
 // Método PUT para actualizar una transacción
 export async function PUT(request: Request) {
   try {
