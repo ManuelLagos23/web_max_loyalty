@@ -6,6 +6,7 @@ import Navbar from '../components/Navbar';
 interface Punto {
   id: number;
   cliente_id: number;
+  cliente_nombre: string | null; // Nombre del cliente desde la tabla clientes
   transaccion_id: number;
   canjeados_id: number;
   debe: number;
@@ -175,22 +176,19 @@ export default function Puntos() {
     fetchPuntos();
   }, [fetchPuntos]);
 
-
   const filteredPuntos = puntos.filter((punto) =>
     Object.values(punto)
-      .map((value) => String(value))
+      .map((value) => String(value ?? '')) // Maneja valores null
       .join(' ')
       .toLowerCase()
       .includes(searchTerm.toLowerCase())
   );
 
- 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentPuntos = filteredPuntos.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(filteredPuntos.length / itemsPerPage);
 
- 
   const handleNextPage = () => {
     if (currentPage < totalPages) {
       setCurrentPage(currentPage + 1);
@@ -203,28 +201,28 @@ export default function Puntos() {
     }
   };
 
-
   interface GroupedData {
     cliente_id: number;
+    cliente_nombre: string | null; // Agregado para el nombre del cliente
     sumDebe: number;
     sumHaber: number;
     diferencia: number;
   }
 
-
   const groupByClienteId = (): GroupedData[] => {
     const groupedData = puntos.reduce((acc, punto) => {
-      const { cliente_id, debe, haber } = punto;
+      const { cliente_id, cliente_nombre, debe, haber } = punto;
       if (!acc[cliente_id]) {
-        acc[cliente_id] = { sumDebe: 0, sumHaber: 0 };
+        acc[cliente_id] = { sumDebe: 0, sumHaber: 0, cliente_nombre };
       }
       acc[cliente_id].sumDebe += debe;
       acc[cliente_id].sumHaber += haber;
       return acc;
-    }, {} as Record<number, { sumDebe: number; sumHaber: number }>);
+    }, {} as Record<number, { sumDebe: number; sumHaber: number; cliente_nombre: string | null }>);
 
-    return Object.entries(groupedData).map(([cliente_id, { sumDebe, sumHaber }]) => ({
+    return Object.entries(groupedData).map(([cliente_id, { sumDebe, sumHaber, cliente_nombre }]) => ({
       cliente_id: Number(cliente_id),
+      cliente_nombre,
       sumDebe,
       sumHaber,
       diferencia: sumDebe - sumHaber,
@@ -233,22 +231,19 @@ export default function Puntos() {
 
   const groupedDataRaw = groupByClienteId();
 
-  
   const filteredGroupedData = groupedDataRaw.filter((item) =>
     Object.values(item)
-      .map((value) => String(value))
+      .map((value) => String(value ?? '')) // Maneja valores null
       .join(' ')
       .toLowerCase()
       .includes(groupedSearchTerm.toLowerCase())
   );
 
-  
   const groupedIndexOfLastItem = groupedCurrentPage * itemsPerPage;
   const groupedIndexOfFirstItem = groupedIndexOfLastItem - itemsPerPage;
   const currentGroupedData = filteredGroupedData.slice(groupedIndexOfFirstItem, groupedIndexOfLastItem);
   const groupedTotalPages = Math.ceil(filteredGroupedData.length / itemsPerPage);
 
- 
   const handleGroupedNextPage = () => {
     if (groupedCurrentPage < groupedTotalPages) {
       setGroupedCurrentPage(groupedCurrentPage + 1);
@@ -266,44 +261,31 @@ export default function Puntos() {
       <div className="flex">
         <Navbar />
         <main className="w-4/5 p-8">
+          <div className="space-y-6">
+            <h1 
+              className="text-4xl font-bold text-gray-900 mb-4 tracking-tight 
+              bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
+              transition-all duration-300 hover:scale-105 text-center"
+            >
+              Gestión de Puntos
+            </h1>
+            <p 
+              className="text-center text-black leading-relaxed max-w-2xl
+              p-4 rounded-lg transition-all duration-300 hover:shadow-md mx-auto"
+            >
+              Administra los puntos registrados en la plataforma.
+            </p>
+          </div>
 
-
-        <div className="space-y-6">
-
-
-<h1 
-className="text-4xl font-bold text-gray-900 mb-4 tracking-tight 
-bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
-transition-all duration-300 hover:scale-105 text-center"
->
-Gestión de Puntos
-</h1>
-<p 
-className="text-center text-black leading-relaxed max-w-2xl
-p-4 rounded-lg transition-all duration-300 hover:shadow-md mx-auto"
->
-
-Administra los puntos registrados en la plataforma.
-</p>
-</div>
-
-
-
-           
           <div className="flex justify-between mb-4">
             <button onClick={() => openPopup('agregar')} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
               Agregar Punto
             </button>
-           
             <button onClick={() => setIsGrouped(!isGrouped)} className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
               {isGrouped ? 'Mostrar Detalles' : 'Agrupar por Cliente'}
             </button>
           </div>
 
-       
-
-        
-        
           {!isGrouped && (
             <div className="mb-6">
               <input
@@ -319,7 +301,6 @@ Administra los puntos registrados en la plataforma.
             </div>
           )}
 
-     
           {isGrouped && (
             <div className="mb-6">
               <input
@@ -494,13 +475,12 @@ Administra los puntos registrados en la plataforma.
             </div>
           )}
 
-     
           {isGrouped ? (
             <>
               <table className="min-w-full bg-white border border-gray-200 rounded shadow-md">
                 <thead>
                   <tr className="bg-gray-200">
-                    <th className="px-4 py-2 text-left">ID Cliente</th>
+                    <th className="px-4 py-2 text-left">Cliente</th>
                     <th className="px-4 py-2 text-left">Total Debe</th>
                     <th className="px-4 py-2 text-left">Total Haber</th>
                     <th className="px-4 py-2 text-left">Puntos Disponibles</th>
@@ -510,7 +490,7 @@ Administra los puntos registrados en la plataforma.
                   {currentGroupedData.length > 0 ? (
                     currentGroupedData.map((item) => (
                       <tr key={item.cliente_id} className="hover:bg-gray-50">
-                        <td className="px-4 py-2">{item.cliente_id}</td>
+                        <td className="px-4 py-2">{item.cliente_nombre ?? 'Sin cliente'}</td>
                         <td className="px-4 py-2">{item.sumDebe}</td>
                         <td className="px-4 py-2">{item.sumHaber}</td>
                         <td className="px-4 py-2">{item.diferencia.toFixed(2)}</td>
@@ -526,7 +506,6 @@ Administra los puntos registrados en la plataforma.
                 </tbody>
               </table>
 
-          
               <div className="mt-4 flex justify-between items-center">
                 <button
                   onClick={handleGroupedPrevPage}
@@ -549,14 +528,14 @@ Administra los puntos registrados en la plataforma.
             </>
           ) : (
             <>
-           
               <table className="min-w-full bg-white border border-gray-200 rounded shadow-md">
                 <thead>
                   <tr className="bg-gray-200">
-                    <th className="px-4 py-2 text-left">ID</th>
-                    <th className="px-4 py-2 text-left">ID Cliente</th>
-                    <th className="px-4 py-2 text-left">ID Transacción</th>
-                    <th className="px-4 py-2 text-left">ID Canjeados</th>
+                    <th className="px-4 py-2 text-left">#</th>
+                    <th className="px-4 py-2 text-left" hidden>ID Cliente</th>
+                    <th className="px-4 py-2 text-left">Cliente</th>
+                    <th className="px-4 py-2 text-left" hidden>ID Transacción</th>
+                    <th className="px-4 py-2 text-left" hidden>ID Canjeados</th>
                     <th className="px-4 py-2 text-left">Debe</th>
                     <th className="px-4 py-2 text-left">Haber</th>
                     <th className="px-4 py-2 text-left">Acciones</th>
@@ -564,12 +543,14 @@ Administra los puntos registrados en la plataforma.
                 </thead>
                 <tbody>
                   {currentPuntos.length > 0 ? (
-                    currentPuntos.map((punto) => (
+                    currentPuntos.map((punto, index) => (
                       <tr key={punto.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-2">{punto.id}</td>
-                        <td className="px-4 py-2">{punto.cliente_id}</td>
-                        <td className="px-4 py-2">{punto.transaccion_id}</td>
-                        <td className="px-4 py-2">{punto.canjeados_id}</td>
+                           <td className="px-4 py-2 text-center">{indexOfFirstItem + index + 1}</td>
+                        <td className="px-4 py-2" hidden>{punto.id}</td>
+                        <td className="px-4 py-2" hidden>{punto.cliente_id}</td>
+                        <td className="px-4 py-2">{punto.cliente_nombre ?? 'Sin cliente'}</td>
+                        <td className="px-4 py-2" hidden>{punto.transaccion_id}</td>
+                        <td className="px-4 py-2" hidden>{punto.canjeados_id}</td>
                         <td className="px-4 py-2">{punto.debe}</td>
                         <td className="px-4 py-2">{punto.haber}</td>
                         <td className="px-4 py-2">
@@ -590,7 +571,7 @@ Administra los puntos registrados en la plataforma.
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={7} className="px-4 py-2 text-center text-gray-500">
+                      <td colSpan={8} className="px-4 py-2 text-center text-gray-500">
                         No hay puntos disponibles.
                       </td>
                     </tr>
@@ -598,7 +579,6 @@ Administra los puntos registrados en la plataforma.
                 </tbody>
               </table>
 
-           
               <div className="mt-4 flex justify-between items-center">
                 <button
                   onClick={handlePrevPage}
@@ -621,7 +601,6 @@ Administra los puntos registrados en la plataforma.
             </>
           )}
 
-        
           {isDeletePopupOpen && puntoAEliminar && (
             <div
               className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md"

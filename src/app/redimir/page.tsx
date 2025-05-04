@@ -6,6 +6,7 @@ import Navbar from '../components/Navbar';
 interface Canjeado {
   id: number;
   cliente_id: number;
+  cliente_nombre: string | null; // Agregado para el nombre del cliente
   establecimiento_id: number;
   created_at: string;
   puntos_canjeados: number;
@@ -168,16 +169,14 @@ export default function Canjeados() {
     fetchCanjeados();
   }, [fetchCanjeados]);
 
- 
   const filteredCanjeados = canjeados.filter((canjeado) =>
     Object.values(canjeado)
-      .map((value) => String(value))
+      .map((value) => String(value ?? '')) // Maneja valores null
       .join(' ')
       .toLowerCase()
       .includes(searchTerm.toLowerCase())
   );
 
- 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentCanjeados = filteredCanjeados.slice(indexOfFirstItem, indexOfLastItem);
@@ -196,36 +195,28 @@ export default function Canjeados() {
       <div className="flex">
         <Navbar />
         <main className="w-4/5 p-8">
+          <div className="space-y-6">
+            <h1 
+              className="text-4xl font-bold text-gray-900 mb-4 tracking-tight 
+              bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
+              transition-all duration-300 hover:scale-105 text-center"
+            >
+              Gestión de Canjeados
+            </h1>
+            <p 
+              className="text-center text-black leading-relaxed max-w-2xl
+              p-4 rounded-lg transition-all duration-300 hover:shadow-md mx-auto"
+            >
+              Administra los puntos canjeados registrados en la plataforma.
+            </p>
+          </div>
 
-        <div className="space-y-6">
-
-
-<h1 
-className="text-4xl font-bold text-gray-900 mb-4 tracking-tight 
-bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
-transition-all duration-300 hover:scale-105 text-center"
->
-Gestión de Canjeados
-</h1>
-<p 
-className="text-center text-black leading-relaxed max-w-2xl
-p-4 rounded-lg transition-all duration-300 hover:shadow-md mx-auto"
->
-
-Administra los puntos canjeados registrados en la plataforma.
-</p>
-</div>
-
-
-
-<div className="flex justify-between mb-4">
+          <div className="flex justify-between mb-4">
             <button onClick={() => openPopup('agregar')} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
               Agregar Canjeado
             </button>
-       
           </div>
 
-          
           <div className="mb-6">
             <input
               type="text"
@@ -233,21 +224,20 @@ Administra los puntos canjeados registrados en la plataforma.
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
-                setCurrentPage(1); 
+                setCurrentPage(1);
               }}
               className="w-2/5 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
           {isPopupOpen && (
-            <div className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md"
-            onClick={(e) => {
-            
-              if (e.target === e.currentTarget) {
-                closePopup();
-              }
-            }}
-            
+            <div
+              className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md"
+              onClick={(e) => {
+                if (e.target === e.currentTarget) {
+                  closePopup();
+                }
+              }}
             >
               <div className="bg-white p-6 rounded shadow-lg w-2/5">
                 <h2 className="text-2xl font-semibold mb-4 text-center">
@@ -391,8 +381,9 @@ Administra los puntos canjeados registrados en la plataforma.
           <table className="min-w-full bg-white border border-gray-200 rounded shadow-md">
             <thead>
               <tr className="bg-gray-200">
-                <th className="px-4 py-2 text-left">ID</th>
-                <th className="px-4 py-2 text-left">ID Cliente</th>
+                <th className="px-4 py-2 text-left">#</th>
+                <th className="px-4 py-2 text-left"hidden>ID Cliente</th>
+                <th className="px-4 py-2 text-left">Cliente</th>
                 <th className="px-4 py-2 text-left">ID Establecimiento</th>
                 <th className="px-4 py-2 text-left">Fecha</th>
                 <th className="px-4 py-2 text-left">Puntos Canjeados</th>
@@ -405,7 +396,8 @@ Administra los puntos canjeados registrados en la plataforma.
                 currentCanjeados.map((canjeado, index) => (
                   <tr key={canjeado.id} className="hover:bg-gray-50">
                     <td className="px-4 py-2">{indexOfFirstItem + index + 1}</td>
-                    <td className="px-4 py-2">{canjeado.cliente_id}</td>
+                    <td className="px-4 py-2" hidden>{canjeado.cliente_id}</td>
+                    <td className="px-4 py-2">{canjeado.cliente_nombre ?? 'Sin cliente'}</td>
                     <td className="px-4 py-2">{canjeado.establecimiento_id}</td>
                     <td className="px-4 py-2">{new Date(canjeado.created_at).toLocaleDateString()}</td>
                     <td className="px-4 py-2">{canjeado.puntos_canjeados}</td>
@@ -428,7 +420,7 @@ Administra los puntos canjeados registrados en la plataforma.
                 ))
               ) : (
                 <tr>
-                  <td colSpan={7} className="px-4 py-2 text-center text-gray-500">
+                  <td colSpan={8} className="px-4 py-2 text-center text-gray-500">
                     No hay canjeados disponibles.
                   </td>
                 </tr>
@@ -457,13 +449,13 @@ Administra los puntos canjeados registrados en la plataforma.
           </div>
 
           {isDeletePopupOpen && canjeadoAEliminar && (
-            <div className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md"
-            onClick={(e) => {
-            
-              if (e.target === e.currentTarget) {
-                closeDeletePopup();
-              }
-            }}
+            <div
+              className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md"
+              onClick={(e) => {
+                if (e.target === e.currentTarget) {
+                  closeDeletePopup();
+                }
+              }}
             >
               <div className="bg-white p-6 rounded shadow-lg w-2/5">
                 <h2 className="text-xl font-semibold mb-2">Eliminar Canjeado</h2>

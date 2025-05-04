@@ -6,6 +6,7 @@ import Navbar from '../components/Navbar';
 type Transaccion = {
   id: number;
   cliente_id: number;
+  cliente_nombre: string | null; // Agregado para el nombre del cliente
   establecimiento_id: number;
   fecha: string;
   monto: number;
@@ -124,7 +125,7 @@ export default function Transacciones() {
 
   const filteredTransacciones = transacciones.filter((transaccion) =>
     Object.values(transaccion)
-      .map((value) => String(value))
+      .map((value) => String(value ?? '')) // Maneja valores null
       .join(' ')
       .toLowerCase()
       .includes(searchTerm.toLowerCase())
@@ -148,35 +149,30 @@ export default function Transacciones() {
       <div className="flex">
         <Navbar />
         <main className="w-full p-8">
-
-        <div className="space-y-6">
-
-
-<h1 
-className="text-4xl font-bold text-gray-900 mb-4 tracking-tight 
-bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
-transition-all duration-300 hover:scale-105 text-center"
->
-Gestión de Transacciones
-</h1>
-<p 
-className="text-center text-black leading-relaxed max-w-2xl
-p-4 rounded-lg transition-all duration-300 hover:shadow-md mx-auto"
->
-
-Administra las transacciones de Max Loyalty.
-</p>
-</div>
+          <div className="space-y-6">
+            <h1 
+              className="text-4xl font-bold text-gray-900 mb-4 tracking-tight 
+              bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
+              transition-all duration-300 hover:scale-105 text-center"
+            >
+              Gestión de Transacciones
+            </h1>
+            <p 
+              className="text-center text-black leading-relaxed max-w-2xl
+              p-4 rounded-lg transition-all duration-300 hover:shadow-md mx-auto"
+            >
+              Administra las transacciones de Max Loyalty.
+            </p>
+          </div>
        
-<div className="flex justify-between mb-4">
-           <button
-            onClick={() => setIsAddModalOpen(true)}
-            className="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          >
-            Agregar Transacción
-          </button>
-
-           </div>
+          <div className="flex justify-between mb-4">
+            <button
+              onClick={() => setIsAddModalOpen(true)}
+              className="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            >
+              Agregar Transacción
+            </button>
+          </div>
 
           <div className="mb-6">
             <input
@@ -191,12 +187,12 @@ Administra las transacciones de Max Loyalty.
             />
           </div>
 
-      
           <table className="mt-6 w-full bg-white table-auto border-collapse border-gray-300">
             <thead className="bg-gray-200">
               <tr>
-                <th className="px-4 py-2">ID</th>
-                <th className="px-4 py-2">Cliente ID</th>
+                <th className="px-4 py-2">#</th>
+                <th className="px-4 py-2" hidden>Cliente ID</th>
+                <th className="px-4 py-2">Cliente</th>
                 <th className="px-4 py-2">Establecimiento ID</th>
                 <th className="px-4 py-2">Fecha</th>
                 <th className="px-4 py-2">Monto</th>
@@ -207,15 +203,15 @@ Administra las transacciones de Max Loyalty.
             <tbody>
               {currentTransacciones.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-2 border text-center">No hay transacciones disponibles</td>
+                  <td colSpan={8} className="px-4 py-2  text-center">No hay transacciones disponibles</td>
                 </tr>
               ) : (
                 currentTransacciones.map((transaccion, index) => (
                   <tr className="hover:bg-gray-50" key={transaccion.id}>
                     <td className="px-4 py-2 text-center">{indexOfFirstItem + index + 1}</td>
-                    <td className="px-4 py-2 text-center">{transaccion.cliente_id}</td>
+                    <td className="px-4 py-2 text-center" hidden>{transaccion.cliente_id}</td>
+                    <td className="px-4 py-2 text-center">{transaccion.cliente_nombre ?? 'Sin cliente'}</td>
                     <td className="px-4 py-2 text-center">{transaccion.establecimiento_id}</td>
-                    
                     <td className="px-4 py-2">{new Date(transaccion.fecha).toLocaleDateString()}</td>
                     <td className="px-4 py-2 text-center">{transaccion.monto}</td>
                     <td className="px-4 py-2 text-center">{transaccion.terminal_id}</td>
@@ -270,7 +266,6 @@ Administra las transacciones de Max Loyalty.
             </button>
           </div>
 
-         
           {isAddModalOpen && (
             <div
               className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-md"
@@ -368,7 +363,6 @@ Administra las transacciones de Max Loyalty.
             </div>
           )}
 
-    
           {isUpdateModalOpen && transaccionToUpdate && (
             <div
               className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-md"
@@ -466,7 +460,6 @@ Administra las transacciones de Max Loyalty.
             </div>
           )}
 
-          
           {isDeleteModalOpen && transaccionToDelete && (
             <div
               className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-md"

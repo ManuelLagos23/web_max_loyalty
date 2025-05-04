@@ -291,19 +291,19 @@ export default function Clientes() {
               bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
               transition-all duration-300 hover:scale-105 text-center"
             >
-              Gestión de Consumidores
+              Gestión de Clienes
             </h1>
             <p
               className="text-center text-black leading-relaxed max-w-2xl
               p-4 rounded-lg transition-all duration-300 hover:shadow-md mx-auto"
             >
-              Administra los consumidores registrados en la plataforma.
+              Administra los clientes registrados en la plataforma.
             </p>
           </div>
 
           <div className="flex justify-between mb-4">
             <button onClick={() => openPopup('agregar')} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-              Agregar consumidor
+              Agregar cliente
             </button>
           </div>
 

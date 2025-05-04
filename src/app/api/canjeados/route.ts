@@ -49,7 +49,9 @@ export async function GET() {
   try {
     const client = await pool.connect();
     const result = await client.query(
-      `SELECT id, cliente_id, establecimiento_id, created_at, puntos_canjeados, terminal_id FROM canjeados`
+      `SELECT c.id, c.cliente_id, cl.nombre AS cliente_nombre, c.establecimiento_id, c.created_at, c.puntos_canjeados, c.terminal_id 
+       FROM canjeados c
+       LEFT JOIN clientes cl ON c.cliente_id = cl.id`
     );
     client.release();
 

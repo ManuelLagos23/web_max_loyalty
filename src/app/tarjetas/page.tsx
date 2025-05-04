@@ -32,7 +32,7 @@ export default function Tarjetas() {
   const [tarjetaAEliminar, setTarjetaAEliminar] = useState<Tarjeta | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
-  const [totalItems, setTotalItems] = useState(0); // Nuevo estado para el total de registros
+  const [totalItems, setTotalItems] = useState(0);
 
   const generateCardNumber = async () => {
     try {
@@ -51,9 +51,8 @@ export default function Tarjetas() {
       }
     } catch (error) {
       console.error('Error al generar número de tarjeta:', error);
-      // Número de respaldo en caso de error
       const randomPart = Math.floor(1000 + Math.random() * 9000).toString();
-      return `${randomPart}0001`; // Usamos 0001 como fallback
+      return `${randomPart}0001`;
     }
   };
 
@@ -186,74 +185,89 @@ export default function Tarjetas() {
   };
 
 
-  const handlePrintCard = async (tarjeta: Tarjeta) => {
-    const mmToPt = (mm: number) => mm * 2.83465;
-    const width = mmToPt(102.72); // Nuevo ancho: 102.72 mm (20% más ancho)
-    const height = mmToPt(64.776); // Nuevo alto: 64.776 mm (proporcional)
-  
-    const doc = new jsPDF({
-      orientation: 'landscape',
-      unit: 'pt',
-      format: [width, height],
-    });
-  
-    // --- Cara frontal ---
-    const frontImage = new Image();
-    frontImage.src = '/images/logo-max-card.png'; // Imagen de la cara frontal
-  
-    frontImage.onload = () => {
-      console.log('Imagen frontal cargada correctamente, renderizando cara frontal...');
-  
-      // Usar la imagen como fondo para la cara frontal
-      doc.addImage(frontImage, 'PNG', 0, 0, width, height);
-  
-      // Configurar el texto en la parte inferior izquierda
-      const marginLeft = 10; // Margen izquierdo en puntos
-      const bottomMargin = 10; // Margen inferior en puntos
-      const numberY = height - bottomMargin - 16; // Posición Y del número (arriba del nombre)
-      const nameY = height - bottomMargin; // Posición Y del nombre
-  
-      // Configurar la fuente y el color del texto
-      doc.setFont('Helvetica', 'normal');
-      doc.setFontSize(12);
-      doc.setTextColor('#000000'); // Texto en negro
-  
-      // Añadir el número de tarjeta
-      console.log(`Añadiendo número de tarjeta: ${tarjeta.numero_tarjeta} en (${marginLeft}, ${numberY})`);
-      doc.text(tarjeta.numero_tarjeta, marginLeft, numberY);
-  
-      // Configurar la fuente en negrita para el nombre
-      doc.setFont('Helvetica', 'bold');
-      doc.setFontSize(12);
-      console.log(`Añadiendo nombre: ${tarjeta.cliente_nombre} en (${marginLeft}, ${nameY})`);
-      doc.text(tarjeta.cliente_nombre, marginLeft, nameY);
-  
-      // --- Cara trasera ---
-      // Agregar una nueva página para la cara trasera
-      doc.addPage([width, height], 'landscape');
-  
-      const backImage = new Image();
-      backImage.src = '/images/logo-max-back.png'; // Imagen de la cara trasera
-  
-      backImage.onload = () => {
-        console.log('Imagen trasera cargada correctamente, renderizando cara trasera...');
-  
-        // Usar la imagen como fondo para la cara trasera
-        doc.addImage(backImage, 'PNG', 0, 0, width, height);
-  
-        // Guardar el PDF
-        doc.save(`tarjeta_${tarjeta.numero_tarjeta}.pdf`);
-      };
-  
-      backImage.onerror = () => {
-        console.error('Error al cargar la imagen trasera. Verifica la ruta: /images/logo-max-back.png');
-      };
+
+
+// ... (previous code unchanged)
+
+const handlePrintCard = async (tarjeta: Tarjeta) => {
+  const mmToPt = (mm: number) => mm * 2.83465;
+  const width = mmToPt(102.72); // Nuevo ancho: 102.72 mm (20% más ancho)
+  const height = mmToPt(64.776); // Nuevo alto: 64.776 mm (proporcional)
+
+  const doc = new jsPDF({
+    orientation: 'landscape',
+    unit: 'pt',
+    format: [width, height],
+  });
+
+  // --- Cara frontal ---
+  const frontImage = new Image();
+  frontImage.src = '/images/logo-max-card.png'; // Imagen de la cara frontal
+
+  frontImage.onload = () => {
+    console.log('Imagen frontal cargada correctamente, renderizando cara frontal...');
+
+    // Usar la imagen como fondo para la cara frontal
+    doc.addImage(frontImage, 'PNG', 0, 0, width, height);
+
+    
+    const marginLeft = 10; 
+    const marginRight = 100; 
+    const bottomMargin = 10; 
+    const numberY = height - bottomMargin - 16; 
+    const nameY = height - bottomMargin; 
+
+    
+    doc.setFont('Helvetica', 'normal');
+    doc.setFontSize(12);
+    doc.setTextColor('#000000'); 
+
+   
+    console.log(`Añadiendo número de tarjeta: ${tarjeta.numero_tarjeta} en (${marginLeft}, ${numberY})`);
+    doc.text(tarjeta.numero_tarjeta, marginLeft, numberY);
+
+    // Añadir la fecha de emisión (derecha, fuente más pequeña)
+    doc.setFontSize(10); // Fuente más pequeña para "Emitida: Fecha"
+    const issuanceText = `Emitida: ${formatDate(tarjeta.created_at)}`;
+    const textWidth = doc.getTextWidth(issuanceText);
+    const issuanceX = width - marginRight - textWidth; // Alinear a la derecha con margen ajustado
+    console.log(`Añadiendo fecha de emisión: ${issuanceText} en (${issuanceX}, ${numberY})`);
+    doc.text(issuanceText, issuanceX, numberY);
+
+    // Configurar la fuente en negrita para el nombre
+    doc.setFont('Helvetica', 'bold');
+    doc.setFontSize(12);
+    console.log(`Añadiendo nombre: ${tarjeta.cliente_nombre} en (${marginLeft}, ${nameY})`);
+    doc.text(tarjeta.cliente_nombre, marginLeft, nameY);
+
+    // --- Cara trasera ---
+    // Agregar una nueva página para la cara trasera
+    doc.addPage([width, height], 'landscape');
+
+    const backImage = new Image();
+    backImage.src = '/images/logo-max-back.png'; // Imagen de la cara trasera
+
+    backImage.onload = () => {
+      console.log('Imagen trasera cargada correctamente, renderizando cara trasera...');
+
+      // Usar la imagen como fondo para la cara trasera
+      doc.addImage(backImage, 'PNG', 0, 0, width, height);
+
+      // Guardar el PDF
+      doc.save(`tarjeta_${tarjeta.numero_tarjeta}.pdf`);
     };
-  
-    frontImage.onerror = () => {
-      console.error('Error al cargar la imagen frontal. Verifica la ruta: /images/logo-max-card.png');
+
+    backImage.onerror = () => {
+      console.error('Error al cargar la imagen trasera. Verifica la ruta: /images/logo-max-back.png');
     };
   };
+
+  frontImage.onerror = () => {
+    console.error('Error al cargar la imagen frontal. Verifica la ruta: /images/logo-max-card.png');
+  };
+};
+
+// ... (rest of the code unchanged)
 
 
 
@@ -265,7 +279,7 @@ export default function Tarjetas() {
         const data = await response.json();
         console.log('Datos obtenidos:', data);
         setTarjetas(data.tarjetas);
-        setTotalItems(data.total); // Actualizar el total de registros
+        setTotalItems(data.total);
       } else {
         console.error('Error al obtener las tarjetas:', response.status, response.statusText);
       }
@@ -305,7 +319,6 @@ export default function Tarjetas() {
     fetchClientes();
   }, [fetchTarjetas, fetchClientes]);
 
-  // Calcular totalPages basado en totalItems
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
   const handleNextPage = () => {
@@ -383,9 +396,7 @@ export default function Tarjetas() {
                     <td className="px-4 py-2 flex space-x-2">
                       <button
                         onClick={() => handleEditar(tarjeta)}
-                        className="
-
-bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600"
+                        className="bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600"
                       >
                         Editar
                       </button>
