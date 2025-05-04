@@ -384,10 +384,10 @@ export default function Canjeados() {
                 <th className="px-4 py-2 text-left">#</th>
                 <th className="px-4 py-2 text-left"hidden>ID Cliente</th>
                 <th className="px-4 py-2 text-left">Cliente</th>
-                <th className="px-4 py-2 text-left">ID Establecimiento</th>
+                <th className="px-4 py-2 text-left">Establecimiento</th>
                 <th className="px-4 py-2 text-left">Fecha</th>
                 <th className="px-4 py-2 text-left">Puntos Canjeados</th>
-                <th className="px-4 py-2 text-left">ID Terminal</th>
+                <th className="px-4 py-2 text-left">Terminal</th>
                 <th className="px-4 py-2 text-left">Acciones</th>
               </tr>
             </thead>

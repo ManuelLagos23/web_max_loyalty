@@ -50,9 +50,12 @@ export async function GET() {
     const client = await pool.connect();
     const result = await client.query(
       `
-SELECT t.id, t.cliente_id, c.nombre AS cliente_nombre, t.establecimiento_id, t.fecha, t.monto, t.terminal_id 
+SELECT t.id, t.cliente_id, c.nombre AS cliente_nombre, te.nombre_terminal as terminal_id, 
+    ct.nombre_centro_costos as establecimiento_id,    t.fecha, t.monto
        FROM transacciones t
-       LEFT JOIN clientes c ON t.cliente_id = c.id`
+       LEFT JOIN clientes c ON t.cliente_id = c.id
+	   LEFT JOIN terminales te on t.terminal_id = te.id
+	     LEFT JOIN costos ct on t.establecimiento_id = ct.id`
     );
     client.release();
 

@@ -193,10 +193,10 @@ export default function Transacciones() {
                 <th className="px-4 py-2">#</th>
                 <th className="px-4 py-2" hidden>Cliente ID</th>
                 <th className="px-4 py-2">Cliente</th>
-                <th className="px-4 py-2">Establecimiento ID</th>
+                <th className="px-4 py-2">Establecimiento</th>
                 <th className="px-4 py-2">Fecha</th>
                 <th className="px-4 py-2">Monto</th>
-                <th className="px-4 py-2">Terminal ID</th>
+                <th className="px-4 py-2">Terminal</th>
                 <th className="px-4 py-2">Acciones</th>
               </tr>
             </thead>
