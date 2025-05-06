@@ -822,7 +822,7 @@ export default function Terminales() {
                         placeholder="Ejemplo: SUNMI"
                         value={formData.marca}
                         onChange={handleInputChange}
-                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 block text-center"
+                        className="w-full p-2 border border-gray-300 rounded focus:outline-none s focus:ring-blue-500 block text-center"
                       />
                     </div>
                      </div>
