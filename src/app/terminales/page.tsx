@@ -1,5 +1,3 @@
-
-// src/app/terminales/page.tsx
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -12,6 +10,10 @@ interface Terminal {
   estacion_servicio: string;
   codigo_terminal: string;
   nombre_terminal: string;
+  numero_serie: string;
+  mac: string;
+  modelo: string;
+  marca: string;
   codigo_activacion?: string | null;
   id_activacion?: string | null;
 }
@@ -42,6 +44,10 @@ export default function Terminales() {
     estacion_servicio: '',
     codigo_terminal: '',
     nombre_terminal: '',
+    numero_serie: '',
+    mac: '',
+    modelo: '',
+    marca: '',
   });
   const [terminalSeleccionado, setTerminalSeleccionado] = useState<Terminal | null>(null);
   const [terminalAEliminar, setTerminalAEliminar] = useState<Terminal | null>(null);
@@ -67,6 +73,10 @@ export default function Terminales() {
     formDataToSend.append('estacion_servicio', terminal.estacion_servicio);
     formDataToSend.append('codigo_terminal', terminal.codigo_terminal);
     formDataToSend.append('nombre_terminal', terminal.nombre_terminal);
+    formDataToSend.append('numero_serie', terminal.numero_serie);
+    formDataToSend.append('mac', terminal.mac);
+    formDataToSend.append('modelo', terminal.modelo);
+    formDataToSend.append('marca', terminal.marca);
     formDataToSend.append('codigo_activacion', newCode);
 
     try {
@@ -98,6 +108,10 @@ export default function Terminales() {
     formDataToSend.append('estacion_servicio', terminal.estacion_servicio);
     formDataToSend.append('codigo_terminal', terminal.codigo_terminal);
     formDataToSend.append('nombre_terminal', terminal.nombre_terminal);
+    formDataToSend.append('numero_serie', terminal.numero_serie);
+    formDataToSend.append('mac', terminal.mac);
+    formDataToSend.append('modelo', terminal.modelo);
+    formDataToSend.append('marca', terminal.marca);
     formDataToSend.append('codigo_activacion', '');
     formDataToSend.append('id_activacion', '0');
 
@@ -149,6 +163,10 @@ export default function Terminales() {
       formDataToSend.append('estacion_servicio', terminalAActivar.estacion_servicio);
       formDataToSend.append('codigo_terminal', terminalAActivar.codigo_terminal);
       formDataToSend.append('nombre_terminal', terminalAActivar.nombre_terminal);
+      formDataToSend.append('numero_serie', terminalAActivar.numero_serie);
+      formDataToSend.append('mac', terminalAActivar.mac);
+      formDataToSend.append('modelo', terminalAActivar.modelo);
+      formDataToSend.append('marca', terminalAActivar.marca);
       formDataToSend.append('codigo_activacion', '');
 
       try {
@@ -184,6 +202,10 @@ export default function Terminales() {
         estacion_servicio: '',
         codigo_terminal: '',
         nombre_terminal: '',
+        numero_serie: '',
+        mac: '',
+        modelo: '',
+        marca: '',
       });
     }
   };
@@ -203,7 +225,6 @@ export default function Terminales() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     if (name === 'empresa') {
-      // Reiniciar estacion_servicio cuando cambia la empresa
       setFormData({ ...formData, empresa: value, estacion_servicio: '' });
     } else {
       setFormData({ ...formData, [name]: value });
@@ -212,7 +233,8 @@ export default function Terminales() {
 
   const handleSubmitAgregar = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.empresa || !formData.estacion_servicio || !formData.codigo_terminal || !formData.nombre_terminal) {
+    if (!formData.empresa || !formData.estacion_servicio || !formData.codigo_terminal || !formData.nombre_terminal ||
+        !formData.numero_serie || !formData.mac || !formData.modelo || !formData.marca) {
       alert('Por favor, complete todos los campos.');
       return;
     }
@@ -221,6 +243,10 @@ export default function Terminales() {
     formDataToSend.append('estacion_servicio', formData.estacion_servicio);
     formDataToSend.append('codigo_terminal', formData.codigo_terminal);
     formDataToSend.append('nombre_terminal', formData.nombre_terminal);
+    formDataToSend.append('numero_serie', formData.numero_serie);
+    formDataToSend.append('mac', formData.mac);
+    formDataToSend.append('modelo', formData.modelo);
+    formDataToSend.append('marca', formData.marca);
 
     try {
       const response = await fetch('/api/terminales', {
@@ -241,7 +267,8 @@ export default function Terminales() {
 
   const handleSubmitEditar = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.id || !formData.empresa || !formData.estacion_servicio || !formData.codigo_terminal || !formData.nombre_terminal) {
+    if (!formData.id || !formData.empresa || !formData.estacion_servicio || !formData.codigo_terminal ||
+        !formData.nombre_terminal || !formData.numero_serie || !formData.mac || !formData.modelo || !formData.marca) {
       alert('Por favor, complete todos los campos obligatorios.');
       return;
     }
@@ -251,6 +278,10 @@ export default function Terminales() {
     formDataToSend.append('estacion_servicio', formData.estacion_servicio);
     formDataToSend.append('codigo_terminal', formData.codigo_terminal);
     formDataToSend.append('nombre_terminal', formData.nombre_terminal);
+    formDataToSend.append('numero_serie', formData.numero_serie);
+    formDataToSend.append('mac', formData.mac);
+    formDataToSend.append('modelo', formData.modelo);
+    formDataToSend.append('marca', formData.marca);
 
     try {
       const response = await fetch('/api/terminales', {
@@ -337,6 +368,10 @@ export default function Terminales() {
       estacion_servicio: terminal.estacion_servicio,
       codigo_terminal: terminal.codigo_terminal,
       nombre_terminal: terminal.nombre_terminal,
+      numero_serie: terminal.numero_serie,
+      mac: terminal.mac,
+      modelo: terminal.modelo,
+      marca: terminal.marca,
     });
     openPopup('editar');
   };
@@ -372,7 +407,6 @@ export default function Terminales() {
     }
   };
 
-  // Filtrar centros de costos según la empresa seleccionada
   const filteredCostos = formData.empresa
     ? costos.filter((costo) => costo.empresa === formData.empresa)
     : [];
@@ -429,6 +463,10 @@ export default function Terminales() {
                 <th className="px-4 py-2 text-left">Estación de servicio</th>
                 <th className="px-4 py-2 text-left">Código terminal</th>
                 <th className="px-4 py-2 text-left">Nombre terminal</th>
+                <th className="px-4 py-2 text-left">S/N</th>
+                <th className="px-4 py-2 text-left">MAC</th>
+                <th className="px-4 py-2 text-left">Modelo</th>
+                <th className="px-4 py-2 text-left">Marca</th>
                 <th className="px-4 py-2 text-left">Acciones</th>
               </tr>
             </thead>
@@ -447,6 +485,10 @@ export default function Terminales() {
                       </td>
                       <td className="px-4 py-2">{terminal.codigo_terminal}</td>
                       <td className="px-4 py-2">{terminal.nombre_terminal}</td>
+                      <td className="px-4 py-2">{terminal.numero_serie}</td>
+                      <td className="px-4 py-2">{terminal.mac}</td>
+                      <td className="px-4 py-2">{terminal.modelo}</td>
+                      <td className="px-4 py-2">{terminal.marca}</td>
                       <td className="px-4 py-2">
                         <button
                           onClick={() => handleEditar(terminal)}
@@ -474,7 +516,7 @@ export default function Terminales() {
                 })
               ) : (
                 <tr>
-                  <td colSpan={6} className="px-4 py-2 text-center text-gray-500">
+                  <td colSpan={10} className="px-4 py-2 text-center text-gray-500">
                     No hay terminales disponibles.
                   </td>
                 </tr>
@@ -516,10 +558,10 @@ export default function Terminales() {
               }}
             >
               <div className="bg-white p-6 rounded shadow-lg w-1/3 border-1">
-              <div className="text-center">
-              <h2 className="text-3xl font-bold text-gray-800 mb-6 tracking-tight inline-block relative after:block after:h-1 after:w-12 after:mx-auto after:mt-2">
-                  {terminalSeleccionado ? 'Editar Terminal' : 'Agregar Terminal'}
-                </h2>
+                <div className="text-center">
+                  <h2 className="text-3xl font-bold text-gray-800 mb-6 tracking-tight inline-block relative after:block after:h-1 after:w-12 after:mx-auto after:mt-2">
+                    {terminalSeleccionado ? 'Editar Terminal' : 'Agregar Terminal'}
+                  </h2>
                 </div>
                 {terminalSeleccionado ? (
                   <form onSubmit={handleSubmitEditar}>
@@ -561,6 +603,7 @@ export default function Terminales() {
                         ))}
                       </select>
                     </div>
+                    <div className="grid grid-cols-2 gap-4">
                     <div className="mb-4">
                       <label htmlFor="codigo_terminal" className="block text-center font-medium text-gray-700">
                         Código terminal
@@ -584,9 +627,66 @@ export default function Terminales() {
                         placeholder="Ejemplo: Terminal GSIE El Paraíso"
                         value={formData.nombre_terminal}
                         onChange={handleInputChange}
-                        className="w-full p-2 border border-gray-300 rounded focus-outline-none focus:ring-2 focus:ring-blue-500 block text-center"
+                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 block text-center"
                       />
                     </div>
+                     </div>
+                     <div className="grid grid-cols-2 gap-4">
+                    <div className="mb-4">
+                      <label htmlFor="numero_serie" className="block text-center font-medium text-gray-700">
+                        Número de serie
+                      </label>
+                      <input
+                        type="text"
+                        name="numero_serie"
+                        placeholder="Ejemplo: SN123456"
+                        value={formData.numero_serie}
+                        onChange={handleInputChange}
+                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 block text-center"
+                      />
+                    </div>
+                    <div className="mb-4">
+                      <label htmlFor="mac" className="block text-center font-medium text-gray-700">
+                        Dirección MAC
+                      </label>
+                      <input
+                        type="text"
+                        name="mac"
+                        placeholder="Ejemplo: 00:1A:2B:3C:4D:5E"
+                        value={formData.mac}
+                        onChange={handleInputChange}
+                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 block text-center"
+                      />
+                    </div>
+                     </div>
+                     <div className="grid grid-cols-2 gap-4">
+                    <div className="mb-4">
+                      <label htmlFor="modelo" className="block text-center font-medium text-gray-700">
+                        Modelo
+                      </label>
+                      <input
+                        type="text"
+                        name="modelo"
+                        placeholder="Ejemplo: V2 PRO"
+                        value={formData.modelo}
+                        onChange={handleInputChange}
+                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 block text-center"
+                      />
+                    </div>
+                    <div className="mb-4">
+                      <label htmlFor="marca" className="block text-center font-medium text-gray-700">
+                        Marca
+                      </label>
+                      <input
+                        type="text"
+                        name="marca"
+                        placeholder="Ejemplo: SUNMI"
+                        value={formData.marca}
+                        onChange={handleInputChange}
+                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 block text-center"
+                      />
+                    </div>
+                     </div>
                     <div className="flex justify-between">
                       <button
                         type="button"
@@ -642,6 +742,7 @@ export default function Terminales() {
                         ))}
                       </select>
                     </div>
+                    <div className="grid grid-cols-2 gap-4">
                     <div className="mb-4">
                       <label htmlFor="codigo_terminal" className="block text-center font-medium text-gray-700">
                         Código terminal
@@ -668,6 +769,63 @@ export default function Terminales() {
                         className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 block text-center"
                       />
                     </div>
+                     </div>
+                     <div className="grid grid-cols-2 gap-4">
+                    <div className="mb-4">
+                      <label htmlFor="numero_serie" className="block text-center font-medium text-gray-700">
+                        Número de serie
+                      </label>
+                      <input
+                        type="text"
+                        name="numero_serie"
+                        placeholder="Ejemplo: SN123456"
+                        value={formData.numero_serie}
+                        onChange={handleInputChange}
+                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 block text-center"
+                      />
+                    </div>
+                    <div className="mb-4">
+                      <label htmlFor="mac" className="block text-center font-medium text-gray-700">
+                        Dirección MAC
+                      </label>
+                      <input
+                        type="text"
+                        name="mac"
+                        placeholder="Ejemplo: 00:1A:2B:3C:4D:5E"
+                        value={formData.mac}
+                        onChange={handleInputChange}
+                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 block text-center"
+                      />
+                    </div>
+                     </div>
+                     <div className="grid grid-cols-2 gap-4">
+                    <div className="mb-4">
+                      <label htmlFor="modelo" className="block text-center font-medium text-gray-700">
+                        Modelo
+                      </label>
+                      <input
+                        type="text"
+                        name="modelo"
+                        placeholder="Ejemplo: V2 PRO"
+                        value={formData.modelo}
+                        onChange={handleInputChange}
+                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 block text-center"
+                      />
+                    </div>
+                    <div className="mb-4">
+                      <label htmlFor="marca" className="block text-center font-medium text-gray-700">
+                        Marca
+                      </label>
+                      <input
+                        type="text"
+                        name="marca"
+                        placeholder="Ejemplo: SUNMI"
+                        value={formData.marca}
+                        onChange={handleInputChange}
+                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 block text-center"
+                      />
+                    </div>
+                     </div>
                     <div className="flex justify-between">
                       <button
                         type="button"
