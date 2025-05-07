@@ -39,7 +39,8 @@ export async function GET() {
     const result = await client.query(
       `SELECT p.id, p.cliente_id, c.nombre AS cliente_nombre, p.transaccion_id, p.debe, p.haber, p.canjeados_id 
        FROM puntos p
-       LEFT JOIN clientes c ON p.cliente_id = c.id`
+       LEFT JOIN clientes c ON p.cliente_id = c.id
+       where p.estado= true`
     );
     client.release();
 

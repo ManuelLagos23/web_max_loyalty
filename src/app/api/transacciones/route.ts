@@ -51,7 +51,7 @@ export async function GET() {
     const result = await client.query(
       `
 SELECT t.id, t.cliente_id, c.nombre AS cliente_nombre, te.nombre_terminal AS terminal_id, 
-    ct.nombre_centro_costos AS establecimiento_id, t.fecha, t.monto, t.numero_tarjeta
+    ct.nombre_centro_costos AS establecimiento_id, t.fecha, t.monto, t.numero_tarjeta, t.estado
        FROM transacciones t
        LEFT JOIN clientes c ON t.cliente_id = c.id
        LEFT JOIN terminales te ON t.terminal_id = te.id

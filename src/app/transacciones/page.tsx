@@ -11,7 +11,8 @@ type Transaccion = {
   fecha: string;
   monto: number;
   terminal_id: number;
-  numero_tarjeta: string | null; // Agregado para el número de tarjeta
+  numero_tarjeta: string | null;
+  estado: boolean; // Agregado para el campo estado
 };
 
 export default function Transacciones() {
@@ -199,13 +200,14 @@ export default function Transacciones() {
                 <th className="px-4 py-2">Monto</th>
                 <th className="px-4 py-2">Terminal</th>
                 <th className="px-4 py-2">Número de Tarjeta</th>
+                <th className="px-4 py-2">Estado</th>
                 <th className="px-4 py-2">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {currentTransacciones.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="px-4 py-2 text-center">No hay transacciones disponibles</td>
+                  <td colSpan={10} className="px-4 py-2 text-center">No hay transacciones disponibles</td>
                 </tr>
               ) : (
                 currentTransacciones.map((transaccion, index) => (
@@ -218,6 +220,7 @@ export default function Transacciones() {
                     <td className="px-4 py-2 text-center">{transaccion.monto}</td>
                     <td className="px-4 py-2 text-center">{transaccion.terminal_id}</td>
                     <td className="px-4 py-2 text-center">{transaccion.numero_tarjeta ?? 'Sin tarjeta'}</td>
+                    <td className="px-4 py-2 text-center">{transaccion.estado ? 'Validada' : 'Cancelada'}</td>
                     <td className="px-4 py-2 text-center">
                       <button
                         onClick={() => {
@@ -375,7 +378,7 @@ export default function Transacciones() {
                 }
               }}
             >
-              <div className="bg-white p-6 rounded-lg w-1/3">
+              <div className="bg-white p-6 besa rounded-lg w-1/3">
                 <h3 className="text-xl font-semibold mb-4">Actualizar Transacción</h3>
                 <form onSubmit={handleSubmitUpdate}>
                   <div className="mb-4">
