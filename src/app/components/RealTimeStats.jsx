@@ -25,6 +25,7 @@ export default function RealTimeStats() {
       const transactions = await transResponse.json();
       const pointsData = await pointsResponse.json();
 
+ 
       // Filter for current day
       const todayTransactions = transactions.filter((t) => t.fecha && t.fecha.split("T")[0] === currentDate);
       const todayPoints = pointsData.filter((p) => p.fecha && p.fecha.split("T")[0] === currentDate);

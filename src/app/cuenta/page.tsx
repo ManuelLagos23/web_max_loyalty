@@ -25,10 +25,10 @@ export default function Cuenta() {
       });
       if (response.ok) {
         const data = await response.json();
-        console.log('Sesión obtenida en Cuenta:', data);
+  
         return data;
       } else {
-        console.log('No hay sesión activa o error en Cuenta:', response.status);
+
         return null;
       }
     } catch (error) {
@@ -41,7 +41,7 @@ export default function Cuenta() {
     const updateUserData = async () => {
       const session = await fetchSession();
       if (!session) {
-        console.log('No hay sesión, redirigiendo a /login');
+ 
         router.push('/login');
       } else {
         setUserData(session);
@@ -63,7 +63,7 @@ export default function Cuenta() {
         credentials: 'include',
       });
       if (response.ok) {
-        console.log('Sesión cerrada exitosamente en Cuenta');
+    
         setIsLogoutModalOpen(false);
         setUserData(null);
         router.push('/login');

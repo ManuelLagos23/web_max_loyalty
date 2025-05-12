@@ -48,14 +48,14 @@ export default function Tarjetas() {
 
   const generateCardNumber = async () => {
     try {
-      console.log('Iniciando generación de número de tarjeta');
+    
       const response = await fetch('/api/tarjetas?tipo=generar', {
         method: 'GET',
       });
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Número de tarjeta generado:', data.numero_tarjeta);
+  
         return data.numero_tarjeta;
       } else {
         console.error('Error al generar número de tarjeta:', response.status, response.statusText);
@@ -70,12 +70,12 @@ export default function Tarjetas() {
 
   const openPopup = async (modo: 'agregar' | 'editar') => {
     try {
-      console.log('Abriendo popup en modo:', modo);
+
       setIsPopupOpen(true);
       if (modo === 'agregar') {
         setTarjetaSeleccionada(null);
         const newCardNumber = await generateCardNumber();
-        console.log('Número de tarjeta asignado al formData:', newCardNumber);
+     
         setFormData({
           id: 0,
           numero_tarjeta: newCardNumber,
@@ -91,7 +91,7 @@ export default function Tarjetas() {
   };
 
   const closePopup = () => {
-    console.log('Cerrando popup');
+
     setIsPopupOpen(false);
   };
 
@@ -216,7 +216,7 @@ const handlePrintCard = async (tarjeta: Tarjeta) => {
   frontImage.src = '/images/logo-max-card.png';
 
   frontImage.onload = () => {
-    console.log('Imagen frontal cargada correctamente, renderizando cara frontal...');
+
     doc.addImage(frontImage, 'PNG', 0, 0, width, height);
 
     const marginLeft = 10;
@@ -232,22 +232,22 @@ const handlePrintCard = async (tarjeta: Tarjeta) => {
     doc.setTextColor('#000000');
 
     // Add codigo_canal at the top, next to the contactless icon
-    console.log(`Añadiendo código de canal: ${tarjeta.codigo_canal} en (${canalX}, ${canalY})`);
+  
     doc.text(tarjeta.codigo_canal, canalX, canalY);
 
-    console.log(`Añadiendo número de tarjeta: ${tarjeta.numero_tarjeta} en (${marginLeft}, ${numberY})`);
+
     doc.text(tarjeta.numero_tarjeta, marginLeft, numberY);
 
     doc.setFontSize(10);
     const issuanceText = `Emitida: ${formatDate(tarjeta.created_at)}`;
     const textWidth = doc.getTextWidth(issuanceText);
     const issuanceX = width - marginRight - textWidth;
-    console.log(`Añadiendo fecha de emisión: ${issuanceText} en (${issuanceX}, ${numberY})`);
+
     doc.text(issuanceText, issuanceX, numberY);
 
     doc.setFont('Helvetica', 'bold');
     doc.setFontSize(12);
-    console.log(`Añadiendo nombre: ${tarjeta.cliente_nombre} en (${marginLeft}, ${nameY})`);
+ 
     doc.text(tarjeta.cliente_nombre, marginLeft, nameY);
 
     doc.addPage([width, height], 'landscape');
@@ -256,7 +256,7 @@ const handlePrintCard = async (tarjeta: Tarjeta) => {
     backImage.src = '/images/logo-max-back.png';
 
     backImage.onload = () => {
-      console.log('Imagen trasera cargada correctamente, renderizando cara trasera...');
+
       doc.addImage(backImage, 'PNG', 0, 0, width, height);
       doc.save(`tarjeta_${tarjeta.numero_tarjeta}.pdf`);
     };
@@ -277,7 +277,7 @@ const handlePrintCard = async (tarjeta: Tarjeta) => {
       );
       if (response.ok) {
         const data = await response.json();
-        console.log('Datos obtenidos:', data);
+   
         setTarjetas(data.tarjetas);
         setTotalItems(data.total);
       } else {
@@ -293,7 +293,7 @@ const handlePrintCard = async (tarjeta: Tarjeta) => {
       const response = await fetch('/api/clientes');
       if (response.ok) {
         const data: Cliente[] = await response.json();
-        console.log('Clientes obtenidos:', data);
+    
         setClientes(data);
       } else {
         console.error('Error al obtener los clientes:', response.status, response.statusText);
@@ -308,7 +308,7 @@ const handlePrintCard = async (tarjeta: Tarjeta) => {
       const response = await fetch('/api/tipos_tarjetas');
       if (response.ok) {
         const data: TipoTarjeta[] = await response.json();
-        console.log('Tipos de tarjeta obtenidos:', data);
+   
         setTiposTarjeta(data);
       } else {
         console.error('Error al obtener los tipos de tarjeta:', response.status, response.statusText);
@@ -319,7 +319,7 @@ const handlePrintCard = async (tarjeta: Tarjeta) => {
   }, []);
 
   const handleEditar = async (tarjeta: Tarjeta) => {
-    console.log('Editando tarjeta:', tarjeta);
+  
     setTarjetaSeleccionada(tarjeta);
     setFormData({
       id: tarjeta.id,

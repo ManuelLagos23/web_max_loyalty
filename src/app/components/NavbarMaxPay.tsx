@@ -20,10 +20,10 @@ export default function NavbarGeneral() {
       });
       if (response.ok) {
         const data = await response.json();
-        console.log('Sesión obtenida:', data);
+ 
         return data;
       } else {
-        console.log('No hay sesión activa o error:', response.status);
+
         return null;
       }
     } catch (error) {

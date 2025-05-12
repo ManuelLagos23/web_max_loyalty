@@ -24,8 +24,7 @@ export default function PointsChart() {
         if (!response.ok) throw new Error("Error al obtener los canjeados");
         const pointsData = await response.json();
 
-        // Log the raw data to inspect it
-        console.log("Raw canjeados data:", pointsData);
+   
 
         const pointsByDate = pointsData.reduce((acc, item) => {
           // Validate puntos_canjeados
@@ -50,9 +49,7 @@ export default function PointsChart() {
           }))
           .sort((a, b) => new Date(a.date) - new Date(b.date));
 
-        // Log the processed chart data
-        console.log("Processed chart data:", chartData);
-
+     
         setData(chartData);
         setIsLoading(false);
       } catch (error) {

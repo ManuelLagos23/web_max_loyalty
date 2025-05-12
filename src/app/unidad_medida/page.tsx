@@ -49,10 +49,10 @@ export default function UnidadesMedida() {
       const response = await fetch(`/api/unidad_medida?page=${currentPage}&limit=${itemsPerPage}`);
       if (response.ok) {
         const result = await response.json();
-        console.log('UnidadesMedida API response:', result); // Debug the API response
+      // Debug the API response
         if (result && Array.isArray(result.data)) {
           setUnidadesMedida(result.data);
-          console.log('UnidadesMedida data set:', result.data); // Debug the data being set
+       // Debug the data being set
         } else {
           console.error('UnidadesMedida data is not an array:', result);
           setUnidadesMedida([]);
@@ -72,13 +72,13 @@ export default function UnidadesMedida() {
       const response = await fetch('/api/categories');
       if (response.ok) {
         const result = await response.json();
-        console.log('Categorias API response:', result); // Debug the API response
+     
         if (Array.isArray(result)) {
           setCategorias(result);
-          console.log('Categorias data set:', result); // Debug the data being set
+         
         } else if (result && Array.isArray(result.data)) {
           setCategorias(result.data);
-          console.log('Categorias data set:', result.data); // Debug the data being set
+    
         } else {
           console.error('Categorias data is not an array:', result);
           setCategorias([]);
@@ -99,8 +99,8 @@ export default function UnidadesMedida() {
   }, [fetchUnidadesMedida, fetchCategorias]);
 
   useEffect(() => {
-    console.log('Current unidadesMedida state:', unidadesMedida); // Debug the unidadesMedida state
-    console.log('Current categorias state:', categorias); // Debug the categorias state
+  
+
   }, [unidadesMedida, categorias]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {

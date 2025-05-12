@@ -239,7 +239,7 @@ export default function Empresas() {
       );
       if (response.ok) {
         const data: Empresa[] = await response.json();
-        console.log('Empresas obtenidas:', data);
+      
         setEmpresas(data);
       } else {
         console.error('Error al obtener las empresas:', response.status, response.statusText);
@@ -257,7 +257,7 @@ export default function Empresas() {
       const response = await fetch('/api/paises');
       if (response.ok) {
         const data: Pais[] = await response.json();
-        console.log('Países obtenidos:', data);
+
         setPaises(data);
       } else {
         console.error('Error al obtener los países:', response.status, response.statusText);
@@ -275,7 +275,7 @@ export default function Empresas() {
       const response = await fetch('/api/monedas');
       if (response.ok) {
         const data: Moneda[] = await response.json();
-        console.log('Monedas obtenidas:', data);
+   
         setMonedas(data);
       } else {
         console.error('Error al obtener las monedas:', response.status, response.statusText);
@@ -288,7 +288,7 @@ export default function Empresas() {
   }, []);
 
   const handleEditar = (empresa: Empresa) => {
-    console.log('Editando empresa:', empresa);
+  
     setEmpresaSeleccionada(empresa);
     setFormData({
       id: empresa.id,

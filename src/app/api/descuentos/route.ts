@@ -9,7 +9,7 @@ const pool = new Pool({
 async function validateSession(request: NextRequest) {
   try {
     const cookie = request.cookies.get('session');
-    console.log('Session cookie:', cookie); // Debug cookie value
+  
     if (!cookie) {
       console.warn('No session cookie found');
       return null;
@@ -34,7 +34,7 @@ async function validateSession(request: NextRequest) {
       return null;
     }
 
-    console.log('Validated session:', usuario); // Debug validated session
+   
     return { id: usuario.id, nombre: usuario.nombre }; // Return id and nombre
   } catch (error) {
     console.error('Error validating session:', error);

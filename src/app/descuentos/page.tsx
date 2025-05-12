@@ -71,10 +71,10 @@ export default function Descuentos() {
       const response = await fetch(`/api/descuentos?page=${currentPage}&limit=${itemsPerPage}`);
       if (response.ok) {
         const result = await response.json();
-        console.log('Descuentos API response:', result);
+       
         if (result && Array.isArray(result.data)) {
           setDescuentos(result.data);
-          console.log('Descuentos data set:', result.data);
+      
         } else {
           console.error('Descuentos data is not an array:', result);
           setDescuentos([]);
@@ -94,10 +94,10 @@ export default function Descuentos() {
       const response = await fetch('/api/costos');
       if (response.ok) {
         const result = await response.json();
-        console.log('Costos API response:', result);
+
         if (Array.isArray(result)) {
           setCostos(result);
-          console.log('Costos data set:', result);
+    
         } else {
           console.error('Costos data is not an array:', result);
           setCostos([]);
@@ -117,13 +117,13 @@ export default function Descuentos() {
       const response = await fetch('/api/clientes');
       if (response.ok) {
         const result = await response.json();
-        console.log('Clientes API response:', result);
+     
         if (Array.isArray(result)) {
           setClientes(result);
-          console.log('Clientes data set:', result);
+     
         } else if (result && Array.isArray(result.data)) {
           setClientes(result.data);
-          console.log('Clientes data set:', result.data);
+      
         } else {
           console.error('Clientes data is not an array:', result);
           setClientes([]);
@@ -143,10 +143,10 @@ export default function Descuentos() {
       const response = await fetch('/api/tipos_combustible');
       if (response.ok) {
         const result = await response.json();
-        console.log('TipoCombustibles API response:', result);
+     
         if (result && Array.isArray(result.data)) {
           setTipoCombustibles(result.data);
-          console.log('TipoCombustibles data set:', result.data);
+    
         } else {
           console.error('TipoCombustibles data is not an array:', result);
           setTipoCombustibles([]);
@@ -169,9 +169,7 @@ export default function Descuentos() {
   }, [fetchDescuentos, fetchCostos, fetchClientes, fetchTipoCombustibles]);
 
   useEffect(() => {
-    console.log('Current costos state:', costos);
-    console.log('Current clientes state:', clientes);
-    console.log('Current tipoCombustibles state:', tipoCombustibles);
+ 
   }, [costos, clientes, tipoCombustibles]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {

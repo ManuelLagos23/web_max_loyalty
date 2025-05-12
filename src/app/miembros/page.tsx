@@ -274,7 +274,7 @@ export default function Miembros() {
       );
       if (response.ok) {
         const data: Miembro[] = await response.json();
-        console.log('Miembros obtenidos:', data);
+
         setMiembros(data);
       } else {
         console.error('Error al obtener los miembros:', response.status, response.statusText);
@@ -292,7 +292,7 @@ export default function Miembros() {
       const response = await fetch('/api/costos');
       if (response.ok) {
         const data: CentroCosto[] = await response.json();
-        console.log('Centros de costos obtenidos:', data);
+     
         setCentrosCostos(data);
       } else {
         console.error('Error al obtener los centros de costos:', response.status, response.statusText);
@@ -310,7 +310,7 @@ export default function Miembros() {
       const response = await fetch('/api/empresas');
       if (response.ok) {
         const data: Empresa[] = await response.json();
-        console.log('Empresas obtenidas:', data);
+
         setEmpresas(data);
       } else {
         console.error('Error al obtener las empresas:', response.status, response.statusText);
@@ -328,7 +328,7 @@ export default function Miembros() {
       const response = await fetch('/api/terminales');
       if (response.ok) {
         const data: Terminal[] = await response.json();
-        console.log('Terminales obtenidos:', data);
+  
         setTerminales(data);
       } else {
         console.error('Error al obtener los terminales:', response.status, response.statusText);
@@ -341,7 +341,7 @@ export default function Miembros() {
   }, []);
 
   const handleEditar = (miembro: Miembro) => {
-    console.log('Editando miembro:', miembro);
+
     setMiembroSeleccionado(miembro);
     setFormData({
       id: miembro.id,

@@ -21,12 +21,12 @@ export default function LoginPage() {
         body: JSON.stringify({ nombre, contraseña }),
       });
 
-      console.log('Estado de la respuesta:', response.status);
+
       const data = await response.json();
-      console.log('Datos de la respuesta:', data);
+   
 
       if (response.ok) {
-        console.log('Login exitoso, redirigiendo a /inicio');
+     
         router.push('/inicio');
       } else {
         setError(data.message || 'Error al iniciar sesión');

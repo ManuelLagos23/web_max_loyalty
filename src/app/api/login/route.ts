@@ -4,14 +4,14 @@ import { pool } from '@/lib/db';
 export async function POST(request: NextRequest) {
   try {
     const { nombre, contraseña } = await request.json();
-    console.log('Datos recibidos:', { nombre, contraseña });
+  
 
     if (!nombre || !contraseña) {
       return NextResponse.json({ message: 'Faltan nombre o contraseña' }, { status: 400 });
     }
 
     const client = await pool.connect();
-    console.log('Conexión a DB establecida');
+  
    
     const result = await client.query(
       'SELECT id, nombre, password, email, num_telefono FROM usuarios WHERE email = $1',
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
       path: '/',
     });
 
-    console.log('Cookie seteada:', response.cookies.get('session')); 
+
     return response;
   } catch (error) {
     console.error('Error en el login:', error);

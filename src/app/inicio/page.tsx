@@ -73,11 +73,6 @@ export default function Home() {
         canjeadosRes.ok ? canjeadosRes.json().catch(() => Promise.reject('Error al parsear canjeados')) : Promise.reject(`Error al obtener canjeados: ${canjeadosRes.status}`),
       ]);
 
-      // Logs para depuración
-      console.log('Respuesta de /api/clientes:', results[0]);
-      console.log('Respuesta de /api/tarjetas:', results[7]);
-      console.log('Respuesta de /api/transacciones:', results[8]);
-      console.log('Respuesta de /api/canjeados:', results[9]);
 
       setDashboardData({
         clientes: results[0].total || (Array.isArray(results[0].clientes) ? results[0].clientes.length : Array.isArray(results[0]) ? results[0].length : results[0].count || results[0].data?.length || 0),

@@ -72,7 +72,7 @@ export async function GET(request: Request) {
     const result = await client.query(query, values);
     client.release();
 
-    console.log(`Subcanales obtenidos para canal_id=${canalId || 'todos'}:`, result.rows);
+
     return NextResponse.json(result.rows, { status: 200 });
   } catch (error: unknown) {
     console.error('Error al obtener los subcanales:', error);

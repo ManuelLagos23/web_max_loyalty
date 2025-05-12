@@ -40,11 +40,11 @@ export default function TiposCombustible() {
       const response = await fetch(`/api/tipos_combustible?page=${currentPage}&limit=${itemsPerPage}`);
       if (response.ok) {
         const result = await response.json();
-        console.log('TiposCombustible API response:', result); // Debug the API response
+  
         // Extract the 'data' array if the response is an object with a 'data' property
         if (result && Array.isArray(result.data)) {
           setTiposCombustible(result.data);
-          console.log('TiposCombustible data set:', result.data); // Debug the data being set
+       
         } else {
           console.error('TiposCombustible data is not an array:', result);
           setTiposCombustible([]);
@@ -64,14 +64,14 @@ export default function TiposCombustible() {
       const response = await fetch('/api/unidad_medida');
       if (response.ok) {
         const result = await response.json();
-        console.log('UDM API response:', result); // Debug the API response
+
         if (result && Array.isArray(result.data)) {
           const udmData = result.data.map((item: ApiUDM) => ({
             id: item.id,
             name: item.name,
           }));
           setUdms(udmData);
-          console.log('UDM data set:', udmData); // Debug the data being set
+  
         } else {
           console.error('UDM data is not an array:', result);
           setUdms([]);
@@ -92,7 +92,7 @@ export default function TiposCombustible() {
   }, [fetchTiposCombustible, fetchUdms]);
 
   useEffect(() => {
-    console.log('Current tiposCombustible state:', tiposCombustible); // Debug the tiposCombustible state
+
   }, [tiposCombustible]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {

@@ -219,7 +219,7 @@ export default function Costos() {
       );
       if (response.ok) {
         const data: Costo[] = await response.json();
-        console.log('Costos obtenidos:', data);
+    
         setCostos(data);
       } else {
         console.error('Error al obtener los costos:', response.status, response.statusText);
@@ -237,7 +237,7 @@ export default function Costos() {
       const response = await fetch('/api/paises');
       if (response.ok) {
         const data: Pais[] = await response.json();
-        console.log('Países obtenidos:', data);
+      
         setPaises(data);
       } else {
         console.error('Error al obtener los países:', response.status, response.statusText);
@@ -255,7 +255,7 @@ export default function Costos() {
       const response = await fetch('/api/estados');
       if (response.ok) {
         const data: Estado[] = await response.json();
-        console.log('Estados obtenidos:', data);
+  
         setEstados(data);
       } else {
         console.error('Error al obtener los estados:', response.status, response.statusText);
@@ -273,7 +273,7 @@ export default function Costos() {
       const response = await fetch('/api/empresas');
       if (response.ok) {
         const data: Empresa[] = await response.json();
-        console.log('Empresas obtenidas:', data);
+     
         setEmpresas(data);
       } else {
         console.error('Error al obtener las empresas:', response.status, response.statusText);
@@ -286,7 +286,7 @@ export default function Costos() {
   }, []);
 
   const handleEditar = (costo: Costo) => {
-    console.log('Editando costo:', costo);
+
     setCostoSeleccionado(costo);
     setFormData({
       id: costo.id,
