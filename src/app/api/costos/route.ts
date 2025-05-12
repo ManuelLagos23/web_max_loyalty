@@ -58,7 +58,9 @@ export async function GET() {
          c.ciudad, 
          c.alias, 
          c.codigo, 
-         c.empresa
+         c.empresa,
+         c.pais AS pais_id,
+         c.estado AS estado_id
        FROM costos c
        LEFT JOIN paises p ON c.pais = p.id
        LEFT JOIN estados e ON c.estado = e.id`

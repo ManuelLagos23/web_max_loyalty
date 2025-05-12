@@ -1,8 +1,8 @@
-// src/app/centro_de_costos/page.tsx
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import Navbar from '../components/Navbar';
+import NavbarConfiguracion from '../components/NavbarConfiguracion';
+import MenuMain from '../components/MenuMain';
 
 interface Costo {
   id: number;
@@ -13,6 +13,8 @@ interface Costo {
   alias: string;
   codigo: string;
   empresa: string;
+  pais_id: number | null;
+  estado_id: number | null;
 }
 
 interface Pais {
@@ -40,67 +42,99 @@ export default function Costos() {
   const [formData, setFormData] = useState({
     id: 0,
     nombre_centro_costos: '',
-    pais: '',
-    estado: '',
+    pais_id: 0,
+    estado_id: 0,
     ciudad: '',
     alias: '',
     codigo: '',
-    empresa: '',
+    empresa: 0,
   });
   const [costoSeleccionado, setCostoSeleccionado] = useState<Costo | null>(null);
   const [costoAEliminar, setCostoAEliminar] = useState<Costo | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(5);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const openPopup = (modo: 'agregar' | 'editar') => {
     setIsPopupOpen(true);
+    setErrorMessage(null);
     if (modo === 'agregar') {
       setCostoSeleccionado(null);
       setFormData({
         id: 0,
         nombre_centro_costos: '',
-        pais: '',
-        estado: '',
+        pais_id: 0,
+        estado_id: 0,
         ciudad: '',
         alias: '',
         codigo: '',
-        empresa: '',
+        empresa: 0,
       });
     }
   };
 
-  const closePopup = () => setIsPopupOpen(false);
+  const closePopup = () => {
+    setIsPopupOpen(false);
+    setErrorMessage(null);
+  };
+
   const openDeletePopup = (costo: Costo) => {
     setCostoAEliminar(costo);
     setIsDeletePopupOpen(true);
+    setErrorMessage(null);
   };
+
   const closeDeletePopup = () => {
     setCostoAEliminar(null);
     setIsDeletePopupOpen(false);
+    setErrorMessage(null);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    setFormData({
+      ...formData,
+      [name]:
+        name === 'pais_id' || name === 'estado_id' || name === 'empresa'
+          ? value
+            ? parseInt(value)
+            : 0
+          : value,
+    });
+  };
+
+  const validateForm = (isEdit: boolean) => {
+    const errors: string[] = [];
+    if (!formData.nombre_centro_costos) errors.push('Nombre Centro de Costos');
+    if (!formData.pais_id) errors.push('País');
+    if (!formData.estado_id) errors.push('Estado');
+    if (!formData.ciudad) errors.push('Ciudad');
+    if (!formData.alias) errors.push('Alias');
+    if (!formData.codigo) errors.push('Código');
+    if (!formData.empresa) errors.push('Empresa');
+    if (isEdit && !formData.id) errors.push('ID');
+    return errors;
   };
 
   const handleSubmitAgregar = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.nombre_centro_costos || !formData.pais || !formData.estado || !formData.ciudad || !formData.alias || !formData.codigo || !formData.empresa) {
-      alert('Por favor, complete todos los campos.');
+    const errors = validateForm(false);
+    if (errors.length > 0) {
+      alert(`Por favor, complete los siguientes campos: ${errors.join(', ')}.`);
       return;
     }
     const formDataToSend = new FormData();
     formDataToSend.append('nombre_centro_costos', formData.nombre_centro_costos);
-    formDataToSend.append('pais', formData.pais);
-    formDataToSend.append('estado', formData.estado);
+    formDataToSend.append('pais', formData.pais_id.toString());
+    formDataToSend.append('estado', formData.estado_id.toString());
     formDataToSend.append('ciudad', formData.ciudad);
     formDataToSend.append('alias', formData.alias);
     formDataToSend.append('codigo', formData.codigo);
-    formDataToSend.append('empresa', formData.empresa);
+    formDataToSend.append('empresa', formData.empresa.toString());
 
     try {
+      setErrorMessage(null);
       const response = await fetch('/api/costos', {
         method: 'POST',
         body: formDataToSend,
@@ -110,30 +144,34 @@ export default function Costos() {
         closePopup();
         fetchCostos();
       } else {
-        alert('Error al agregar el costo');
+        const errorData = await response.json();
+        alert(`Error al agregar el costo: ${errorData.message || 'Error desconocido'}`);
       }
     } catch (error) {
       console.error('Error en la solicitud:', error);
+      setErrorMessage('Error al agregar el costo');
     }
   };
 
   const handleSubmitEditar = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.id || !formData.nombre_centro_costos || !formData.pais || !formData.estado || !formData.ciudad || !formData.alias || !formData.codigo || !formData.empresa) {
-      alert('Por favor, complete todos los campos obligatorios.');
+    const errors = validateForm(true);
+    if (errors.length > 0) {
+      alert(`Por favor, complete los siguientes campos: ${errors.join(', ')}.`);
       return;
     }
     const formDataToSend = new FormData();
     formDataToSend.append('id', formData.id.toString());
     formDataToSend.append('nombre_centro_costos', formData.nombre_centro_costos);
-    formDataToSend.append('pais', formData.pais);
-    formDataToSend.append('estado', formData.estado);
+    formDataToSend.append('pais', formData.pais_id.toString());
+    formDataToSend.append('estado', formData.estado_id.toString());
     formDataToSend.append('ciudad', formData.ciudad);
     formDataToSend.append('alias', formData.alias);
     formDataToSend.append('codigo', formData.codigo);
-    formDataToSend.append('empresa', formData.empresa);
+    formDataToSend.append('empresa', formData.empresa.toString());
 
     try {
+      setErrorMessage(null);
       const response = await fetch('/api/costos', {
         method: 'PUT',
         body: formDataToSend,
@@ -143,16 +181,19 @@ export default function Costos() {
         closePopup();
         fetchCostos();
       } else {
-        alert('Error al actualizar el costo');
+        const errorData = await response.json();
+        alert(`Error al actualizar el costo: ${errorData.message || 'Error desconocido'}`);
       }
     } catch (error) {
       console.error('Error en la solicitud:', error);
+      setErrorMessage('Error al actualizar el costo');
     }
   };
 
   const handleDelete = async () => {
     if (!costoAEliminar) return;
     try {
+      setErrorMessage(null);
       const response = await fetch(`/api/costos/${costoAEliminar.id}`, {
         method: 'DELETE',
       });
@@ -161,96 +202,122 @@ export default function Costos() {
         closeDeletePopup();
         fetchCostos();
       } else {
-        alert('Error al eliminar el costo');
+        const errorData = await response.json();
+        alert(`Error al eliminar el costo: ${errorData.message || 'Error desconocido'}`);
       }
     } catch (error) {
       console.error('Error en la solicitud:', error);
+      setErrorMessage('Error al eliminar el costo');
     }
   };
 
   const fetchCostos = useCallback(async () => {
     try {
-      const response = await fetch(`/api/costos?page=${currentPage}&limit=${itemsPerPage}`);
+      setErrorMessage(null);
+      const response = await fetch(
+        `/api/costos?page=${currentPage}&limit=${itemsPerPage}&search=${encodeURIComponent(searchTerm)}`
+      );
       if (response.ok) {
         const data: Costo[] = await response.json();
+        console.log('Costos obtenidos:', data);
         setCostos(data);
       } else {
-        console.error('Error al obtener los costos');
+        console.error('Error al obtener los costos:', response.status, response.statusText);
+        setErrorMessage(`Error al obtener los costos: ${response.status} ${response.statusText}`);
       }
     } catch (error) {
       console.error('Error en la solicitud:', error);
+      setErrorMessage('Error al obtener los costos');
     }
-  }, [currentPage, itemsPerPage]);
+  }, [currentPage, itemsPerPage, searchTerm]);
 
   const fetchPaises = useCallback(async () => {
     try {
+      setErrorMessage(null);
       const response = await fetch('/api/paises');
       if (response.ok) {
         const data: Pais[] = await response.json();
+        console.log('Países obtenidos:', data);
         setPaises(data);
       } else {
-        console.error('Error al obtener los países');
+        console.error('Error al obtener los países:', response.status, response.statusText);
+        setErrorMessage(`Error al obtener los países: ${response.status} ${response.statusText}`);
       }
     } catch (error) {
       console.error('Error en la solicitud:', error);
+      setErrorMessage('Error al obtener los países');
     }
   }, []);
 
   const fetchEstados = useCallback(async () => {
     try {
+      setErrorMessage(null);
       const response = await fetch('/api/estados');
       if (response.ok) {
         const data: Estado[] = await response.json();
+        console.log('Estados obtenidos:', data);
         setEstados(data);
       } else {
-        console.error('Error al obtener los estados');
+        console.error('Error al obtener los estados:', response.status, response.statusText);
+        setErrorMessage(`Error al obtener los estados: ${response.status} ${response.statusText}`);
       }
     } catch (error) {
       console.error('Error en la solicitud:', error);
+      setErrorMessage('Error al obtener los estados');
     }
   }, []);
 
   const fetchEmpresas = useCallback(async () => {
     try {
+      setErrorMessage(null);
       const response = await fetch('/api/empresas');
       if (response.ok) {
         const data: Empresa[] = await response.json();
+        console.log('Empresas obtenidas:', data);
         setEmpresas(data);
       } else {
-        console.error('Error al obtener las empresas');
+        console.error('Error al obtener las empresas:', response.status, response.statusText);
+        setErrorMessage(`Error al obtener las empresas: ${response.status} ${response.statusText}`);
       }
     } catch (error) {
       console.error('Error en la solicitud:', error);
+      setErrorMessage('Error al obtener las empresas');
     }
   }, []);
 
   const handleEditar = (costo: Costo) => {
+    console.log('Editando costo:', costo);
     setCostoSeleccionado(costo);
     setFormData({
       id: costo.id,
       nombre_centro_costos: costo.nombre_centro_costos,
-      pais: costo.pais,
-      estado: costo.estado,
+      pais_id: costo.pais_id ?? 0,
+      estado_id: costo.estado_id ?? 0,
       ciudad: costo.ciudad,
       alias: costo.alias,
       codigo: costo.codigo,
-      empresa: costo.empresa,
+      empresa: parseInt(costo.empresa) || 0,
     });
     openPopup('editar');
   };
 
   useEffect(() => {
-    fetchCostos();
-    fetchPaises();
-    fetchEstados();
-    fetchEmpresas();
-  }, [fetchCostos, fetchPaises, fetchEstados, fetchEmpresas, currentPage]);
+    const loadData = async () => {
+      await Promise.all([fetchCostos(), fetchPaises(), fetchEstados(), fetchEmpresas()]);
+    };
+    loadData();
+  }, [fetchCostos, fetchPaises, fetchEstados, fetchEmpresas]);
 
   const filteredCostos = costos.filter((costo) =>
-    Object.values(costo)
-      .join(' ')
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase())
+    [
+      costo.nombre_centro_costos,
+      costo.pais,
+      costo.estado,
+      costo.ciudad,
+      costo.alias,
+      costo.codigo,
+      empresas.find((empresa) => empresa.id === parseInt(costo.empresa))?.nombre_empresa || '',
+    ].some((field) => field.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -271,401 +338,466 @@ export default function Costos() {
   };
 
   return (
-    <div className="font-sans bg-gray-100 text-gray-900">
+    <div className="font-sans bg-white text-gray-900 min-h-screen">
       <div className="flex">
-        <Navbar />
-        <main className="w-4/5 p-8">
-          <div className="space-y-6">
-            <h1
-              className="text-4xl font-bold text-gray-900 mb-4 tracking-tight 
-              bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
-              transition-all duration-300 hover:scale-105 text-center"
-            >
-              Gestión de Costos
-            </h1>
-            <p
-              className="text-center text-black leading-relaxed max-w-2xl
-              p-4 rounded-lg transition-all duration-300 hover:shadow-md mx-auto"
-            >
-              Administra los Centros de Costos registrados en la plataforma.
-            </p>
-          </div>
+        <NavbarConfiguracion />
+        <div className="flex-1 flex flex-col">
+          <MenuMain />
+          <main className="flex-1 p-8">
+            <div className="space-y-6">
+              <h1
+                className="text-4xl font-bold text-gray-900 mb-4
+                bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
+                transition-all duration-300 text-center"
+              >
+                Gestión de Centros de Costos
+              </h1>
+              <p
+                className="text-center text-gray-700 leading-relaxed max-w-2xl
+                p-4 rounded-lg transition-all duration-300 hover:shadow-md mx-auto"
+              >
+                Administra los centros de costos registrados en la plataforma con facilidad y seguridad.
+              </p>
+            </div>
 
-          <div className="flex justify-between mb-4">
-            <button
-              onClick={() => openPopup('agregar')}
-              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-            >
-              Agregar costo
-            </button>
-          </div>
+            <div className="flex justify-between mb-4">
+              <button
+                onClick={() => openPopup('agregar')}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all duration-300"
+              >
+                Agregar Centro de Costos
+              </button>
+            </div>
 
-          <div className="mb-6">
-            <input
-              type="text"
-              placeholder="Buscar centros de costos..."
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="w-2/5 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
+            <div className="mb-6">
+              <input
+                type="text"
+                placeholder="Buscar por nombre, empresa, país, estado, ciudad, alias o código..."
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="w-2/5 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
 
-          {isPopupOpen && (
-            <div
-              className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md"
-              onClick={(e) => {
-                if (e.target === e.currentTarget) {
-                  closePopup();
-                }
-              }}
-            >
-              <div className="bg-white p-6 rounded shadow-lg w-2/5 border-1">
-                <h2 className="text-2xl font-semibold mb-4 text-center">
-                  {costoSeleccionado ? 'Editar Costo' : 'Agregar Costo'}
-                </h2>
-                {costoSeleccionado ? (
-                  <form onSubmit={handleSubmitEditar}>
-                    <input type="hidden" name="id" value={formData.id} />
-                    <div className="mb-4">
-                      <label htmlFor="nombre_centro_costos"  className="block text-center">Nombre Centro de Costos</label>
-                      <input
-                        type="text"
-                        name="nombre_centro_costos"
-                        placeholder="Ejemplo: GSIE El Paraíso"
-                        value={formData.nombre_centro_costos}
-                        onChange={handleInputChange}
-                        className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
-                      />
-                    </div>
-                    <div className="mb-4">
-                      <label htmlFor="empresa"  className="block text-center">Empresa</label>
-                      <select
-                        name="empresa"
-                        value={formData.empresa}
-                        onChange={handleInputChange}
-                        className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
-                      >
-                        <option value="">Seleccionar empresa</option>
-                        {empresas.map((empresa) => (
-                          <option key={empresa.id} value={empresa.id}>
-                            {empresa.nombre_empresa}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+            {errorMessage && <p className="text-center text-red-500">{errorMessage}</p>}
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="mb-4">
-                        <label htmlFor="pais"  className="block text-center">País</label>
-                        <select
-                          name="pais"
-                          value={formData.pais}
-                          onChange={handleInputChange}
-                          className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
+            <table className="min-w-full bg-gray-100 table-auto rounded-lg shadow-md">
+              <thead>
+                <tr className="bg-gray-200">
+                  <th className="px-4 py-2 text-left text-gray-700 font-semibold">#</th>
+                  <th className="px-4 py-2 text-left text-gray-700 font-semibold">Centro de Costos</th>
+                  <th className="px-4 py-2 text-left text-gray-700 font-semibold">Empresa</th>
+                  <th className="px-4 py-2 text-left text-gray-700 font-semibold">País</th>
+                  <th className="px-4 py-2 text-left text-gray-700 font-semibold">Estado</th>
+                  <th className="px-4 py-2 text-left text-gray-700 font-semibold">Ciudad</th>
+                  <th className="px-4 py-2 text-left text-gray-700 font-semibold">Alias</th>
+                  <th className="px-4 py-2 text-left text-gray-700 font-semibold">Código</th>
+                  <th className="px-4 py-2 text-left text-gray-700 font-semibold">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {currentCostos.length > 0 ? (
+                  currentCostos.map((costo, index) => (
+                    <tr className="hover:bg-gray-50 transition-all duration-200" key={costo.id}>
+                      <td className="px-4 py-2">{indexOfFirstItem + index + 1}</td>
+                      <td className="px-4 py-2">{costo.nombre_centro_costos}</td>
+                      <td className="px-4 py-2">
+                        {empresas.find((empresa) => empresa.id === parseInt(costo.empresa))?.nombre_empresa || 'Desconocida'}
+                      </td>
+                      <td className="px-4 py-2">{costo.pais}</td>
+                      <td className="px-4 py-2">{costo.estado}</td>
+                      <td className="px-4 py-2">{costo.ciudad}</td>
+                      <td className="px-4 py-2">{costo.alias}</td>
+                      <td className="px-4 py-2">{costo.codigo}</td>
+                      <td className="px-4 py-2 flex space-x-2">
+                        <button
+                          onClick={() => handleEditar(costo)}
+                          className="bg-yellow-500 text-white px-3 py-1 rounded-lg hover:bg-yellow-600 transition-all duration-300"
                         >
-                          <option value="">Seleccionar país</option>
-                          {paises.map((pais) => (
-                            <option key={pais.id} value={pais.id}>
-                              {pais.pais}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="mb-4">
-                        <label htmlFor="estado"  className="block text-center">Estado</label>
-                        <select
-                          name="estado"
-                          value={formData.estado}
-                          onChange={handleInputChange}
-                          className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
+                          Editar
+                        </button>
+                        <button
+                          onClick={() => openDeletePopup(costo)}
+                          className="bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600 transition-all personally identifiable information (PII) duration-300"
                         >
-                          <option value="">Seleccionar estado</option>
-                          {estados.map((estado) => (
-                            <option key={estado.id} value={estado.id}>
-                              {estado.estado}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="mb-4">
-                        <label htmlFor="ciudad"  className="block text-center">Ciudad</label>
-                        <input
-                          type="text"
-                          name="ciudad"
-                          placeholder="Ejemplo: El Paraíso"
-                          value={formData.ciudad}
-                          onChange={handleInputChange}
-                          className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
-                        />
-                      </div>
-                      <div className="mb-4">
-                        <label htmlFor="alias"  className="block text-center">Alias</label>
-                        <input
-                          type="text"
-                          name="alias"
-                          placeholder="Ejemplo: GSIE HN"
-                          value={formData.alias}
-                          onChange={handleInputChange}
-                          className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
-                        />
-                      </div>
-                    </div>
-                    <div className="mb-4">
-                      <label htmlFor="codigo"  className="block text-center">Código</label>
-                      <input
-                        type="text"
-                        name="codigo"
-                        placeholder="Ejemplo: CTR-001"
-                        value={formData.codigo}
-                        onChange={handleInputChange}
-                        className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
-                      />
-                    </div>
-                    <div className="flex justify-between">
-                      <button
-                        type="button"
-                        onClick={closePopup}
-                        className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 "
-                      >
-                        Cancelar
-                      </button>
-                      <button
-                        type="submit"
-                        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                      >
-                        Guardar
-                      </button>
-                    </div>
-                  </form>
+                          Eliminar
+                        </button>
+                      </td>
+                    </tr>
+                  ))
                 ) : (
-                  <form onSubmit={handleSubmitAgregar}>
-                    <div className="mb-4">
-                      <label htmlFor="nombre_centro_costos"  className="block text-center">Nombre Centro de Costos</label>
-                      <input
-                        type="text"
-                        name="nombre_centro_costos"
-                        placeholder="Ejemplo: GSIE El Paraíso"
-                        value={formData.nombre_centro_costos}
-                        onChange={handleInputChange}
-                        className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
-                      />
-                    </div>
-                    <div className="mb-4">
-                      <label htmlFor="empresa"  className="block text-center">Empresa</label>
-                      <select
-                        name="empresa"
-                        value={formData.empresa}
-                        onChange={handleInputChange}
-                        className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
-                      >
-                        <option value="">Seleccionar empresa</option>
-                        {empresas.map((empresa) => (
-                          <option key={empresa.id} value={empresa.id}>
-                            {empresa.nombre_empresa}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="mb-4">
-                        <label htmlFor="pais"  className="block text-center">País</label>
-                        <select
-                          name="pais"
-                          value={formData.pais}
-                          onChange={handleInputChange}
-                          className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
-                        >
-                          <option value="">Seleccionar país</option>
-                          {paises.map((pais) => (
-                            <option key={pais.id} value={pais.id}>
-                              {pais.pais}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="mb-4">
-                        <label htmlFor="estado"  className="block text-center">Estado</label>
-                        <select
-                          name="estado"
-                          value={formData.estado}
-                          onChange={handleInputChange}
-                          className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
-                        >
-                          <option value="">Seleccionar estado</option>
-                          {estados.map((estado) => (
-                            <option key={estado.id} value={estado.id}>
-                              {estado.estado}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="mb-4">
-                        <label htmlFor="ciudad"  className="block text-center">Ciudad</label>
-                        <input
-                          type="text"
-                          name="ciudad"
-                          placeholder="Ejemplo: El Paraíso"
-                          value={formData.ciudad}
-                          onChange={handleInputChange}
-                          className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
-                        />
-                      </div>
-                      <div className="mb-4">
-                        <label htmlFor="alias"  className="block text-center">Alias</label>
-                        <input
-                          type="text"
-                          name="alias"
-                          placeholder="Ejemplo: GSIE HN"
-                          value={formData.alias}
-                          onChange={handleInputChange}
-                          className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
-                        />
-                      </div>
-                    </div>
-                    <div className="mb-4">
-                      <label htmlFor="codigo"  className="block text-center">Código</label>
-                      <input
-                        type="text"
-                        name="codigo"
-                        placeholder="Ejemplo: CTR-001"
-                        value={formData.codigo}
-                        onChange={handleInputChange}
-                        className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
-                      />
-                    </div>
-                    <div className="flex justify-between">
-                      <button
-                        type="button"
-                        onClick={closePopup}
-                        className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
-                      >
-                        Cancelar
-                      </button>
-                      <button
-                        type="submit"
-                        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                      >
-                        Guardar
-                      </button>
-                    </div>
-                  </form>
-                )}
-              </div>
-            </div>
-          )}
-
-          {isDeletePopupOpen && costoAEliminar && (
-            <div
-              className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md"
-              onClick={(e) => {
-                if (e.target === e.currentTarget) {
-                  closeDeletePopup();
-                }
-              }}
-            >
-              <div className="bg-white p-6 rounded shadow-lg w-2/5 border-1">
-                <h2 className="text-xl font-semibold mb-4">Eliminar Costo</h2>
-                <p>¿Está seguro de que desea eliminar el costo {costoAEliminar.nombre_centro_costos}?</p>
-                <div className="flex justify-between mt-4">
-                  <button
-                    onClick={closeDeletePopup}
-                    className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    onClick={handleDelete}
-                    className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-                  >
-                    Eliminar
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <table className="table-auto bg-white w-full">
-            <thead>
-              <tr className="bg-gray-200">
-                <th className="px-4 py-2 text-left">#</th>
-                <th className="px-4 py-2 text-left">Centro de Costos</th>
-                <th className="px-4 py-2 text-left">Empresa</th>
-                <th className="px-4 py-2 text-left">País</th>
-                <th className="px-4 py-2 text-left">Estado</th>
-                <th className="px-4 py-2 text-left">Ciudad</th>
-                <th className="px-4 py-2 text-left">Alias</th>
-                <th className="px-4 py-2 text-left">Código</th>
-                <th className="px-4 py-2 text-left">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentCostos.length > 0 ? (
-                currentCostos.map((costo, index) => (
-                  <tr className="hover:bg-gray-50" key={costo.id}>
-                    <td className="px-4 py-2">{indexOfFirstItem + index + 1}</td>
-                    <td className="px-4 py-2">{costo.nombre_centro_costos}</td>
-                    <td className="px-4 py-2">
-                      {empresas.find((empresa) => empresa.id === parseInt(costo.empresa))?.nombre_empresa || 'Desconocida'}
-                    </td>
-                    <td className="px-4 py-2">{costo.pais}</td>
-                    <td className="px-4 py-2">{costo.estado}</td>
-                    <td className="px-4 py-2">{costo.ciudad}</td>
-                    <td className="px-4 py-2">{costo.alias}</td>
-                    <td className="px-4 py-2">{costo.codigo}</td>
-                    <td className="px-4 py-2">
-                      <button
-                        onClick={() => handleEditar(costo)}
-                        className="bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600 mr-2"
-                      >
-                        Editar
-                      </button>
-                      <button
-                        onClick={() => openDeletePopup(costo)}
-                        className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
-                      >
-                        Eliminar
-                      </button>
+                  <tr>
+                    <td colSpan={9} className="px-4 py-2 text-center text-gray-500">
+                      No hay centros de costos disponibles.
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={9} className="px-4 py-2 text-center text-gray-500">
-                    No hay costos disponibles.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                )}
+              </tbody>
+            </table>
 
-          <div className="mt-4 flex justify-between items-center">
-            <button
-              onClick={handlePrevPage}
-              disabled={currentPage === 1}
-              className={`px-4 py-2 rounded ${currentPage === 1 ? 'bg-gray-300' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
-            >
-              Anterior
-            </button>
-            <span>
-              Página {currentPage} de {totalPages}
-            </span>
-            <button
-              onClick={handleNextPage}
-              disabled={currentPage === totalPages}
-              className={`px-4 py-2 rounded ${currentPage === totalPages ? 'bg-gray-300' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
-            >
-              Siguiente
-            </button>
-          </div>
-        </main>
+            <div className="mt-4 flex justify-between items-center">
+              <button
+                onClick={handlePrevPage}
+                disabled={currentPage === 1}
+                className={`px-4 py-2 rounded-lg transition-all duration-300 ${
+                  currentPage === 1 ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'
+                }`}
+              >
+                Anterior
+              </button>
+              <span className="text-gray-700">
+                Página {currentPage} de {totalPages}
+              </span>
+              <button
+                onClick={handleNextPage}
+                disabled={currentPage === totalPages}
+                className={`px-4 py-2 rounded-lg transition-all duration-300 ${
+                  currentPage === totalPages ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'
+                }`}
+              >
+                Siguiente
+              </button>
+            </div>
+
+            {isPopupOpen && (
+              <div
+                className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md"
+                onClick={(e) => {
+                  if (e.target === e.currentTarget) {
+                    closePopup();
+                  }
+                }}
+              >
+                <div className="bg-white p-6 rounded-lg shadow-xl w-1/3 border border-gray-200">
+                  <div className="text-center">
+                    <h2
+                      className="text-3xl font-bold text-gray-800 mb-6 tracking-tight 
+                      bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
+                      transition-all duration-300 hover:scale-105"
+                    >
+                      {costoSeleccionado ? 'Editar Centro de Costos' : 'Agregar Centro de Costos'}
+                    </h2>
+                  </div>
+                  {errorMessage && <p className="text-center text-red-500 mb-4">{errorMessage}</p>}
+                  {costoSeleccionado ? (
+                    <form onSubmit={handleSubmitEditar}>
+                      <input type="hidden" name="id" value={formData.id} />
+                      <div className="mb-4">
+                        <label htmlFor="nombre_centro_costos" className="block text-center font-medium text-gray-700">
+                          Nombre Centro de Costos
+                        </label>
+                        <input
+                          type="text"
+                          name="nombre_centro_costos"
+                          placeholder="Ejemplo: GSIE El Paraíso"
+                          value={formData.nombre_centro_costos}
+                          onChange={handleInputChange}
+                          className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                          required
+                        />
+                      </div>
+                      <div className="mb-4">
+                        <label htmlFor="empresa" className="block text-center font-medium text-gray-700">
+                          Empresa
+                        </label>
+                        <select
+                          name="empresa"
+                          value={formData.empresa ?? '0'}
+                          onChange={handleInputChange}
+                          className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                          required
+                        >
+                          <option value="0">Seleccionar empresa</option>
+                          {empresas.map((empresa) => (
+                            <option key={empresa.id} value={empresa.id}>
+                              {empresa.nombre_empresa}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="mb-4">
+                          <label htmlFor="pais_id" className="block text-center font-medium text-gray-700">
+                            País
+                          </label>
+                          <select
+                            name="pais_id"
+                            value={formData.pais_id ?? '0'}
+                            onChange={handleInputChange}
+                            className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                            required
+                          >
+                            <option value="0">Seleccionar país</option>
+                            {paises.map((pais) => (
+                              <option key={pais.id} value={pais.id}>
+                                {pais.pais}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="mb-4">
+                          <label htmlFor="estado_id" className="block text-center font-medium text-gray-700">
+                            Estado
+                          </label>
+                          <select
+                            name="estado_id"
+                            value={formData.estado_id ?? '0'}
+                            onChange={handleInputChange}
+                            className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                            required
+                          >
+                            <option value="0">Seleccionar estado</option>
+                            {estados.map((estado) => (
+                              <option key={estado.id} value={estado.id}>
+                                {estado.estado}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="mb-4">
+                          <label htmlFor="ciudad" className="block text-center font-medium text-gray-700">
+                            Ciudad
+                          </label>
+                          <input
+                            type="text"
+                            name="ciudad"
+                            placeholder="Ejemplo: El Paraíso"
+                            value={formData.ciudad}
+                            onChange={handleInputChange}
+                            className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                            required
+                        />
+                        </div>
+                        <div className="mb-4">
+                          <label htmlFor="alias" className="block text-center font-medium text-gray-700">
+                            Alias
+                          </label>
+                          <input
+                            type="text"
+                            name="alias"
+                            placeholder="Ejemplo: GSIE HN"
+                            value={formData.alias}
+                            onChange={handleInputChange}
+                            className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div className="mb-4">
+                        <label htmlFor="codigo" className="block text-center font-medium text-gray-700">
+                          Código
+                        </label>
+                        <input
+                          type="text"
+                          name="codigo"
+                          placeholder="Ejemplo: CTR-001"
+                          value={formData.codigo}
+                          onChange={handleInputChange}
+                          className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                          required
+                        />
+                      </div>
+                      <div className="flex justify-between">
+                        <button
+                          type="button"
+                          onClick={closePopup}
+                          className="bg-gray-400 text-white px-4 py-2 rounded-lg hover:bg-gray-500 transition-all duration-300"
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          type="submit"
+                          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all duration-300"
+                        >
+                          Guardar
+                        </button>
+                      </div>
+                    </form>
+                  ) : (
+                    <form onSubmit={handleSubmitAgregar}>
+                      <div className="mb-4">
+                        <label htmlFor="nombre_centro_costos" className="block text-center font-medium text-gray-700">
+                          Nombre Centro de Costos
+                        </label>
+                        <input
+                          type="text"
+                          name="nombre_centro_costos"
+                          placeholder="Ejemplo: GSIE El Paraíso"
+                          value={formData.nombre_centro_costos}
+                          onChange={handleInputChange}
+                          className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                          required
+                        />
+                      </div>
+                      <div className="mb-4">
+                        <label htmlFor="empresa" className="block text-center font-medium text-gray-700">
+                          Empresa
+                        </label>
+                        <select
+                          name="empresa"
+                          value={formData.empresa ?? '0'}
+                          onChange={handleInputChange}
+                          className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                          required
+                        >
+                          <option value="0">Seleccionar empresa</option>
+                          {empresas.map((empresa) => (
+                            <option key={empresa.id} value={empresa.id}>
+                              {empresa.nombre_empresa}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="mb-4">
+                          <label htmlFor="pais_id" className="block text-center font-medium text-gray-700">
+                            País
+                          </label>
+                          <select
+                            name="pais_id"
+                            value={formData.pais_id ?? '0'}
+                            onChange={handleInputChange}
+                            className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                            required
+                          >
+                            <option value="0">Seleccionar país</option>
+                            {paises.map((pais) => (
+                              <option key={pais.id} value={pais.id}>
+                                {pais.pais}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="mb-4">
+                          <label htmlFor="estado_id" className="block text-center font-medium text-gray-700">
+                            Estado
+                          </label>
+                          <select
+                            name="estado_id"
+                            value={formData.estado_id ?? '0'}
+                            onChange={handleInputChange}
+                            className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                            required
+                          >
+                            <option value="0">Seleccionar estado</option>
+                            {estados.map((estado) => (
+                              <option key={estado.id} value={estado.id}>
+                                {estado.estado}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="mb-4">
+                          <label htmlFor="ciudad" className="block text-center font-medium text-gray-700">
+                            Ciudad
+                          </label>
+                          <input
+                            type="text"
+                            name="ciudad"
+                            placeholder="Ejemplo: El Paraíso"
+                            value={formData.ciudad}
+                            onChange={handleInputChange}
+                            className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                            required
+                          />
+                        </div>
+                        <div className="mb-4">
+                          <label htmlFor="alias" className="block text-center font-medium text-gray-700">
+                            Alias
+                          </label>
+                          <input
+                            type="text"
+                            name="alias"
+                            placeholder="Ejemplo: GSIE HN"
+                            value={formData.alias}
+                            onChange={handleInputChange}
+                            className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div className="mb-4">
+                        <label htmlFor="codigo" className="block text-center font-medium text-gray-700">
+                          Código
+                        </label>
+                        <input
+                          type="text"
+                          name="codigo"
+                          placeholder="Ejemplo: CTR-001"
+                          value={formData.codigo}
+                          onChange={handleInputChange}
+                          className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                          required
+                        />
+                      </div>
+                      <div className="flex justify-between">
+                        <button
+                          type="button"
+                          onClick={closePopup}
+                          className="bg-gray-400 text-white px-4 py-2 rounded-lg hover:bg-gray-500 transition-all duration-300"
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          type="submit"
+                          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all duration-300"
+                        >
+                          Guardar
+                        </button>
+                      </div>
+                    </form>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {isDeletePopupOpen && costoAEliminar && (
+              <div
+                className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md"
+                onClick={(e) => {
+                  if (e.target === e.currentTarget) {
+                    closeDeletePopup();
+                  }
+                }}
+              >
+                <div className="bg-white p-6 rounded-lg shadow-xl w-1/3 border border-gray-200">
+                  <h2
+                    className="text-2xl font-bold text-gray-800 mb-4 tracking-tight 
+                    bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
+                    transition-all duration-300 hover:scale-105 text-center"
+                  >
+                    Confirmar Eliminación
+                  </h2>
+                  <p className="text-center text-gray-700 mb-4">
+                    ¿Está seguro de que desea eliminar el centro de costos {costoAEliminar.nombre_centro_costos}?
+                  </p>
+                  {errorMessage && <p className="text-center text-red-500 mb-4">{errorMessage}</p>}
+                  <div className="flex justify-between">
+                    <button
+                      onClick={closeDeletePopup}
+                      className="bg-gray-400 text-white px-4 py-2 rounded-lg hover:bg-gray-500 transition-all duration-300"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      onClick={handleDelete}
+                      className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-all duration-300"
+                    >
+                      Eliminar
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </main>
+        </div>
       </div>
     </div>
   );

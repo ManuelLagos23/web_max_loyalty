@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import Navbar from '../components/Navbar';
+import NavbarConfiguracion from '../components/NavbarConfiguracion';
+import MenuMain from '../components/MenuMain';
 
 interface Miembro {
   id: number;
@@ -13,6 +14,7 @@ interface Miembro {
   terminal_id: number;
   empresa_nombre: string;
   terminal_nombre: string;
+  establecimiento_nombre: string;
   password: string;
 }
 
@@ -361,17 +363,12 @@ export default function Miembros() {
     loadData();
   }, [fetchMiembros, fetchCentrosCostos, fetchEmpresas, fetchTerminales]);
 
-  const getNombreEstablecimiento = (establecimientoId: number) => {
-    const centro = centrosCostos.find((c) => c.id === establecimientoId);
-    return centro ? centro.nombre_centro_costos : '';
-  };
-
   const filteredMiembros = miembros.filter((miembro) =>
     [
       miembro.nombre,
       miembro.user,
       miembro.email,
-      getNombreEstablecimiento(miembro.establecimiento),
+      miembro.establecimiento_nombre,
       miembro.empresa_nombre,
       miembro.terminal_nombre,
     ].some((field) => field.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -395,438 +392,452 @@ export default function Miembros() {
   };
 
   return (
-    <div className="font-sans bg-gray-100 text-gray-900">
+    <div className="font-sans bg-white text-gray-900 min-h-screen">
       <div className="flex">
-        <Navbar />
-        <main className="w-4/5 p-8">
-          <div className="space-y-6">
-            <h1
-              className="text-4xl font-bold text-gray-900 mb-4 tracking-tight 
-              bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
-              transition-all duration-300 hover:scale-105 text-center"
-            >
-              Gestión de Miembros
-            </h1>
-            <p
-              className="text-center text-black leading-relaxed max-w-2xl
-              p-4 rounded-lg transition-all duration-300 hover:shadow-md mx-auto"
-            >
-              Administra los miembros registrados en el APK de Max Loyalty Mobile.
-            </p>
-          </div>
+        <NavbarConfiguracion />
+        <div className="flex-1 flex flex-col">
+          <MenuMain />
+          <main className="flex-1 p-8">
+            <div className="space-y-6">
+              <h1
+                className="text-4xl font-bold text-gray-900 Tiwmb-4 tracking-tight 
+                bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
+                transition-all duration-300 hover:scale-105 text-center"
+              >
+                Gestión de Miembros
+              </h1>
+              <p
+                className="text-center text-gray-700 leading-relaxed max-w-2xl
+                p-4 rounded-lg transition-all duration-300 hover:shadow-md mx-auto"
+              >
+                Administra los miembros registrados en el APK de Max Loyalty Mobile.
+              </p>
+            </div>
 
-          <div className="flex justify-between mb-4">
-            <button
-              onClick={() => openPopup('agregar')}
-              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-            >
-              Agregar Miembro
-            </button>
-          </div>
+            <div className="flex justify-between mb-4">
+              <button
+                onClick={() => openPopup('agregar')}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all duration-300"
+              >
+                Agregar Miembro
+              </button>
+            </div>
 
-          <div className="mb-4">
-            <input
-              type="text"
-              placeholder="Buscar por nombre, usuario, email, establecimiento, empresa o terminal..."
-              value={searchTerm}
-              onChange={handleSearchChange}
-              className="w-2/5 p-2 border border-gray-300 rounded-md"
-            />
-          </div>
+            <div className="mb-6">
+              <input
+                type="text"
+                placeholder="Buscar por nombre, usuario, email, establecimiento, empresa o terminal..."
+                value={searchTerm}
+                onChange={handleSearchChange}
+                className="w-2/5 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
 
-          {errorMessage && <p className="text-center text-red-500">{errorMessage}</p>}
+            {errorMessage && <p className="text-center text-red-500">{errorMessage}</p>}
 
-          <table className="min-w-full bg-white table-auto">
-            <thead>
-              <tr className="bg-gray-200">
-                <th className="px-4 py-2 text-left">#</th>
-                <th className="px-4 py-2 text-left">Nombre</th>
-                <th className="px-4 py-2 text-left">User</th>
-                <th className="px-4 py-2 text-left">Email</th>
-                <th className="px-4 py-2 text-left">Establecimiento</th>
-                <th className="px-4 py-2 text-left">Empresa</th>
-                <th className="px-4 py-2 text-left">Terminal</th>
-                <th className="px-4 py-2 text-left">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentMiembros.length > 0 ? (
-                currentMiembros.map((miembro, index) => (
-                  <tr className="hover:bg-gray-50" key={miembro.id}>
-                    <td className="px-4 py-2">{indexOfFirstItem + index + 1}</td>
-                    <td className="px-4 py-2">{miembro.nombre}</td>
-                    <td className="px-4 py-2">{miembro.user}</td>
-                    <td className="px-4 py-2">{miembro.email}</td>
-                    <td className="px-4 py-2">{miembro.establecimiento}</td>
-                    <td className="px-4 py-2">{miembro.empresa_id}</td>
-                    <td className="px-4 py-2">{miembro.terminal_id}</td>
-                    <td className="px-4 py-2">
-                      <button
-                        onClick={() => handleEditar(miembro)}
-                        className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 mr-2"
-                      >
-                        Editar
-                      </button>
-                      <button
-                        onClick={() => openDeletePopup(miembro)}
-                        className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-                      >
-                        Eliminar
-                      </button>
+            <table className="min-w-full bg-gray-100 table-auto rounded-lg shadow-md">
+              <thead>
+                <tr className="bg-gray-200">
+                  <th className="px-4 py-2 text-left text-gray-700 font-semibold">#</th>
+                  <th className="px-4 py-2 text-left text-gray-700 font-semibold">Nombre</th>
+                  <th className="px-4 py-2 text-left text-gray-700 font-semibold">User</th>
+                  <th className="px-4 py-2 text-left text-gray-700 font-semibold">Email</th>
+                  <th className="px-4 py-2 text-left text-gray-700 font-semibold">Establecimiento</th>
+                  <th className="px-4 py-2 text-left text-gray-700 font-semibold">Empresa</th>
+                  <th className="px-4 py-2 text-left text-gray-700 font-semibold">Terminal</th>
+                  <th className="px-4 py-2 text-left text-gray-700 font-semibold">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {currentMiembros.length > 0 ? (
+                  currentMiembros.map((miembro, index) => (
+                    <tr className="hover:bg-gray-50 transition-all duration-200" key={miembro.id}>
+                      <td className="px-4 py-2">{indexOfFirstItem + index + 1}</td>
+                      <td className="px-4 py-2">{miembro.nombre}</td>
+                      <td className="px-4 py-2">{miembro.user}</td>
+                      <td className="px-4 py-2">{miembro.email}</td>
+                      <td className="px-4 py-2">{miembro.establecimiento_nombre}</td>
+                      <td className="px-4 py-2">{miembro.empresa_nombre}</td>
+                      <td className="px-4 py-2">{miembro.terminal_nombre}</td>
+                      <td className="px-4 py-2 flex space-x-2">
+                        <button
+                          onClick={() => handleEditar(miembro)}
+                          className="bg-yellow-500 text-white px-3 py-1 rounded-lg hover:bg-yellow-600 transition-all duration-300"
+                        >
+                          Editar
+                        </button>
+                        <button
+                          onClick={() => openDeletePopup(miembro)}
+                          className="bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600 transition-all duration-300"
+                        >
+                          Eliminar
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={8} className="px-4 py-2 text-center text-gray-500">
+                      No hay miembros disponibles.
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={8} className="px-4 py-2 text-center text-gray-500">
-                    No hay miembros disponibles.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-
-          <div className="mt-4 flex justify-between items-center">
-            <button
-              onClick={handlePrevPage}
-              disabled={currentPage === 1}
-              className={`px-4 py-2 rounded ${currentPage === 1 ? 'bg-gray-300' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
-            >
-              Anterior
-            </button>
-            <span>
-              Página {currentPage} de {totalPages}
-            </span>
-            <button
-              onClick={handleNextPage}
-              disabled={currentPage === totalPages}
-              className={`px-4 py-2 rounded ${currentPage === totalPages ? 'bg-gray-300' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
-            >
-              Siguiente
-            </button>
-          </div>
-
-          {isPopupOpen && (
-            <div
-              className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md"
-              onClick={(e) => {
-                if (e.target === e.currentTarget) {
-                  closePopup();
-                }
-              }}
-            >
-              <div className="bg-white p-6 rounded shadow-lg w-1/3 border-1">
-                <div className="text-center">
-                  <h2
-                    className="text-3xl font-bold text-gray-800 mb-6 tracking-tight inline-block relative
-                    after:block after:h-1 after:w-12 after:mx-auto after:mt-2"
-                  >
-                    {miembroSeleccionado ? 'Editar Miembro' : 'Agregar Miembro'}
-                  </h2>
-                </div>
-
-                {errorMessage && <p className="text-center text-red-500 mb-4">{errorMessage}</p>}
-
-                {miembroSeleccionado ? (
-                  <form onSubmit={handleSubmitEditar}>
-                    <input type="hidden" name="id" value={formData.id} />
-                    <label className="block text-center" htmlFor="nombre">
-                      Nombre:
-                    </label>
-                    <input
-                      type="text"
-                      name="nombre"
-                      placeholder="Ejemplo: Grupo GSIE"
-                      value={formData.nombre}
-                      onChange={handleInputChange}
-                      className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
-                      required
-                    />
-                    <label className="block text-center" htmlFor="user">
-                      User:
-                    </label>
-                    <input
-                      type="text"
-                      name="user"
-                      placeholder="gsie@hn"
-                      value={formData.user}
-                      onChange={handleInputChange}
-                      className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
-                      required
-                    />
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-center" htmlFor="terminal_id">
-                          Terminal:
-                        </label>
-                        <select
-                          name="terminal_id"
-                          value={formData.terminal_id.toString()}
-                          onChange={handleInputChange}
-                          className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
-                          required
-                        >
-                          <option value="0">Seleccione un terminal</option>
-                          {terminales.map((terminal) => (
-                            <option key={terminal.id} value={terminal.id.toString()}>
-                              {terminal.nombre_terminal}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-center" htmlFor="empresa_id">
-                          Empresa:
-                        </label>
-                        <select
-                          name="empresa_id"
-                          value={formData.empresa_id.toString()}
-                          onChange={handleInputChange}
-                          className="w-full p-2 mb-2 border border-gray-300 rounded block text-center bg-gray-100"
-                          required
-                          disabled
-                        >
-                          <option value="0">Seleccione una empresa</option>
-                          {empresas.map((empresa) => (
-                            <option key={empresa.id} value={empresa.id.toString()}>
-                              {empresa.nombre_empresa}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-center" htmlFor="establecimiento">
-                          Establecimiento:
-                        </label>
-                        <select
-                          name="establecimiento"
-                          value={formData.establecimiento.toString()}
-                          onChange={handleInputChange}
-                          className="w-full p-2 mb-2 border border-gray-300 rounded block text-center bg-gray-100"
-                          required
-                          disabled
-                        >
-                          <option value="0">Seleccione un establecimiento</option>
-                          {centrosCostos.map((centro) => (
-                            <option key={centro.id} value={centro.id.toString()}>
-                              {centro.nombre_centro_costos}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-center" htmlFor="email">
-                          Email:
-                        </label>
-                        <input
-                          type="email"
-                          name="email"
-                          placeholder="Ejemplo: grupogsie@gmail.com"
-                          value={formData.email}
-                          onChange={handleInputChange}
-                          className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
-                          required
-                        />
-                      </div>
-                    </div>
-                    <label className="block text-center" htmlFor="password">
-                      Password:
-                    </label>
-                    <input
-                      type="password"
-                      name="password"
-                      placeholder="Ejemplo: Tu contraseña segura"
-                      value={formData.password}
-                      onChange={handleInputChange}
-                      className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
-                    />
-                    <div className="flex justify-between">
-                      <button
-                        type="button"
-                        onClick={closePopup}
-                        className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
-                      >
-                        Cancelar
-                      </button>
-                      <button
-                        type="submit"
-                        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                      >
-                        Guardar
-                      </button>
-                    </div>
-                  </form>
-                ) : (
-                  <form onSubmit={handleSubmitAgregar}>
-                    <label className="block text-center" htmlFor="nombre">
-                      Nombre:
-                    </label>
-                    <input
-                      type="text"
-                      name="nombre"
-                      placeholder="Ejemplo: Grupo GSIE"
-                      value={formData.nombre}
-                      onChange={handleInputChange}
-                      className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
-                      required
-                    />
-                    <label className="block text-center" htmlFor="user">
-                      User:
-                    </label>
-                    <input
-                      type="text"
-                      name="user"
-                      placeholder="Ejemplo: gsie@hn"
-                      value={formData.user}
-                      onChange={handleInputChange}
-                      className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
-                      required
-                    />
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-center" htmlFor="terminal_id">
-                          Terminal:
-                        </label>
-                        <select
-                          name="terminal_id"
-                          value={formData.terminal_id.toString()}
-                          onChange={handleInputChange}
-                          className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
-                          required
-                        >
-                          <option value="0">Seleccione un terminal</option>
-                          {terminales.map((terminal) => (
-                            <option key={terminal.id} value={terminal.id.toString()}>
-                              {terminal.nombre_terminal}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-center" htmlFor="empresa_id">
-                          Empresa:
-                        </label>
-                        <select
-                          name="empresa_id"
-                          value={formData.empresa_id.toString()}
-                          onChange={handleInputChange}
-                          className="w-full p-2 mb-2 border border-gray-300 rounded block text-center bg-gray-100"
-                          required
-                          disabled
-                        >
-                          <option value="0">Seleccione una empresa</option>
-                          {empresas.map((empresa) => (
-                            <option key={empresa.id} value={empresa.id.toString()}>
-                              {empresa.nombre_empresa}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-center" htmlFor="establecimiento">
-                          Establecimiento:
-                        </label>
-                        <select
-                          name="establecimiento"
-                          value={formData.establecimiento.toString()}
-                          onChange={handleInputChange}
-                          className="w-full p-2 mb-2 border border-gray-300 rounded block text-center bg-gray-100"
-                          required
-                          disabled
-                        >
-                          <option value="0">Seleccione un establecimiento</option>
-                          {centrosCostos.map((centro) => (
-                            <option key={centro.id} value={centro.id.toString()}>
-                              {centro.nombre_centro_costos}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-center" htmlFor="email">
-                          Email:
-                        </label>
-                        <input
-                          type="email"
-                          name="email"
-                          placeholder="Ejemplo: grupogsie@hn"
-                          value={formData.email}
-                          onChange={handleInputChange}
-                          className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
-                          required
-                        />
-                      </div>
-                    </div>
-                    <label className="block text-center" htmlFor="password">
-                      Password:
-                    </label>
-                    <input
-                      type="password"
-                      name="password"
-                      placeholder="Ejemplo: Tu contraseña segura"
-                      value={formData.password}
-                      onChange={handleInputChange}
-                      className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
-                      required
-                    />
-                    <div className="flex justify-between">
-                      <button
-                        type="button"
-                        onClick={closePopup}
-                        className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
-                      >
-                        Cancelar
-                      </button>
-                      <button
-                        type="submit"
-                        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                      >
-                        Guardar
-                      </button>
-                    </div>
-                  </form>
                 )}
-              </div>
-            </div>
-          )}
+              </tbody>
+            </table>
 
-          {isDeletePopupOpen && miembroAEliminar && (
-            <div
-              className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md"
-              onClick={(e) => {
-                if (e.target === e.currentTarget) {
-                  closeDeletePopup();
-                }
-              }}
-            >
-              <div className="bg-white p-6 rounded shadow-lg w-1/3 border-1">
-                <h2 className="text-2xl font-semibold mb-4 text-center">Confirmar Eliminación</h2>
-                <p className="text-center mb-4">
-                  ¿Estás seguro que deseas eliminar el miembro {miembroAEliminar.nombre}?
-                </p>
-                {errorMessage && <p className="text-center text-red-500 mb-4">{errorMessage}</p>}
-                <div className="flex justify-between">
-                  <button
-                    onClick={closeDeletePopup}
-                    className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    onClick={handleDelete}
-                    className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-                  >
-                    Eliminar
-                  </button>
+            <div className="mt-4 flex justify-between items-center">
+              <button
+                onClick={handlePrevPage}
+                disabled={currentPage === 1}
+                className={`px-4 py-2 rounded-lg transition-all duration-300 ${
+                  currentPage === 1 ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'
+                }`}
+              >
+                Anterior
+              </button>
+              <span className="text-gray-700">
+                Página {currentPage} de {totalPages}
+              </span>
+              <button
+                onClick={handleNextPage}
+                disabled={currentPage === totalPages}
+                className={`px-4 py-2 rounded-lg transition-all duration-300 ${
+                  currentPage === totalPages ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'
+                }`}
+              >
+                Siguiente
+              </button>
+            </div>
+
+            {isPopupOpen && (
+              <div
+                className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md"
+                onClick={(e) => {
+                  if (e.target === e.currentTarget) {
+                    closePopup();
+                  }
+                }}
+              >
+                <div className="bg-white p-6 rounded-lg shadow-xl w-1/3 border border-gray-200">
+                  <div className="text-center">
+                    <h2
+                      className="text-3xl font-bold text-gray-800 mb-6 tracking-tight 
+                      bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
+                      transition-all duration-300 hover:scale-105"
+                    >
+                      {miembroSeleccionado ? 'Editar Miembro' : 'Agregar Miembro'}
+                    </h2>
+                  </div>
+
+                  {errorMessage && <p className="text-center text-red-500 mb-4">{errorMessage}</p>}
+
+                  {miembroSeleccionado ? (
+                    <form onSubmit={handleSubmitEditar}>
+                      <input type="hidden" name="id" value={formData.id} />
+                      <label className="block text-center font-medium text-gray-700" htmlFor="nombre">
+                        Nombre
+                      </label>
+                      <input
+                        type="text"
+                        name="nombre"
+                        placeholder="Ejemplo: Grupo GSIE"
+                        value={formData.nombre}
+                        onChange={handleInputChange}
+                        className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                        required
+                      />
+                      <label className="block text-center font-medium text-gray-700" htmlFor="user">
+                        User
+                      </label>
+                      <input
+                        type="text"
+                        name="user"
+                        placeholder="gsie@hn"
+                        value={formData.user}
+                        onChange={handleInputChange}
+                        className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                        required
+                      />
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-center font-medium text-gray-700" htmlFor="terminal_id">
+                            Terminal
+                          </label>
+                          <select
+                            name="terminal_id"
+                            value={formData.terminal_id.toString()}
+                            onChange={handleInputChange}
+                            className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                            required
+                          >
+                            <option value="0">Seleccione un terminal</option>
+                            {terminales.map((terminal) => (
+                              <option key={terminal.id} value={terminal.id.toString()}>
+                                {terminal.nombre_terminal}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-center font-medium text-gray-700" htmlFor="empresa_id">
+                            Empresa
+                          </label>
+                          <select
+                            name="empresa_id"
+                            value={formData.empresa_id.toString()}
+                            onChange={handleInputChange}
+                            className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                            required
+                            disabled
+                          >
+                            <option value="0">Seleccione una empresa</option>
+                            {empresas.map((empresa) => (
+                              <option key={empresa.id} value={empresa.id.toString()}>
+                                {empresa.nombre_empresa}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-center font-medium text-gray-700" htmlFor="establecimiento">
+                            Establecimiento
+                          </label>
+                          <select
+                            name="establecimiento"
+                            value={formData.establecimiento.toString()}
+                            onChange={handleInputChange}
+                            className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                            required
+                            disabled
+                          >
+                            <option value="0">Seleccione un establecimiento</option>
+                            {centrosCostos.map((centro) => (
+                              <option key={centro.id} value={centro.id.toString()}>
+                                {centro.nombre_centro_costos}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-center font-medium text-gray-700" htmlFor="email">
+                            Email
+                          </label>
+                          <input
+                            type="email"
+                            name="email"
+                            placeholder="Ejemplo: grupogsie@gmail.com"
+                            value={formData.email}
+                            onChange={handleInputChange}
+                            className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <label className="block text-center font-medium text-gray-700" htmlFor="password">
+                        Password
+                      </label>
+                      <input
+                        type="password"
+                        name="password"
+                        placeholder="Dejar en blanco para no cambiar"
+                        value={formData.password}
+                        onChange={handleInputChange}
+                        className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                      />
+                      <div className="flex justify-between">
+                        <button
+                          type="button"
+                          onClick={closePopup}
+                          className="bg-gray-400 text-white px-4 py-2 rounded-lg hover:bg-gray-500 transition-all duration-300"
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          type="submit"
+                          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all duration-300"
+                        >
+                          Guardar
+                        </button>
+                      </div>
+                    </form>
+                  ) : (
+                    <form onSubmit={handleSubmitAgregar}>
+                      <label className="block text-center font-medium text-gray-700" htmlFor="nombre">
+                        Nombre
+                      </label>
+                      <input
+                        type="text"
+                        name="nombre"
+                        placeholder="Ejemplo: Grupo GSIE"
+                        value={formData.nombre}
+                        onChange={handleInputChange}
+                        className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                        required
+                      />
+                      <label className="block text-center font-medium text-gray-700" htmlFor="user">
+                        User
+                      </label>
+                      <input
+                        type="text"
+                        name="user"
+                        placeholder="Ejemplo: gsie@hn"
+                        value={formData.user}
+                        onChange={handleInputChange}
+                        className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                        required
+                      />
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-center font-medium text-gray-700" htmlFor="terminal_id">
+                            Terminal
+                          </label>
+                          <select
+                            name="terminal_id"
+                            value={formData.terminal_id.toString()}
+                            onChange={handleInputChange}
+                            className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                            required
+                          >
+                            <option value="0">Seleccione un terminal</option>
+                            {terminales.map((terminal) => (
+                              <option key={terminal.id} value={terminal.id.toString()}>
+                                {terminal.nombre_terminal}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-center font-medium text-gray-700" htmlFor="empresa_id">
+                            Empresa
+                          </label>
+                          <select
+                            name="empresa_id"
+                            value={formData.empresa_id.toString()}
+                            onChange={handleInputChange}
+                            className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center bg-gray-100"
+                            required
+                            disabled
+                          >
+                            <option value="0">Seleccione una empresa</option>
+                            {empresas.map((empresa) => (
+                              <option key={empresa.id} value={empresa.id.toString()}>
+                                {empresa.nombre_empresa}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-center font-medium text-gray-700" htmlFor="establecimiento">
+                            Establecimiento
+                          </label>
+                          <select
+                            name="establecimiento"
+                            value={formData.establecimiento.toString()}
+                            onChange={handleInputChange}
+                            className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center bg-gray-100"
+                            required
+                            disabled
+                          >
+                            <option value="0">Seleccione un establecimiento</option>
+                            {centrosCostos.map((centro) => (
+                              <option key={centro.id} value={centro.id.toString()}>
+                                {centro.nombre_centro_costos}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-center font-medium text-gray-700" htmlFor="email">
+                            Email
+                          </label>
+                          <input
+                            type="email"
+                            name="email"
+                            placeholder="Ejemplo: grupogsie@hn"
+                            value={formData.email}
+                            onChange={handleInputChange}
+                            className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <label className="block text-center font-medium text-gray-700" htmlFor="password">
+                        Password
+                      </label>
+                      <input
+                        type="password"
+                        name="password"
+                        placeholder="Ejemplo: Tu contraseña segura"
+                        value={formData.password}
+                        onChange={handleInputChange}
+                        className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                        required
+                      />
+                      <div className="flex justify-between">
+                        <button
+                          type="button"
+                          onClick={closePopup}
+                          className="bg-gray-400 text-white px-4 py-2 rounded-lg hover:bg-gray-500 transition-all duration-300"
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          type="submit"
+                          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all duration-300"
+                        >
+                          Guardar
+                        </button>
+                      </div>
+                    </form>
+                  )}
                 </div>
               </div>
-            </div>
-          )}
-        </main>
+            )}
+
+            {isDeletePopupOpen && miembroAEliminar && (
+              <div
+                className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md"
+                onClick={(e) => {
+                  if (e.target === e.currentTarget) {
+                    closeDeletePopup();
+                  }
+                }}
+              >
+                <div className="bg-white p-6 rounded-lg shadow-xl w-1/3 border border-gray-200">
+                  <h2
+                    className="text-2xl font-bold text-gray-800 mb-4 tracking-tight 
+                    bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
+                    transition-all duration-300 hover:scale-105 text-center"
+                  >
+                    Confirmar Eliminación
+                  </h2>
+                  <p className="text-center text-gray-700 mb-4">
+                    ¿Estás seguro que deseas eliminar el miembro {miembroAEliminar.nombre}?
+                  </p>
+                  {errorMessage && <p className="text-center text-red-500 mb-4">{errorMessage}</p>}
+                  <div className="flex justify-between">
+                    <button
+                      onClick={closeDeletePopup}
+                      className="bg-gray-400 text-white px-4 py-2 rounded-lg hover:bg-gray-500 transition-all duration-300"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      onClick={handleDelete}
+                      className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-all duration-300"
+                    >
+                      Eliminar
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </main>
+        </div>
       </div>
     </div>
   );

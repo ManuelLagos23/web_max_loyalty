@@ -70,7 +70,9 @@ export async function GET() {
         e.nfi,
         e.prefijo_tarjetas,
         encode(e.logo, 'base64') as logo,
-        encode(e.logo_impreso, 'base64') as logo_impreso
+        encode(e.logo_impreso, 'base64') as logo_impreso,
+        e.pais as pais_id,
+        e.moneda moneda_id
       FROM empresas e
       JOIN paises p ON e.pais = p.id
       JOIN monedas m ON e.moneda = m.id

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
+import MenuMain from '../components/MenuMain';
 
 type Transaccion = {
   id: number;
@@ -12,7 +13,7 @@ type Transaccion = {
   monto: number;
   terminal_id: number;
   numero_tarjeta: string | null;
-  estado: boolean; // Agregado para el campo estado
+  estado: boolean;
 };
 
 export default function Transacciones() {
@@ -127,7 +128,7 @@ export default function Transacciones() {
 
   const filteredTransacciones = transacciones.filter((transaccion) =>
     Object.values(transaccion)
-      .map((value) => String(value ?? '')) // Maneja valores null
+      .map((value) => String(value ?? ''))
       .join(' ')
       .toLowerCase()
       .includes(searchTerm.toLowerCase())
@@ -147,35 +148,38 @@ export default function Transacciones() {
   };
 
   return (
-    <div className="font-sans bg-gray-100 text-gray-900">
-      <div className="flex">
-        <Navbar />
-        <main className="w-full p-8">
-          <div className="space-y-6">
-            <h1 
-              className="text-4xl font-bold text-gray-900 mb-4 tracking-tight 
-              bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
-              transition-all duration-300 hover:scale-105 text-center"
-            >
-              Gestión de Transacciones
-            </h1>
-            <p 
-              className="text-center text-black leading-relaxed max-w-2xl
-              p-4 rounded-lg transition-all duration-300 hover:shadow-md mx-auto"
-            >
-              Administra las transacciones de Max Loyalty.
-            </p>
-          </div>
-       
-          <div className="flex justify-between mb-4">
-            <button
-              onClick={() => setIsAddModalOpen(true)}
-              className="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-            >
-              Agregar Transacción
-            </button>
-          </div>
-
+    <div className="min-h-screen flex">
+      {/* Navbar lateral */}
+      <Navbar />
+      {/* Área principal */}
+      <div className="flex-1 flex flex-col">
+        {/* Menú horizontal */}
+        <MenuMain />
+        {/* Contenido principal */}
+        <main className="flex-1 p-8 bg-white">
+        <div className="space-y-4">
+  <h1
+    className="text-4xl font-bold text-gray-900 mb-2
+    bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
+    transition-all duration-300 text-center"
+  >
+    Gestión de Transacciones
+  </h1>
+  <p
+    className="text-center text-black leading-relaxed max-w-2xl
+    p-2 rounded-lg transition-all duration-300 hover:shadow-md mx-auto"
+  >
+    Administra las transacciones de Max Loyalty.
+  </p>
+</div>
+<div className="flex justify-between mb-2">
+  <button
+    onClick={() => setIsAddModalOpen(true)}
+    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+  >
+    Agregar Transacción
+  </button>
+</div>
           <div className="mb-6">
             <input
               type="text"
@@ -188,8 +192,7 @@ export default function Transacciones() {
               className="w-2/5 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-
-          <table className="mt-6 w-full bg-white table-auto border-collapse border-gray-300">
+          <table className="mt-6 w-full bg-gray-100 table-auto border-collapse border-gray-300">
             <thead className="bg-gray-200">
               <tr>
                 <th className="px-4 py-2">#</th>
@@ -253,7 +256,6 @@ export default function Transacciones() {
               )}
             </tbody>
           </table>
-
           <div className="mt-4 flex justify-between items-center">
             <button
               onClick={handlePrevPage}
@@ -271,7 +273,6 @@ export default function Transacciones() {
               Siguiente
             </button>
           </div>
-
           {isAddModalOpen && (
             <div
               className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-md"
@@ -368,7 +369,6 @@ export default function Transacciones() {
               </div>
             </div>
           )}
-
           {isUpdateModalOpen && transaccionToUpdate && (
             <div
               className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-md"
@@ -378,7 +378,7 @@ export default function Transacciones() {
                 }
               }}
             >
-              <div className="bg-white p-6 besa rounded-lg w-1/3">
+              <div className="bg-white p-6 rounded-lg w-1/3">
                 <h3 className="text-xl font-semibold mb-4">Actualizar Transacción</h3>
                 <form onSubmit={handleSubmitUpdate}>
                   <div className="mb-4">
@@ -465,7 +465,6 @@ export default function Transacciones() {
               </div>
             </div>
           )}
-
           {isDeleteModalOpen && transaccionToDelete && (
             <div
               className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-md"

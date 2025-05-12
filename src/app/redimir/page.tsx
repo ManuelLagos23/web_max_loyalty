@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Navbar from '../components/Navbar';
+import MenuMain from '../components/MenuMain';
 
 interface Canjeado {
   id: number;
@@ -173,7 +174,7 @@ export default function Canjeados() {
 
   const filteredCanjeados = canjeados.filter((canjeado) =>
     Object.values(canjeado)
-      .map((value) => String(value ?? '')) // Maneja valores null
+      .map((value) => String(value ?? ''))
       .join(' ')
       .toLowerCase()
       .includes(searchTerm.toLowerCase())
@@ -193,33 +194,35 @@ export default function Canjeados() {
   };
 
   return (
-    <div className="font-sans bg-gray-100 text-gray-900">
-      <div className="flex">
-        <Navbar />
-        <main className="w-4/5 p-8">
-          <div className="space-y-6">
-            <h1 
-              className="text-4xl font-bold text-gray-900 mb-4 tracking-tight 
+    <div className="min-h-screen flex">
+      <Navbar />
+      <div className="flex-1 flex flex-col">
+        <MenuMain />
+        <main className="flex-1 p-8 bg-white">
+          <div className="space-y-4">
+            <h1
+              className="text-3xl font-bold text-gray-900 mb-2 
               bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
-              transition-all duration-300 hover:scale-105 text-center"
+              transition-all duration-300 text-center"
             >
               Gestión de Canjeados
             </h1>
-            <p 
-              className="text-center text-black leading-relaxed max-w-2xl
-              p-4 rounded-lg transition-all duration-300 hover:shadow-md mx-auto"
+            <p
+              className="text-center text-black leading-relaxed max-w-2xl p-2 rounded-lg 
+              transition-all duration-300 hover:shadow-md mx-auto"
             >
               Administra los puntos canjeados registrados en la plataforma.
             </p>
           </div>
-
-          <div className="flex justify-between mb-4">
-            <button onClick={() => openPopup('agregar')} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+          <div className="flex justify-between mb-2">
+            <button
+              onClick={() => openPopup('agregar')}
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            >
               Agregar Canjeado
             </button>
           </div>
-
-          <div className="mb-6">
+          <div className="mb-4">
             <input
               type="text"
               placeholder="Buscar canjeados..."
@@ -231,158 +234,9 @@ export default function Canjeados() {
               className="w-2/5 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-
-          {isPopupOpen && (
-            <div
-              className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md"
-              onClick={(e) => {
-                if (e.target === e.currentTarget) {
-                  closePopup();
-                }
-              }}
-            >
-              <div className="bg-white p-6 rounded shadow-lg w-2/5">
-                <h2 className="text-2xl font-semibold mb-4 text-center">
-                  {canjeadoSeleccionado ? 'Editar Canjeado' : 'Agregar Canjeado'}
-                </h2>
-                {canjeadoSeleccionado ? (
-                  <form onSubmit={handleSubmitEditar}>
-                    <input type="hidden" name="id" value={formData.id} />
-                    <div className="mb-4">
-                      <label htmlFor="cliente_id">ID Cliente</label>
-                      <input
-                        type="number"
-                        name="cliente_id"
-                        placeholder="ID Cliente"
-                        value={formData.cliente_id}
-                        onChange={handleInputChange}
-                        className="w-full p-2 mb-2 border border-gray-300 rounded"
-                      />
-                    </div>
-                    <div className="mb-4">
-                      <label htmlFor="establecimiento_id">ID Establecimiento</label>
-                      <input
-                        type="number"
-                        name="establecimiento_id"
-                        placeholder="ID Establecimiento"
-                        value={formData.establecimiento_id}
-                        onChange={handleInputChange}
-                        className="w-full p-2 mb-2 border border-gray-300 rounded"
-                      />
-                    </div>
-                    <div className="mb-4">
-                      <label htmlFor="created_at">Fecha Creación</label>
-                      <input
-                        type="text"
-                        name="created_at"
-                        placeholder="Fecha Creación"
-                        value={formData.created_at}
-                        readOnly
-                        className="w-full p-2 mb-2 border border-gray-300 rounded bg-gray-100"
-                      />
-                    </div>
-                    <div className="mb-4">
-                      <label htmlFor="puntos_canjeados">Puntos Canjeados</label>
-                      <input
-                        type="number"
-                        name="puntos_canjeados"
-                        placeholder="Puntos Canjeados"
-                        value={formData.puntos_canjeados}
-                        onChange={handleInputChange}
-                        className="w-full p-2 mb-2 border border-gray-300 rounded"
-                      />
-                    </div>
-                    <div className="mb-4">
-                      <label htmlFor="terminal_id">ID Terminal</label>
-                      <input
-                        type="number"
-                        name="terminal_id"
-                        placeholder="ID Terminal"
-                        value={formData.terminal_id}
-                        onChange={handleInputChange}
-                        className="w-full p-2 mb-2 border border-gray-300 rounded"
-                      />
-                    </div>
-                    <div className="flex justify-between">
-                      <button
-                        type="button"
-                        onClick={closePopup}
-                        className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
-                      >
-                        Cancelar
-                      </button>
-                      <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-                        Guardar
-                      </button>
-                    </div>
-                  </form>
-                ) : (
-                  <form onSubmit={handleSubmitAgregar}>
-                    <div className="mb-4">
-                      <label htmlFor="cliente_id">ID Cliente</label>
-                      <input
-                        type="number"
-                        name="cliente_id"
-                        placeholder="ID Cliente"
-                        value={formData.cliente_id}
-                        onChange={handleInputChange}
-                        className="w-full p-2 mb-2 border border-gray-300 rounded"
-                      />
-                    </div>
-                    <div className="mb-4">
-                      <label htmlFor="establecimiento_id">ID Establecimiento</label>
-                      <input
-                        type="number"
-                        name="establecimiento_id"
-                        placeholder="ID Establecimiento"
-                        value={formData.establecimiento_id}
-                        onChange={handleInputChange}
-                        className="w-full p-2 mb-2 border border-gray-300 rounded"
-                      />
-                    </div>
-                    <div className="mb-4">
-                      <label htmlFor="puntos_canjeados">Puntos Canjeados</label>
-                      <input
-                        type="number"
-                        name="puntos_canjeados"
-                        placeholder="Puntos Canjeados"
-                        value={formData.puntos_canjeados}
-                        onChange={handleInputChange}
-                        className="w-full p-2 mb-2 border border-gray-300 rounded"
-                      />
-                    </div>
-                    <div className="mb-4">
-                      <label htmlFor="terminal_id">ID Terminal</label>
-                      <input
-                        type="number"
-                        name="terminal_id"
-                        placeholder="ID Terminal"
-                        value={formData.terminal_id}
-                        onChange={handleInputChange}
-                        className="w-full p-2 mb-2 border border-gray-300 rounded"
-                      />
-                    </div>
-                    <div className="flex justify-between">
-                      <button
-                        type="button"
-                        onClick={closePopup}
-                        className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
-                      >
-                        Cancelar
-                      </button>
-                      <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-                        Guardar
-                      </button>
-                    </div>
-                  </form>
-                )}
-              </div>
-            </div>
-          )}
-
-          <table className="min-w-full bg-white border border-gray-200 rounded shadow-md">
-            <thead>
-              <tr className="bg-gray-200">
+          <table className="mt-6 w-full bg-gray-100 table-auto border-collapse border-gray-300">
+            <thead className="bg-gray-200">
+              <tr>
                 <th className="px-4 py-2 text-left">#</th>
                 <th className="px-4 py-2 text-left" hidden>ID Cliente</th>
                 <th className="px-4 py-2 text-left">Cliente</th>
@@ -399,25 +253,25 @@ export default function Canjeados() {
               {currentCanjeados.length > 0 ? (
                 currentCanjeados.map((canjeado, index) => (
                   <tr key={canjeado.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-2">{indexOfFirstItem + index + 1}</td>
+                    <td className="px-4 py-2 text-center">{indexOfFirstItem + index + 1}</td>
                     <td className="px-4 py-2" hidden>{canjeado.cliente_id}</td>
-                    <td className="px-4 py-2">{canjeado.cliente_nombre ?? 'Sin cliente'}</td>
-                    <td className="px-4 py-2">{canjeado.establecimiento_id}</td>
+                    <td className="px-4 py-2 text-center">{canjeado.cliente_nombre ?? 'Sin cliente'}</td>
+                    <td className="px-4 py-2 text-center">{canjeado.establecimiento_id}</td>
                     <td className="px-4 py-2">{new Date(canjeado.created_at).toLocaleDateString()}</td>
-                    <td className="px-4 py-2">{canjeado.puntos_canjeados}</td>
-                    <td className="px-4 py-2">{canjeado.terminal_id}</td>
-                    <td className="px-4 py-2">{canjeado.numero_tarjeta ?? 'Sin tarjeta'}</td>
-                    <td className="px-4 py-2">{canjeado.estado ? 'Validada' : 'Cancelada'}</td>
-                    <td className="px-4 py-2">
+                    <td className="px-4 py-2 text-center">{canjeado.puntos_canjeados}</td>
+                    <td className="px-4 py-2 text-center">{canjeado.terminal_id}</td>
+                    <td className="px-4 py-2 text-center">{canjeado.numero_tarjeta ?? 'Sin tarjeta'}</td>
+                    <td className="px-4 py-2 text-center">{canjeado.estado ? 'Validada' : 'Cancelada'}</td>
+                    <td className="px-4 py-2 text-center">
                       <button
                         onClick={() => handleEditar(canjeado)}
-                        className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 mr-2"
+                        className="bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600 mr-2"
                       >
                         Editar
                       </button>
                       <button
                         onClick={() => openDeletePopup(canjeado)}
-                        className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                        className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
                       >
                         Eliminar
                       </button>
@@ -433,12 +287,11 @@ export default function Canjeados() {
               )}
             </tbody>
           </table>
-
           <div className="mt-4 flex justify-between items-center">
             <button
               onClick={handlePrevPage}
               disabled={currentPage === 1}
-              className={`px-4 py-2 rounded ${currentPage === 1 ? 'bg-gray-300' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+              className={`px-4 py-2 rounded ${currentPage === 1 ? 'bg-gray-300' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
             >
               Anterior
             </button>
@@ -448,34 +301,204 @@ export default function Canjeados() {
             <button
               onClick={handleNextPage}
               disabled={currentPage === totalPages}
-              className={`px-4 py-2 rounded ${currentPage === totalPages ? 'bg-gray-300' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+              className={`px-4 py-2 rounded ${currentPage === totalPages ? 'bg-gray-300' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
             >
               Siguiente
             </button>
           </div>
-
+          {isPopupOpen && (
+            <div
+              className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-md"
+              onClick={(e) => {
+                if (e.target === e.currentTarget) {
+                  closePopup();
+                }
+              }}
+            >
+              <div className="bg-white p-6 rounded-lg shadow-lg w-1/3">
+                <h2 className="text-xl font-semibold mb-4 text-center">
+                  {canjeadoSeleccionado ? 'Editar Canjeado' : 'Agregar Canjeado'}
+                </h2>
+                {canjeadoSeleccionado ? (
+                  <form onSubmit={handleSubmitEditar}>
+                    <input type="hidden" name="id" value={formData.id} />
+                    <div className="mb-4">
+                      <label htmlFor="cliente_id" className="block text-sm font-medium mb-2">
+                        ID Cliente
+                      </label>
+                      <input
+                        type="number"
+                        name="cliente_id"
+                        placeholder="ID Cliente"
+                        value={formData.cliente_id}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                      />
+                    </div>
+                    <div className="mb-4">
+                      <label htmlFor="establecimiento_id" className="block text-sm font-medium mb-2">
+                        ID Establecimiento
+                      </label>
+                      <input
+                        type="number"
+                        name="establecimiento_id"
+                        placeholder="ID Establecimiento"
+                        value={formData.establecimiento_id}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                      />
+                    </div>
+                    <div className="mb-4">
+                      <label htmlFor="created_at" className="block text-sm font-medium mb-2">
+                        Fecha Creación
+                      </label>
+                      <input
+                        type="text"
+                        name="created_at"
+                        placeholder="Fecha Creación"
+                        value={formData.created_at}
+                        readOnly
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-100"
+                      />
+                    </div>
+                    <div className="mb-4">
+                      <label htmlFor="puntos_canjeados" className="block text-sm font-medium mb-2">
+                        Puntos Canjeados
+                      </label>
+                      <input
+                        type="number"
+                        name="puntos_canjeados"
+                        placeholder="Puntos Canjeados"
+                        value={formData.puntos_canjeados}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                      />
+                    </div>
+                    <div className="mb-4">
+                      <label htmlFor="terminal_id" className="block text-sm font-medium mb-2">
+                        ID Terminal
+                      </label>
+                      <input
+                        type="number"
+                        name="terminal_id"
+                        placeholder="ID Terminal"
+                        value={formData.terminal_id}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                      />
+                    </div>
+                    <div className="flex justify-between">
+                      <button
+                        type="button"
+                        onClick={closePopup}
+                        className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        type="submit"
+                        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                      >
+                        Guardar
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <form onSubmit={handleSubmitAgregar}>
+                    <div className="mb-4">
+                      <label htmlFor="cliente_id" className="block text-sm font-medium mb-2">
+                        ID Cliente
+                      </label>
+                      <input
+                        type="number"
+                        name="cliente_id"
+                        placeholder="ID Cliente"
+                        value={formData.cliente_id}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                      />
+                    </div>
+                    <div className="mb-4">
+                      <label htmlFor="establecimiento_id" className="block text-sm font-medium mb-2">
+                        ID Establecimiento
+                      </label>
+                      <input
+                        type="number"
+                        name="establecimiento_id"
+                        placeholder="ID Establecimiento"
+                        value={formData.establecimiento_id}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                      />
+                    </div>
+                    <div className="mb-4">
+                      <label htmlFor="puntos_canjeados" className="block text-sm font-medium mb-2">
+                        Puntos Canjeados
+                      </label>
+                      <input
+                        type="number"
+                        name="puntos_canjeados"
+                        placeholder="Puntos Canjeados"
+                        value={formData.puntos_canjeados}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                      />
+                    </div>
+                    <div className="mb-4">
+                      <label htmlFor="terminal_id" className="block text-sm font-medium mb-2">
+                        ID Terminal
+                      </label>
+                      <input
+                        type="number"
+                        name="terminal_id"
+                        placeholder="ID Terminal"
+                        value={formData.terminal_id}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                      />
+                    </div>
+                    <div className="flex justify-between">
+                      <button
+                        type="button"
+                        onClick={closePopup}
+                        className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        type="submit"
+                        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                      >
+                        Guardar
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
+            </div>
+          )}
           {isDeletePopupOpen && canjeadoAEliminar && (
             <div
-              className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md"
+              className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-md"
               onClick={(e) => {
                 if (e.target === e.currentTarget) {
                   closeDeletePopup();
                 }
               }}
             >
-              <div className="bg-white p-6 rounded shadow-lg w-2/5">
-                <h2 className="text-xl font-semibold mb-2">Eliminar Canjeado</h2>
-                <p>¿Estás seguro de que deseas eliminar este canjeado?</p>
-                <div className="flex justify-between mt-4">
+              <div className="bg-white p-6 rounded-lg shadow-lg w-1/3">
+                <h2 className="text-xl font-semibold mb-4 text-center">Eliminar Canjeado</h2>
+                <p className="text-center mb-4">¿Estás seguro de que deseas eliminar este canjeado?</p>
+                <div className="flex justify-between">
                   <button
                     onClick={closeDeletePopup}
-                    className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+                    className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
                   >
                     Cancelar
                   </button>
                   <button
                     onClick={handleDelete}
-                    className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                    className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
                   >
                     Eliminar
                   </button>

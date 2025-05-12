@@ -2,15 +2,17 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Navbar from '../components/Navbar';
+import MenuMain from '../components/MenuMain';
 
 interface Punto {
   id: number;
   cliente_id: number;
-  cliente_nombre: string | null; // Nombre del cliente desde la tabla clientes
+  cliente_nombre: string | null;
   transaccion_id: number;
   canjeados_id: number;
   debe: number;
   haber: number;
+  created_at: string;
 }
 
 export default function Puntos() {
@@ -27,9 +29,9 @@ export default function Puntos() {
   });
   const [puntoSeleccionado, setPuntoSeleccionado] = useState<Punto | null>(null);
   const [puntoAEliminar, setPuntoAEliminar] = useState<Punto | null>(null);
-  const [searchTerm, setSearchTerm] = useState(''); 
+  const [searchTerm, setSearchTerm] = useState('');
   const [groupedSearchTerm, setGroupedSearchTerm] = useState('');
-  const [currentPage, setCurrentPage] = useState(1); 
+  const [currentPage, setCurrentPage] = useState(1);
   const [groupedCurrentPage, setGroupedCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const [isGrouped, setIsGrouped] = useState(false);
@@ -178,7 +180,7 @@ export default function Puntos() {
 
   const filteredPuntos = puntos.filter((punto) =>
     Object.values(punto)
-      .map((value) => String(value ?? '')) // Maneja valores null
+      .map((value) => String(value ?? ''))
       .join(' ')
       .toLowerCase()
       .includes(searchTerm.toLowerCase())
@@ -203,7 +205,7 @@ export default function Puntos() {
 
   interface GroupedData {
     cliente_id: number;
-    cliente_nombre: string | null; // Agregado para el nombre del cliente
+    cliente_nombre: string | null;
     sumDebe: number;
     sumHaber: number;
     diferencia: number;
@@ -233,7 +235,7 @@ export default function Puntos() {
 
   const filteredGroupedData = groupedDataRaw.filter((item) =>
     Object.values(item)
-      .map((value) => String(value ?? '')) // Maneja valores null
+      .map((value) => String(value ?? ''))
       .join(' ')
       .toLowerCase()
       .includes(groupedSearchTerm.toLowerCase())
@@ -257,37 +259,42 @@ export default function Puntos() {
   };
 
   return (
-    <div className="font-sans bg-gray-100 text-gray-900">
-      <div className="flex">
-        <Navbar />
-        <main className="w-4/5 p-8">
-          <div className="space-y-6">
-            <h1 
-              className="text-4xl font-bold text-gray-900 mb-4 tracking-tight 
+    <div className="min-h-screen flex">
+      <Navbar />
+      <div className="flex-1 flex flex-col">
+        <MenuMain />
+        <main className="flex-1 p-8 bg-white">
+          <div className="space-y-4">
+            <h1
+              className="text-3xl font-bold text-gray-900 mb-2
               bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
-              transition-all duration-300 hover:scale-105 text-center"
+              transition-all duration-300 text-center"
             >
               Gestión de Puntos
             </h1>
-            <p 
-              className="text-center text-black leading-relaxed max-w-2xl
-              p-4 rounded-lg transition-all duration-300 hover:shadow-md mx-auto"
+            <p
+              className="text-center text-black leading-relaxed max-w-2xl p-2 rounded-lg 
+              transition-all duration-300 hover:shadow-md mx-auto"
             >
               Administra los puntos registrados en la plataforma.
             </p>
           </div>
-
-          <div className="flex justify-between mb-4">
-            <button onClick={() => openPopup('agregar')} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+          <div className="flex justify-between mb-2">
+            <button
+              onClick={() => openPopup('agregar')}
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            >
               Agregar Punto
             </button>
-            <button onClick={() => setIsGrouped(!isGrouped)} className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+            <button
+              onClick={() => setIsGrouped(!isGrouped)}
+              className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+            >
               {isGrouped ? 'Mostrar Detalles' : 'Agrupar por Cliente'}
             </button>
           </div>
-
           {!isGrouped && (
-            <div className="mb-6">
+            <div className="mb-4">
               <input
                 type="text"
                 placeholder="Buscar puntos..."
@@ -300,9 +307,8 @@ export default function Puntos() {
               />
             </div>
           )}
-
           {isGrouped && (
-            <div className="mb-6">
+            <div className="mb-4">
               <input
                 type="text"
                 placeholder="Buscar por cliente..."
@@ -315,87 +321,99 @@ export default function Puntos() {
               />
             </div>
           )}
-
           {isPopupOpen && (
             <div
-              className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md"
+              className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-md"
               onClick={(e) => {
                 if (e.target === e.currentTarget) {
                   closePopup();
                 }
               }}
             >
-              <div className="bg-white p-6 rounded shadow-lg w-2/5">
-                <h2 className="text-2xl font-semibold mb-4 text-center">
+              <div className="bg-white p-6 rounded-lg shadow-lg w-1/3">
+                <h2 className="text-xl font-semibold mb-4 text-center">
                   {puntoSeleccionado ? 'Editar Punto' : 'Agregar Punto'}
                 </h2>
                 {puntoSeleccionado ? (
                   <form onSubmit={handleSubmitEditar}>
                     <input type="hidden" name="id" value={formData.id} />
                     <div className="mb-4">
-                      <label htmlFor="cliente_id">ID Cliente</label>
+                      <label htmlFor="cliente_id" className="block text-sm font-medium mb-2">
+                        ID Cliente
+                      </label>
                       <input
                         type="number"
                         name="cliente_id"
                         placeholder="ID Cliente"
                         value={formData.cliente_id}
                         onChange={handleInputChange}
-                        className="w-full p-2 mb-2 border border-gray-300 rounded"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md"
                       />
                     </div>
                     <div className="mb-4">
-                      <label htmlFor="transaccion_id">ID Transacción</label>
+                      <label htmlFor="transaccion_id" className="block text-sm font-medium mb-2">
+                        ID Transacción
+                      </label>
                       <input
                         type="number"
                         name="transaccion_id"
                         placeholder="ID Transacción"
                         value={formData.transaccion_id}
                         onChange={handleInputChange}
-                        className="w-full p-2 mb-2 border border-gray-300 rounded"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md"
                       />
                     </div>
                     <div className="mb-4">
-                      <label htmlFor="canjeados_id">ID Canjeados</label>
+                      <label htmlFor="canjeados_id" className="block text-sm font-medium mb-2">
+                        ID Canjeados
+                      </label>
                       <input
                         type="number"
                         name="canjeados_id"
                         placeholder="ID Canjeados"
                         value={formData.canjeados_id}
                         onChange={handleInputChange}
-                        className="w-full p-2 mb-2 border border-gray-300 rounded"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md"
                       />
                     </div>
                     <div className="mb-4">
-                      <label htmlFor="debe">Debe</label>
+                      <label htmlFor="debe" className="block text-sm font-medium mb-2">
+                        Debe
+                      </label>
                       <input
                         type="number"
                         name="debe"
                         placeholder="Debe"
                         value={formData.debe}
                         onChange={handleInputChange}
-                        className="w-full p-2 mb-2 border border-gray-300 rounded"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md"
                       />
                     </div>
                     <div className="mb-4">
-                      <label htmlFor="haber">Haber</label>
+                      <label htmlFor="haber" className="block text-sm font-medium mb-2">
+                        Haber
+                      </label>
                       <input
                         type="number"
                         name="haber"
                         placeholder="Haber"
                         value={formData.haber}
                         onChange={handleInputChange}
-                        className="w-full p-2 mb-2 border border-gray-300 rounded"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md"
                       />
                     </div>
                     <div className="flex justify-between">
                       <button
                         type="button"
                         onClick={closePopup}
-                        className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+                        className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
                       >
                         Cancelar
                       </button>
-                      <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                      <button
+                        type="submit"
+                        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                      >
                         Guardar
                       </button>
                     </div>
@@ -403,69 +421,82 @@ export default function Puntos() {
                 ) : (
                   <form onSubmit={handleSubmitAgregar}>
                     <div className="mb-4">
-                      <label htmlFor="cliente_id">ID Cliente</label>
+                      <label htmlFor="cliente_id" className="block text-sm font-medium mb-2">
+                        ID Cliente
+                      </label>
                       <input
                         type="number"
                         name="cliente_id"
                         placeholder="ID Cliente"
                         value={formData.cliente_id}
                         onChange={handleInputChange}
-                        className="w-full p-2 mb-2 border border-gray-300 rounded"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md"
                       />
                     </div>
                     <div className="mb-4">
-                      <label htmlFor="transaccion_id">ID Transacción</label>
+                      <label htmlFor="transaccion_id" className="block text-sm font-medium mb-2">
+                        ID Transacción
+                      </label>
                       <input
                         type="number"
                         name="transaccion_id"
                         placeholder="ID Transacción"
                         value={formData.transaccion_id}
                         onChange={handleInputChange}
-                        className="w-full p-2 mb-2 border border-gray-300 rounded"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md"
                       />
                     </div>
                     <div className="mb-4">
-                      <label htmlFor="canjeados_id">ID Canjeados</label>
+                      <label htmlFor="canjeados_id" className="block text-sm font-medium mb-2">
+                        ID Canjeados
+                      </label>
                       <input
                         type="number"
                         name="canjeados_id"
                         placeholder="ID Canjeados"
                         value={formData.canjeados_id}
                         onChange={handleInputChange}
-                        className="w-full p-2 mb-2 border border-gray-300 rounded"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md"
                       />
                     </div>
                     <div className="mb-4">
-                      <label htmlFor="debe">Debe</label>
+                      <label htmlFor="debe" className="block text-sm font-medium mb-2">
+                        Debe
+                      </label>
                       <input
                         type="number"
                         name="debe"
                         placeholder="Debe"
                         value={formData.debe}
                         onChange={handleInputChange}
-                        className="w-full p-2 mb-2 border border-gray-300 rounded"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md"
                       />
                     </div>
                     <div className="mb-4">
-                      <label htmlFor="haber">Haber</label>
+                      <label htmlFor="haber" className="block text-sm font-medium mb-2">
+                        Haber
+                      </label>
                       <input
                         type="number"
                         name="haber"
                         placeholder="Haber"
                         value={formData.haber}
                         onChange={handleInputChange}
-                        className="w-full p-2 mb-2 border border-gray-300 rounded"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md"
                       />
                     </div>
                     <div className="flex justify-between">
                       <button
                         type="button"
                         onClick={closePopup}
-                        className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+                        className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
                       >
                         Cancelar
                       </button>
-                      <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                      <button
+                        type="submit"
+                        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                      >
                         Guardar
                       </button>
                     </div>
@@ -474,12 +505,11 @@ export default function Puntos() {
               </div>
             </div>
           )}
-
           {isGrouped ? (
             <>
-              <table className="min-w-full bg-white border border-gray-200 rounded shadow-md">
-                <thead>
-                  <tr className="bg-gray-200">
+              <table className="mt-6 w-full bg-white table-auto border-collapse border-gray-300">
+                <thead className="bg-gray-200">
+                  <tr>
                     <th className="px-4 py-2 text-left">Cliente</th>
                     <th className="px-4 py-2 text-left">Total Debe</th>
                     <th className="px-4 py-2 text-left">Total Haber</th>
@@ -505,12 +535,11 @@ export default function Puntos() {
                   )}
                 </tbody>
               </table>
-
               <div className="mt-4 flex justify-between items-center">
                 <button
                   onClick={handleGroupedPrevPage}
                   disabled={groupedCurrentPage === 1}
-                  className={`px-4 py-2 rounded ${groupedCurrentPage === 1 ? 'bg-gray-300' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+                  className={`px-4 py-2 rounded ${groupedCurrentPage === 1 ? 'bg-gray-300' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
                 >
                   Anterior
                 </button>
@@ -520,7 +549,7 @@ export default function Puntos() {
                 <button
                   onClick={handleGroupedNextPage}
                   disabled={groupedCurrentPage === groupedTotalPages}
-                  className={`px-4 py-2 rounded ${groupedCurrentPage === groupedTotalPages ? 'bg-gray-300' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+                  className={`px-4 py-2 rounded ${groupedCurrentPage === groupedTotalPages ? 'bg-gray-300' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
                 >
                   Siguiente
                 </button>
@@ -528,14 +557,15 @@ export default function Puntos() {
             </>
           ) : (
             <>
-              <table className="min-w-full bg-white border border-gray-200 rounded shadow-md">
-                <thead>
-                  <tr className="bg-gray-200">
+              <table className="mt-6 w-full bg-gray-100 table-auto border-collapse border-gray-300">
+                <thead className="bg-gray-200">
+                  <tr>
                     <th className="px-4 py-2 text-left">#</th>
                     <th className="px-4 py-2 text-left" hidden>ID Cliente</th>
                     <th className="px-4 py-2 text-left">Cliente</th>
                     <th className="px-4 py-2 text-left" hidden>ID Transacción</th>
                     <th className="px-4 py-2 text-left" hidden>ID Canjeados</th>
+                    <th className="px-4 py-2 text-left">Fecha</th>
                     <th className="px-4 py-2 text-left">Debe</th>
                     <th className="px-4 py-2 text-left">Haber</th>
                     <th className="px-4 py-2 text-left">Acciones</th>
@@ -545,24 +575,25 @@ export default function Puntos() {
                   {currentPuntos.length > 0 ? (
                     currentPuntos.map((punto, index) => (
                       <tr key={punto.id} className="hover:bg-gray-50">
-                           <td className="px-4 py-2 text-center">{indexOfFirstItem + index + 1}</td>
+                        <td className="px-4 py-2 text-center">{indexOfFirstItem + index + 1}</td>
                         <td className="px-4 py-2" hidden>{punto.id}</td>
                         <td className="px-4 py-2" hidden>{punto.cliente_id}</td>
                         <td className="px-4 py-2">{punto.cliente_nombre ?? 'Sin cliente'}</td>
                         <td className="px-4 py-2" hidden>{punto.transaccion_id}</td>
                         <td className="px-4 py-2" hidden>{punto.canjeados_id}</td>
+                        <td className="px-4 py-2">{new Date(punto.created_at).toLocaleDateString()}</td>
                         <td className="px-4 py-2">{punto.debe}</td>
                         <td className="px-4 py-2">{punto.haber}</td>
                         <td className="px-4 py-2">
                           <button
                             onClick={() => handleEditar(punto)}
-                            className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 mr-2"
+                            className="bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600 mr-2"
                           >
                             Editar
                           </button>
                           <button
                             onClick={() => openDeletePopup(punto)}
-                            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                            className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
                           >
                             Eliminar
                           </button>
@@ -571,19 +602,18 @@ export default function Puntos() {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={8} className="px-4 py-2 text-center text-gray-500">
+                      <td colSpan={9} className="px-4 py-2 text-center text-gray-500">
                         No hay puntos disponibles.
                       </td>
                     </tr>
                   )}
                 </tbody>
               </table>
-
               <div className="mt-4 flex justify-between items-center">
                 <button
                   onClick={handlePrevPage}
                   disabled={currentPage === 1}
-                  className={`px-4 py-2 rounded ${currentPage === 1 ? 'bg-gray-300' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+                  className={`px-4 py-2 rounded ${currentPage === 1 ? 'bg-gray-300' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
                 >
                   Anterior
                 </button>
@@ -593,36 +623,35 @@ export default function Puntos() {
                 <button
                   onClick={handleNextPage}
                   disabled={currentPage === totalPages}
-                  className={`px-4 py-2 rounded ${currentPage === totalPages ? 'bg-gray-300' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+                  className={`px-4 py-2 rounded ${currentPage === totalPages ? 'bg-gray-300' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
                 >
                   Siguiente
                 </button>
               </div>
             </>
           )}
-
           {isDeletePopupOpen && puntoAEliminar && (
             <div
-              className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md"
+              className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-md"
               onClick={(e) => {
                 if (e.target === e.currentTarget) {
                   closeDeletePopup();
                 }
               }}
             >
-              <div className="bg-white p-6 rounded shadow-lg w-2/5">
-                <h2 className="text-xl font-semibold mb-4">Eliminar Punto</h2>
-                <p>¿Estás seguro de que deseas eliminar este punto?</p>
-                <div className="flex justify-between mt-4">
+              <div className="bg-white p-6 rounded-lg shadow-lg w-1/3">
+                <h2 className="text-xl font-semibold mb-4 text-center">Eliminar Punto</h2>
+                <p className="text-center mb-4">¿Estás seguro de que deseas eliminar este punto?</p>
+                <div className="flex justify-between">
                   <button
                     onClick={closeDeletePopup}
-                    className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+                    className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
                   >
                     Cancelar
                   </button>
                   <button
                     onClick={handleDelete}
-                    className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                    className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
                   >
                     Eliminar
                   </button>

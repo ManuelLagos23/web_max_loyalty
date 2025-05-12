@@ -1,19 +1,28 @@
-'use client';
+import MenuMain from '../components/MenuMain';
+import PageWrapper from '../components/PageWrapper';
+import NavbarConfiguracion from '../components/NavbarConfiguracion';
 
-import Navbar from '../components/Navbar';
-import SectionNavbar from '../components/SectionNavbar';
-
-export default function Configuracion() {
+export default function Home() {
   return (
-    
-    <div className="font-sans bg-gray-100 text-gray-900">
-      <div className="flex">
-        <Navbar /> 
-        <main className="w-full p-8">
-          
-          <SectionNavbar />
-          <h1>Selecciona uno de los items de arriba para configurarlos</h1>
-        </main>
+    <div className="min-h-screen flex">
+      {/* Navbar lateral */}
+      <PageWrapper>
+        <NavbarConfiguracion />
+      </PageWrapper>
+      {/* Área principal */}
+      <div className="flex-1 flex flex-col">
+        {/* Menú horizontal */}
+        <MenuMain />
+
+        {/* Contenido con fondo */}
+        <div
+          className="flex-1 bg-cover bg-center bg-no-repeat p-8 text-white"
+          style={{
+            backgroundImage: 'url("/images/logo-max-loyalty-black.png")',
+          }}
+        >
+          <h1 className="text-4xl font-bold text-gray-900 mb-6 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent transition-all duration-300 text-left">Configuraciones de la Plaforma</h1>
+        </div>
       </div>
     </div>
   );

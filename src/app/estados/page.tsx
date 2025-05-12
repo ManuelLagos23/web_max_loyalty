@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import Navbar from '../components/Navbar';
-import SectionNavbar from '../components/SectionNavbar';
+import NavbarConfiguracion from '../components/NavbarConfiguracion';
+import MenuMain from '../components/MenuMain';
 
 type Estado = {
   id: number;
@@ -132,258 +132,272 @@ export default function Estados() {
   };
 
   return (
-    <div className="font-sans bg-gray-100 text-gray-900">
+    <div className="font-sans bg-white text-gray-900 min-h-screen">
       <div className="flex">
-        <Navbar />
-        <main className="w-full p-8">
-          <SectionNavbar />
+        <NavbarConfiguracion />
+        <div className="flex-1 flex flex-col">
+          <MenuMain />
+          <main className="flex-1 p-8">
+            <div className="space-y-6">
+              <h1
+                className="text-4xl font-bold text-gray-900 mb-4
+                bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
+                transition-all duration-300 text-center"
+              >
+                Gestión de Estados
+              </h1>
+              <p
+                className="text-center text-gray-700 leading-relaxed max-w-2xl
+                p-4 rounded-lg transition-all duration-300 hover:shadow-md mx-auto"
+              >
+                Administra los estados registrados en la plataforma con facilidad y seguridad.
+              </p>
+            </div>
 
+            <div className="flex justify-between mb-4">
+              <button
+                onClick={() => setIsAddModalOpen(true)}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all duration-300"
+              >
+                Agregar Estado
+              </button>
+            </div>
 
-          <div className="space-y-6">
+            <div className="mb-6">
+              <input
+                type="text"
+                placeholder="Buscar por nombre del estado..."
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="w-2/5 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
 
-
-<h1 
-className="text-4xl font-bold text-gray-900 mb-4 tracking-tight 
-bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
-transition-all duration-300 hover:scale-105 text-center"
->
-Gestión de Estados
-</h1>
-<p 
-className="text-center text-black leading-relaxed max-w-2xl
-p-4 rounded-lg transition-all duration-300 hover:shadow-md mx-auto"
->
-
-Configura los estados disponibles en la aplicación.
-</p>
-</div>
-
-
-
-<div className="flex justify-between mb-4">
-<button
-            onClick={() => setIsAddModalOpen(true)}
-            className="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          >
-            Agregar estado
-          </button>
-
-           </div>
-          <div className="mb-6">
-            <input
-              type="text"
-              placeholder="Buscar estados..."
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="w-2/5 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-        
-          <table className="mt-6 w-full table-auto border-collapse bg-white border-gray-300">
-            <thead className="bg-gray-200">
-              <tr>
-                <th className="px-4 py-2">#</th>
-                <th className="px-4 py-2">Nombre del Estado</th>
-                <th className="px-4 py-2">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentEstados.length === 0 ? (
-                <tr>
-                  <td colSpan={3} className="px-4 py-2 border text-center">
-                    No hay estados disponibles
-                  </td>
+            <table className="min-w-full bg-gray-100 table-auto rounded-lg shadow-md">
+              <thead>
+                <tr className="bg-gray-200">
+                  <th className="px-4 py-2 text-left text-gray-700 font-semibold">#</th>
+                  <th className="px-4 py-2 text-left text-gray-700 font-semibold">Nombre del Estado</th>
+                  <th className="px-4 py-2 text-left text-gray-700 font-semibold">Acciones</th>
                 </tr>
-              ) : (
-                currentEstados.map((estado, index) => (
-                  <tr key={estado.id}>
-                    <td className="px-4 py-2 text-center">{indexOfFirstItem + index + 1}</td>
-                    <td className="px-4 py-2 text-center">{estado.estado}</td>
-                    <td className="px-4 py-2 text-center">
-                      <button
-                        onClick={() => {
-                          setEstadoToUpdate(estado);
-                          setEstadoData({ estado: estado.estado });
-                          setIsUpdateModalOpen(true);
-                        }}
-                        className="bg-yellow-500 text-white px-2 py-1 rounded mr-2"
-                      >
-                        Editar
-                      </button>
-                      <button
-                        onClick={() => {
-                          setEstadoToDelete(estado);
-                          setIsDeleteModalOpen(true);
-                        }}
-                        className="bg-red-500 text-white px-2 py-1 rounded"
-                      >
-                        Eliminar
-                      </button>
+              </thead>
+              <tbody>
+                {currentEstados.length === 0 ? (
+                  <tr>
+                    <td colSpan={3} className="px-4 py-2 text-center text-gray-500">
+                      No hay estados disponibles
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : (
+                  currentEstados.map((estado, index) => (
+                    <tr key={estado.id} className="hover:bg-gray-50 transition-all duration-200">
+                      <td className="px-4 py-2">{indexOfFirstItem + index + 1}</td>
+                      <td className="px-4 py-2">{estado.estado}</td>
+                      <td className="px-4 py-2 flex space-x-2">
+                        <button
+                          onClick={() => {
+                            setEstadoToUpdate(estado);
+                            setEstadoData({ estado: estado.estado });
+                            setIsUpdateModalOpen(true);
+                          }}
+                          className="bg-yellow-500 text-white px-3 py-1 rounded-lg hover:bg-yellow-600 transition-all duration-300"
+                        >
+                          Editar
+                        </button>
+                        <button
+                          onClick={() => {
+                            setEstadoToDelete(estado);
+                            setIsDeleteModalOpen(true);
+                          }}
+                          className="bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600 transition-all duration-300"
+                        >
+                          Eliminar
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
 
-          <div className="mt-4 flex justify-between items-center">
-            <button
-              onClick={handlePrevPage}
-              disabled={currentPage === 1}
-              className={`px-4 py-2 rounded ${currentPage === 1 ? 'bg-gray-300' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
-            >
-              Anterior
-            </button>
-            <span>
-              Página {currentPage} de {totalPages}
-            </span>
-            <button
-              onClick={handleNextPage}
-              disabled={currentPage === totalPages}
-              className={`px-4 py-2 rounded ${currentPage === totalPages ? 'bg-gray-300' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
-            >
-              Siguiente
-            </button>
-          </div>
-
-          {/* Modal para agregar estado */}
-          {isAddModalOpen && (
-            <div
-              className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-md"
-              onClick={(e) => {
-                if (e.target === e.currentTarget) {
-                  setIsAddModalOpen(false);
-                }
-              }}
-            >
-              <div className="bg-white p-6 rounded-lg w-1/5">
-              <div className="text-center">
-              <h2 className="text-3xl font-bold text-gray-800 mb-6 tracking-tight inline-block relative after:block after:h-1 after:w-12 after:mx-auto after:mt-2">
-                  Agregar Estado
-                  </h2>
-                  </div>
-                <form onSubmit={handleSubmitAdd}>
-                  <div className="mb-4">
-                    <label className="block text-center font-medium mb-2" htmlFor="estado">
-                      Nombre del Estado
-                    </label>
-                    <input
-                      type="text"
-                      id="estado"
-                      name="estado"
-                      placeholder="Ejemplo: El Paraíso"
-                      value={estadoData.estado}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md block text-center"
-                    />
-                  </div>
-                  <div className="flex justify-between">
-                    <button
-                      type="button"
-                      onClick={() => setIsAddModalOpen(false)}
-                      className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
-                    >
-                      Cancelar
-                    </button>
-                    <button
-                      type="submit"
-                      className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                    >
-                      Agregar
-                    </button>
-                  </div>
-                </form>
-              </div>
+            <div className="mt-4 flex justify-between items-center">
+              <button
+                onClick={handlePrevPage}
+                disabled={currentPage === 1}
+                className={`px-4 py-2 rounded-lg transition-all duration-300 ${
+                  currentPage === 1 ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'
+                }`}
+              >
+                Anterior
+              </button>
+              <span className="text-gray-700">
+                Página {currentPage} de {totalPages}
+              </span>
+              <button
+                onClick={handleNextPage}
+                disabled={currentPage === totalPages}
+                className={`px-4 py-2 rounded-lg transition-all duration-300 ${
+                  currentPage === totalPages ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'
+                }`}
+              >
+                Siguiente
+              </button>
             </div>
-          )}
 
-       
-          {isUpdateModalOpen && estadoToUpdate && (
-            <div
-              className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-md"
-              onClick={(e) => {
-                if (e.target === e.currentTarget) {
-                  setIsUpdateModalOpen(false);
-                }
-              }}
-            >
-              <div className="bg-white p-6 rounded-lg">
-              <div className="text-center">
-              <h2 className="text-3xl font-bold text-gray-800 mb-6 tracking-tight inline-block relative after:block after:h-1 after:w-12 after:mx-auto after:mt-2">
-                  Actualizar Estado
-                  </h2>
-                  </div>
-                <form onSubmit={handleSubmitUpdate}>
-                  <div className="mb-4">
-                    <label className="block text-center font-medium mb-2" htmlFor="estado">
-                      Nombre del Estado
-                    </label>
-                    <input
-                      type="text"
-                      id="estado"
-                      name="estado"
-                      placeholder="Ejemplo: El Paraíso"
-                      value={estadoData.estado}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md block text-center "
-                    />
-                  </div>
-                  <div className="flex justify-between">
-                    <button
-                      type="button"
-                      onClick={() => setIsUpdateModalOpen(false)}
-                      className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
+            {/* Modal para agregar estado */}
+            {isAddModalOpen && (
+              <div
+                className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-md"
+                onClick={(e) => {
+                  if (e.target === e.currentTarget) {
+                    setIsAddModalOpen(false);
+                  }
+                }}
+              >
+                <div className="bg-white p-6 rounded-lg shadow-xl w-1/3 border border-gray-200">
+                  <div className="text-center">
+                    <h2
+                      className="text-3xl font-bold text-gray-800 mb-6 tracking-tight 
+                      bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
+                      transition-all duration-300 hover:scale-105"
                     >
-                      Cancelar
-                    </button>
-                    <button
-                      type="submit"
-                      className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                    >
-                      Actualizar
-                    </button>
+                      Agregar Estado
+                    </h2>
                   </div>
-                </form>
-              </div>
-            </div>
-          )}
-
-         
-          {isDeleteModalOpen && estadoToDelete && (
-            <div
-              className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-md"
-              onClick={(e) => {
-                if (e.target === e.currentTarget) {
-                  setIsDeleteModalOpen(false);
-                }
-              }}
-            >
-              <div className="bg-white p-6 rounded-lg">
-                <h3 className="text-xl font-semibold mb-4">Eliminar Estado</h3>
-                <p>¿Estás seguro de que deseas eliminar el estado {estadoToDelete.estado}?</p>
-                <div className="flex justify-between">
-                  <button
-                    type="button"
-                    onClick={() => setIsDeleteModalOpen(false)}
-                    className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    onClick={handleDelete}
-                    className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-                  >
-                    Eliminar
-                  </button>
+                  <form onSubmit={handleSubmitAdd}>
+                    <div className="mb-4">
+                      <label className="block text-center font-medium text-gray-700 mb-2" htmlFor="estado">
+                        Nombre del Estado
+                      </label>
+                      <input
+                        type="text"
+                        id="estado"
+                        name="estado"
+                        placeholder="Ejemplo: El Paraíso"
+                        value={estadoData.estado}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                      />
+                    </div>
+                    <div className="flex justify-between">
+                      <button
+                        type="button"
+                        onClick={() => setIsAddModalOpen(false)}
+                        className="bg-gray-400 text-white px-4 py-2 rounded-lg hover:bg-gray-500 transition-all duration-300"
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        type="submit"
+                        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all duration-300"
+                      >
+                        Agregar
+                      </button>
+                    </div>
+                  </form>
                 </div>
               </div>
-            </div>
-          )}
-        </main>
+            )}
+
+            {/* Modal para actualizar estado */}
+            {isUpdateModalOpen && estadoToUpdate && (
+              <div
+                className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-md"
+                onClick={(e) => {
+                  if (e.target === e.currentTarget) {
+                    setIsUpdateModalOpen(false);
+                  }
+                }}
+              >
+                <div className="bg-white p-6 rounded-lg shadow-xl w-1/3 border border-gray-200">
+                  <div className="text-center">
+                    <h2
+                      className="text-3xl font-bold text-gray-800 mb-6 tracking-tight 
+                      bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
+                      transition-all duration-300 hover:scale-105"
+                    >
+                      Actualizar Estado
+                    </h2>
+                  </div>
+                  <form onSubmit={handleSubmitUpdate}>
+                    <div className="mb-4">
+                      <label className="block text-center font-medium text-gray-700 mb-2" htmlFor="estado">
+                        Nombre del Estado
+                      </label>
+                      <input
+                        type="text"
+                        id="estado"
+                        name="estado"
+                        placeholder="Ejemplo: El Paraíso"
+                        value={estadoData.estado}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                      />
+                    </div>
+                    <div className="flex justify-between">
+                      <button
+                        type="button"
+                        onClick={() => setIsUpdateModalOpen(false)}
+                        className="bg-gray-400 text-white px-4 py-2 rounded-lg hover:bg-gray-500 transition-all duration-300"
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        type="submit"
+                        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all duration-300"
+                      >
+                        Actualizar
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            {/* Modal para eliminar estado */}
+            {isDeleteModalOpen && estadoToDelete && (
+              <div
+                className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-md"
+                onClick={(e) => {
+                  if (e.target === e.currentTarget) {
+                    setIsDeleteModalOpen(false);
+                  }
+                }}
+              >
+                <div className="bg-white p-6 rounded-lg shadow-xl w-1/3 border border-gray-200">
+                  <h2
+                    className="text-2xl font-bold text-gray-800 mb-4 tracking-tight 
+                    bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
+                    transition-all duration-300 hover:scale-105 text-center"
+                  >
+                    Confirmar Eliminación
+                  </h2>
+                  <p className="text-center text-gray-700 mb-4">
+                    ¿Estás seguro de que deseas eliminar el estado {estadoToDelete.estado}?
+                  </p>
+                  <div className="flex justify-between">
+                    <button
+                      type="button"
+                      onClick={() => setIsDeleteModalOpen(false)}
+                      className="bg-gray-400 text-white px-4 py-2 rounded-lg hover:bg-gray-500 transition-all duration-300"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      onClick={handleDelete}
+                      className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-all duration-300"
+                    >
+                      Eliminar
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </main>
+        </div>
       </div>
     </div>
   );

@@ -43,9 +43,12 @@ export async function GET() {
     m.nombre, 
     m."user", 
     m.email, 
-    e.nombre_empresa AS empresa_id, 
-    t.nombre_terminal AS terminal_id, 
-    es.nombre_centro_costos AS establecimiento
+    e.nombre_empresa AS empresa_nombre, 
+    t.nombre_terminal AS terminal_nombre, 
+    es.nombre_centro_costos AS establecimiento_nombre,
+    m.terminal_id,
+    m.empresa_id,
+    m.establecimiento
 FROM miembros m
 LEFT JOIN empresas e ON m.empresa_id = e.id
 LEFT JOIN terminales t ON m.terminal_id = t.id

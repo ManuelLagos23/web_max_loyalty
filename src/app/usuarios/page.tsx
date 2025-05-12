@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import Image from 'next/image'; // Añadida la importación de Image
-import Navbar from '../components/Navbar';
+import Image from 'next/image';
+import NavbarConfiguracion from '../components/NavbarConfiguracion';
+import MenuMain from '../components/MenuMain';
 
 interface Usuario {
   id: number;
@@ -220,321 +221,338 @@ export default function Usuarios() {
   };
 
   return (
-    <div className="font-sans bg-gray-100 text-gray-900">
+    <div className="font-sans bg-white text-gray-900 min-h-screen">
       <div className="flex">
-        <Navbar />
-        <main className="w-4/5 p-8">
-          <div className="space-y-6">
-            <h1
-              className="text-4xl font-bold text-gray-900 mb-4 tracking-tight
-                         bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
-                         transition-all duration-300 hover:scale-105 text-center"
-            >
-              Gestión de Usuarios
-            </h1>
-            <p
-              className="text-center text-black leading-relaxed max-w-2xl
-                         p-4 rounded-lg transition-all duration-300 hover:shadow-md mx-auto"
-            >
-              Administra los usuarios registrados en la plataforma con facilidad y seguridad.
-            </p>
-          </div>
-          <div className="flex justify-between mb-4">
-            <button
-              onClick={() => openPopup('agregar')}
-              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 m-2"
-            >
-              Agregar Usuario
-            </button>
-          </div>
+        <NavbarConfiguracion />
+        <div className="flex-1 flex flex-col">
+          <MenuMain />
+          <main className="flex-1 p-8">
+            <div className="space-y-6">
+              <h1
+                className="text-4xl font-bold text-gray-900 mb-4
+                bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
+                transition-all duration-300 text-center"
+              >
+                Gestión de Usuarios
+              </h1>
+              <p
+                className="text-center text-gray-700 leading-relaxed max-w-2xl
+                p-4 rounded-lg transition-all duration-300 hover:shadow-md mx-auto"
+              >
+                Administra los usuarios registrados en la plataforma con facilidad y seguridad.
+              </p>
+            </div>
+            <div className="flex justify-between mb-4">
+              <button
+                onClick={() => openPopup('agregar')}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all duration-300 m-2"
+              >
+                Agregar Usuario
+              </button>
+            </div>
 
-          <div className="mb-4">
-            <input
-              type="text"
-              placeholder="Buscar por nombre, email o teléfono..."
-              value={searchTerm}
-              onChange={handleSearchChange}
-              className="w-2/5 p-2 border border-gray-300 rounded-md"
-            />
-          </div>
+            <div className="mb-6">
+              <input
+                type="text"
+                placeholder="Buscar por nombre, email o teléfono..."
+                value={searchTerm}
+                onChange={handleSearchChange}
+                className="w-2/5 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
 
-          <table className="min-w-full bg-white table-auto">
-            <thead>
-              <tr className="bg-gray-200">
-                <th className="px-4 py-2 text-left">#</th>
-                <th className="px-4 py-2 text-left">Nombre</th>
-                <th className="px-4 py-2 text-left">Email</th>
-                <th className="px-4 py-2 text-left">Teléfono</th>
-                <th className="px-4 py-2 text-left">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentUsuarios.length > 0 ? (
-                currentUsuarios.map((usuario, index) => (
-                  <tr className="hover:bg-gray-50" key={usuario.id}>
-                    <td className="px-4 py-2">{indexOfFirstItem + index + 1}</td>
-                    <td className="px-4 py-2">{usuario.nombre}</td>
-                    <td className="px-4 py-2">{usuario.email}</td>
-                    <td className="px-4 py-2">{usuario.num_telefono}</td>
-                    <td className="px-4 py-2">
-                      <button
-                        onClick={() => handleEditar(usuario)}
-                        className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 mr-2"
-                      >
-                        Editar
-                      </button>
-                      <button
-                        onClick={() => openDeletePopup(usuario)}
-                        className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-                      >
-                        Eliminar
-                      </button>
+            <table className="min-w-full bg-gray-100 table-auto rounded-lg shadow-md">
+              <thead>
+                <tr className="bg-gray-200">
+                  <th className="px-4 py-2 text-left text-gray-700 font-semibold">#</th>
+                  <th className="px-4 py-2 text-left text-gray-700 font-semibold">Nombre</th>
+                  <th className="px-4 py-2 text-left text-gray-700 font-semibold">Email</th>
+                  <th className="px-4 py-2 text-left text-gray-700 font-semibold">Teléfono</th>
+                  <th className="px-4 py-2 text-left text-gray-700 font-semibold">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {currentUsuarios.length > 0 ? (
+                  currentUsuarios.map((usuario, index) => (
+                    <tr className="hover:bg-gray-50 transition-all duration-200" key={usuario.id}>
+                      <td className="px-4 py-2">{indexOfFirstItem + index + 1}</td>
+                      <td className="px-4 py-2">{usuario.nombre}</td>
+                      <td className="px-4 py-2">{usuario.email}</td>
+                      <td className="px-4 py-2">{usuario.num_telefono}</td>
+                      <td className="px-4 py-2 flex space-x-2">
+                        <button
+                          onClick={() => handleEditar(usuario)}
+                          className="bg-yellow-500 text-white px-3 py-1 rounded-lg hover:bg-yellow-600 transition-all duration-300"
+                        >
+                          Editar
+                        </button>
+                        <button
+                          onClick={() => openDeletePopup(usuario)}
+                          className="bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600 transition-all duration-300"
+                        >
+                          Eliminar
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={5} className="px-4 py-2 text-center text-gray-500">
+                      No hay usuarios disponibles.
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={5} className="px-4 py-2 text-center text-gray-500">
-                    No hay usuarios disponibles.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-
-          <div className="mt-4 flex justify-between items-center">
-            <button
-              onClick={handlePrevPage}
-              disabled={currentPage === 1}
-              className={`px-4 py-2 rounded ${currentPage === 1 ? 'bg-gray-300' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
-            >
-              Anterior
-            </button>
-            <span>
-              Página {currentPage} de {totalPages}
-            </span>
-            <button
-              onClick={handleNextPage}
-              disabled={currentPage === totalPages}
-              className={`px-4 py-2 rounded ${currentPage === totalPages ? 'bg-gray-300' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
-            >
-              Siguiente
-            </button>
-          </div>
-
-          {isPopupOpen && (
-            <div
-              className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md border-4 border-black-500"
-              onClick={(e) => {
-                if (e.target === e.currentTarget) {
-                  closePopup();
-                }
-              }}
-            >
-              <div className="bg-white p-6 rounded shadow-lg w-1/3 border-1">
-                <div className="text-center">
-                  <h2 className="text-3xl font-bold text-gray-800 mb-6 tracking-tight inline-block relative after:block after:h-1 after:w-12 after:mx-auto after:mt-2">
-                    {usuarioSeleccionado ? 'Editar Usuario' : 'Agregar Usuario'}
-                  </h2>
-                </div>
-
-                {usuarioSeleccionado ? (
-                  <form onSubmit={handleSubmitEditar}>
-                    <input type="hidden" name="id" value={formData.id} />
-                    <label className="block text-center" htmlFor="nombre">
-                      Nombre:
-                    </label>
-                    <input
-                      type="text"
-                      name="nombre"
-                      placeholder="Ejemplo: Juan Pérez"
-                      value={formData.nombre}
-                      onChange={handleInputChange}
-                      className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
-                    />
-                    <label className="block text-center" htmlFor="email">
-                      Correo electrónico
-                    </label>
-                    <input
-                      type="email"
-                      name="email"
-                      placeholder="Ejemplo: juanperez@gmail.com"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
-                    />
-                    <label className="block text-center" htmlFor="contraseña">
-                      Contraseña
-                    </label>
-                    <input
-                      type="password"
-                      name="contraseña"
-                      placeholder="Ejemplo: Contraseña_Segura"
-                      value={formData.contraseña}
-                      onChange={handleInputChange}
-                      className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
-                    />
-                    <label className="block text-center" htmlFor="foto">
-                      Foto
-                    </label>
-                    {formData.img ? (
-                      <div className="mb-2 flex justify-center">
-                        <Image
-                          src={formData.img}
-                          alt="Foto actual"
-                          width={128} // 32rem = 128px
-                          height={128} // 32rem = 128px
-                          className="object-cover rounded border border-gray-300"
-                          onError={() => console.error('Error al cargar la imagen')}
-                        />
-                      </div>
-                    ) : (
-                      <p className="text-center text-gray-500 mb-2">No hay foto cargada</p>
-                    )}
-                    <input
-                      type="file"
-                      name="foto"
-                      onChange={handleFileChange}
-                      className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
-                      accept="image/*"
-                    />
-                    <label className="block text-center" htmlFor="num_telefono">
-                      Número de teléfono
-                    </label>
-                    <input
-                      type="number"
-                      name="num_telefono"
-                      placeholder="Ejemplo: 8888-8888"
-                      value={formData.num_telefono}
-                      onChange={handleInputChange}
-                      className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
-                    />
-                    <div className="flex justify-between">
-                      <button
-                        type="button"
-                        onClick={closePopup}
-                        className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
-                      >
-                        Cancelar
-                      </button>
-                      <button
-                        type="submit"
-                        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                      >
-                        Guardar
-                      </button>
-                    </div>
-                  </form>
-                ) : (
-                  <form onSubmit={handleSubmitAgregar}>
-                    <label className="block text-center" htmlFor="nombre">
-                      Nombre
-                    </label>
-                    <input
-                      type="text"
-                      name="nombre"
-                      placeholder="Ejemplo: Juan Pérez"
-                      value={formData.nombre}
-                      onChange={handleInputChange}
-                      className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
-                      autoFocus
-                    />
-                    <label className="block text-center" htmlFor="email">
-                      Correo electrónico
-                    </label>
-                    <input
-                      type="email"
-                      name="email"
-                      placeholder="Ejemplo: juanperez@gmail.com"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
-                    />
-                    <label className="block text-center" htmlFor="contraseña">
-                      Contraseña
-                    </label>
-                    <input
-                      type="password"
-                      name="contraseña"
-                      placeholder="Ejemplo: Contraseña_Segura"
-                      value={formData.contraseña}
-                      onChange={handleInputChange}
-                      className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
-                    />
-                    <label className="block text-center" htmlFor="foto">
-                      Foto
-                    </label>
-                    <input
-                      type="file"
-                      name="foto"
-                      onChange={handleFileChange}
-                      className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
-                      accept="image/*"
-                    />
-                    <label className="block text-center" htmlFor="num_telefono">
-                      Número de teléfono
-                    </label>
-                    <input
-                      type="number"
-                      name="num_telefono"
-                      placeholder="Ejemplo: 8888-8888"
-                      value={formData.num_telefono}
-                      onChange={handleInputChange}
-                      className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
-                    />
-                    <div className="flex justify-between">
-                      <button
-                        type="button"
-                        onClick={closePopup}
-                        className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
-                      >
-                        Cancelar
-                      </button>
-                      <button
-                        type="submit"
-                        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                      >
-                        Guardar
-                      </button>
-                    </div>
-                  </form>
                 )}
-              </div>
-            </div>
-          )}
+              </tbody>
+            </table>
 
-          {isDeletePopupOpen && usuarioAEliminar && (
-            <div
-              className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md border-black"
-              onClick={(e) => {
-                if (e.target === e.currentTarget) {
-                  closeDeletePopup();
-                }
-              }}
-            >
-              <div className="bg-white p-6 border-1 rounded shadow-lg w-1/3">
-                <h2 className="text-2xl font-semibold mb-4 text-center">Confirmar Eliminación</h2>
-                <p className="text-center mb-4">
-                  ¿Estás seguro que deseas eliminar el usuario {usuarioAEliminar.nombre}?
-                </p>
-                <div className="flex justify-between">
-                  <button
-                    onClick={closeDeletePopup}
-                    className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    onClick={handleDelete}
-                    className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-                  >
-                    Eliminar
-                  </button>
+            <div className="mt-4 flex justify-between items-center">
+              <button
+                onClick={handlePrevPage}
+                disabled={currentPage === 1}
+                className={`px-4 py-2 rounded-lg transition-all duration-300 ${
+                  currentPage === 1 ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'
+                }`}
+              >
+                Anterior
+              </button>
+              <span className="text-gray-700">
+                Página {currentPage} de {totalPages}
+              </span>
+              <button
+                onClick={handleNextPage}
+                disabled={currentPage === totalPages}
+                className={`px-4 py-2 rounded-lg transition-all duration-300 ${
+                  currentPage === totalPages ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'
+                }`}
+              >
+                Siguiente
+              </button>
+            </div>
+
+            {isPopupOpen && (
+              <div
+                className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md"
+                onClick={(e) => {
+                  if (e.target === e.currentTarget) {
+                    closePopup();
+                  }
+                }}
+              >
+                <div className="bg-white p-6 rounded-lg shadow-xl w-1/3 border border-gray-200">
+                  <div className="text-center">
+                    <h2
+                      className="text-3xl font-bold text-gray-800 mb-6 tracking-tight 
+                      bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
+                      transition-all duration-300 hover:scale-105"
+                    >
+                      {usuarioSeleccionado ? 'Editar Usuario' : 'Agregar Usuario'}
+                    </h2>
+                  </div>
+
+                  {usuarioSeleccionado ? (
+                    <form onSubmit={handleSubmitEditar}>
+                      <input type="hidden" name="id" value={formData.id} />
+                      <label className="block text-center font-medium text-gray-700" htmlFor="nombre">
+                        Nombre
+                      </label>
+                      <input
+                        type="text"
+                        name="nombre"
+                        placeholder="Ejemplo: Juan Pérez"
+                        value={formData.nombre}
+                        onChange={handleInputChange}
+                        className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                      />
+                      <label className="block text-center font-medium text-gray-700" htmlFor="email">
+                        Correo electrónico
+                      </label>
+                      <input
+                        type="email"
+                        name="email"
+                        placeholder="Ejemplo: juanperez@gmail.com"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                      />
+                      <label className="block text-center font-medium text-gray-700" htmlFor="contraseña">
+                        Contraseña
+                      </label>
+                      <input
+                        type="password"
+                        name="contraseña"
+                        placeholder="Ejemplo: Contraseña_Segura"
+                        value={formData.contraseña}
+                        onChange={handleInputChange}
+                        className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                      />
+                      <label className="block text-center font-medium text-gray-700" htmlFor="foto">
+                        Foto
+                      </label>
+                      {formData.img ? (
+                        <div className="mb-4 flex justify-center">
+                          <Image
+                            src={formData.img}
+                            alt="Foto actual"
+                            width={128}
+                            height={128}
+                            className="object-cover rounded-lg border border-gray-300"
+                            onError={() => console.error('Error al cargar la imagen')}
+                          />
+                        </div>
+                      ) : (
+                        <p className="text-center text-gray-500 mb-4">No hay foto cargada</p>
+                      )}
+                      <input
+                        type="file"
+                        name="foto"
+                        onChange={handleFileChange}
+                        className="w-full p-2 mb-4 border border-gray-300 rounded-lg text-center"
+                        accept="image/*"
+                      />
+                      <label className="block text-center font-medium text-gray-700" htmlFor="num_telefono">
+                        Número de teléfono
+                      </label>
+                      <input
+                        type="number"
+                        name="num_telefono"
+                        placeholder="Ejemplo: 8888-8888"
+                        value={formData.num_telefono}
+                        onChange={handleInputChange}
+                        className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                      />
+                      <div className="flex justify-between">
+                        <button
+                          type="button"
+                          onClick={closePopup}
+                          className="bg-gray-400 text-white px-4 py-2 rounded-lg hover:bg-gray-500 transition-all duration-300"
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          type="submit"
+                          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all duration-300"
+                        >
+                          Guardar
+                        </button>
+                      </div>
+                    </form>
+                  ) : (
+                    <form onSubmit={handleSubmitAgregar}>
+                      <label className="block text-center font-medium text-gray-700" htmlFor="nombre">
+                        Nombre
+                      </label>
+                      <input
+                        type="text"
+                        name="nombre"
+                        placeholder="Ejemplo: Juan Pérez"
+                        value={formData.nombre}
+                        onChange={handleInputChange}
+                        className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                        autoFocus
+                      />
+                      <label className="block text-center font-medium text-gray-700" htmlFor="email">
+                        Correo electrónico
+                      </label>
+                      <input
+                        type="email"
+                        name="email"
+                        placeholder="Ejemplo: juanperez@gmail.com"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                      />
+                      <label className="block text-center font-medium text-gray-700" htmlFor="contraseña">
+                        Contraseña
+                      </label>
+                      <input
+                        type="password"
+                        name="contraseña"
+                        placeholder="Ejemplo: Contraseña_Segura"
+                        value={formData.contraseña}
+                        onChange={handleInputChange}
+                        className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                      />
+                      <label className="block text-center font-medium text-gray-700" htmlFor="foto">
+                        Foto
+                      </label>
+                      <input
+                        type="file"
+                        name="foto"
+                        onChange={handleFileChange}
+                        className="w-full p-2 mb-4 border border-gray-300 rounded-lg text-center"
+                        accept="image/*"
+                      />
+                      <label className="block text-center font-medium text-gray-700" htmlFor="num_telefono">
+                        Número de teléfono
+                      </label>
+                      <input
+                        type="number"
+                        name="num_telefono"
+                        placeholder="Ejemplo: 8888-8888"
+                        value={formData.num_telefono}
+                        onChange={handleInputChange}
+                        className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                      />
+                      <div className="flex justify-between">
+                        <button
+                          type="button"
+                          onClick={closePopup}
+                          className="bg-gray-400 text-white px-4 py-2 rounded-lg hover:bg-gray-500 transition-all duration-300"
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          type="submit"
+                          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all duration-300"
+                        >
+                          Guardar
+                        </button>
+                      </div>
+                    </form>
+                  )}
                 </div>
               </div>
-            </div>
-          )}
-        </main>
+            )}
+
+            {isDeletePopupOpen && usuarioAEliminar && (
+              <div
+                className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md"
+                onClick={(e) => {
+                  if (e.target === e.currentTarget) {
+                    closeDeletePopup();
+                  }
+                }}
+              >
+                <div className="bg-white p-6 rounded-lg shadow-xl w-1/3 border border-gray-200">
+                  <h2
+                    className="text-2xl font-bold text-gray-800 mb-4 tracking-tight 
+                    bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
+                    transition-all duration-300 hover:scale-105 text-center"
+                  >
+                    Confirmar Eliminación
+                  </h2>
+                  <p className="text-center text-gray-700 mb-4">
+                    ¿Estás seguro que deseas eliminar el usuario {usuarioAEliminar.nombre}?
+                  </p>
+                  <div className="flex justify-between">
+                    <button
+                      onClick={closeDeletePopup}
+                      className="bg-gray-400 text-white px-4 py-2 rounded-lg hover:bg-gray-500 transition-all duration-300"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      onClick={handleDelete}
+                      className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-all duration-300"
+                    >
+                      Eliminar
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </main>
+        </div>
       </div>
     </div>
   );

@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import Navbar from '../components/Navbar';
+import NavbarGeneral from '../components/NavbarGeneral';
+import MenuMain from '../components/MenuMain';
 import { jsPDF } from 'jspdf';
 
 interface Tarjeta {
@@ -9,7 +10,11 @@ interface Tarjeta {
   numero_tarjeta: string;
   cliente_id: number;
   cliente_nombre: string;
-  created_at: string; // DATE from PostgreSQL is serialized as string
+  tipo_tarjeta_id: number;
+  tipo_tarjeta_nombre: string;
+  canal_id: number;
+  codigo_canal: string;
+  created_at: string;
 }
 
 interface Cliente {
@@ -17,15 +22,22 @@ interface Cliente {
   nombre: string;
 }
 
+interface TipoTarjeta {
+  id: number;
+  tipo_tarjeta: string;
+}
+
 export default function Tarjetas() {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false);
   const [tarjetas, setTarjetas] = useState<Tarjeta[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
+  const [tiposTarjeta, setTiposTarjeta] = useState<TipoTarjeta[]>([]);
   const [formData, setFormData] = useState({
     id: 0,
     numero_tarjeta: '',
     cliente_id: 0,
+    tipo_tarjeta_id: 0,
   });
   const [searchTerm, setSearchTerm] = useState('');
   const [tarjetaSeleccionada, setTarjetaSeleccionada] = useState<Tarjeta | null>(null);
@@ -68,6 +80,7 @@ export default function Tarjetas() {
           id: 0,
           numero_tarjeta: newCardNumber,
           cliente_id: 0,
+          tipo_tarjeta_id: 0,
         });
       }
     } catch (error) {
@@ -94,7 +107,10 @@ export default function Tarjetas() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: name === 'cliente_id' ? parseInt(value) : value });
+    setFormData({
+      ...formData,
+      [name]: name === 'cliente_id' || name === 'tipo_tarjeta_id' ? parseInt(value) : value,
+    });
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -104,13 +120,14 @@ export default function Tarjetas() {
 
   const handleSubmitAgregar = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.numero_tarjeta || !formData.cliente_id) {
+    if (!formData.numero_tarjeta || !formData.cliente_id || !formData.tipo_tarjeta_id) {
       alert('Por favor, complete todos los campos.');
       return;
     }
     const formDataToSend = new FormData();
     formDataToSend.append('numero_tarjeta', formData.numero_tarjeta);
     formDataToSend.append('cliente_id', formData.cliente_id.toString());
+    formDataToSend.append('tipo_tarjeta_id', formData.tipo_tarjeta_id.toString());
 
     try {
       const response = await fetch('/api/tarjetas', {
@@ -134,7 +151,7 @@ export default function Tarjetas() {
 
   const handleSubmitEditar = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.id || !formData.numero_tarjeta || !formData.cliente_id) {
+    if (!formData.id || !formData.numero_tarjeta || !formData.cliente_id || !formData.tipo_tarjeta_id) {
       alert('Por favor, complete todos los campos obligatorios.');
       return;
     }
@@ -142,6 +159,7 @@ export default function Tarjetas() {
     formDataToSend.append('id', formData.id.toString());
     formDataToSend.append('numero_tarjeta', formData.numero_tarjeta);
     formDataToSend.append('cliente_id', formData.cliente_id.toString());
+    formDataToSend.append('tipo_tarjeta_id', formData.tipo_tarjeta_id.toString());
 
     try {
       const response = await fetch('/api/tarjetas', {
@@ -183,16 +201,10 @@ export default function Tarjetas() {
       alert('Error al eliminar la tarjeta');
     }
   };
-
-
-
-
-// ... (previous code unchanged)
-
 const handlePrintCard = async (tarjeta: Tarjeta) => {
   const mmToPt = (mm: number) => mm * 2.83465;
-  const width = mmToPt(102.72); // Nuevo ancho: 102.72 mm (20% más ancho)
-  const height = mmToPt(64.776); // Nuevo alto: 64.776 mm (proporcional)
+  const width = mmToPt(102.72);
+  const height = mmToPt(64.776);
 
   const doc = new jsPDF({
     orientation: 'landscape',
@@ -200,60 +212,52 @@ const handlePrintCard = async (tarjeta: Tarjeta) => {
     format: [width, height],
   });
 
-  // --- Cara frontal ---
   const frontImage = new Image();
-  frontImage.src = '/images/logo-max-card.png'; // Imagen de la cara frontal
+  frontImage.src = '/images/logo-max-card.png';
 
   frontImage.onload = () => {
     console.log('Imagen frontal cargada correctamente, renderizando cara frontal...');
-
-    // Usar la imagen como fondo para la cara frontal
     doc.addImage(frontImage, 'PNG', 0, 0, width, height);
 
-    
-    const marginLeft = 10; 
-    const marginRight = 100; 
-    const bottomMargin = 10; 
-    const numberY = height - bottomMargin - 16; 
-    const nameY = height - bottomMargin; 
+    const marginLeft = 10;
+    const marginRight = 100;
+    const bottomMargin = 10;
+    const numberY = height - bottomMargin - 16;
+    const nameY = height - bottomMargin;
+    const canalY = 30; // Moved lower to 40 pt
+    const canalX = 30; // Moved more to the left to 20 pt
 
-    
     doc.setFont('Helvetica', 'normal');
     doc.setFontSize(12);
-    doc.setTextColor('#000000'); 
+    doc.setTextColor('#000000');
 
-   
+    // Add codigo_canal at the top, next to the contactless icon
+    console.log(`Añadiendo código de canal: ${tarjeta.codigo_canal} en (${canalX}, ${canalY})`);
+    doc.text(tarjeta.codigo_canal, canalX, canalY);
+
     console.log(`Añadiendo número de tarjeta: ${tarjeta.numero_tarjeta} en (${marginLeft}, ${numberY})`);
     doc.text(tarjeta.numero_tarjeta, marginLeft, numberY);
 
-    // Añadir la fecha de emisión (derecha, fuente más pequeña)
-    doc.setFontSize(10); // Fuente más pequeña para "Emitida: Fecha"
+    doc.setFontSize(10);
     const issuanceText = `Emitida: ${formatDate(tarjeta.created_at)}`;
     const textWidth = doc.getTextWidth(issuanceText);
-    const issuanceX = width - marginRight - textWidth; // Alinear a la derecha con margen ajustado
+    const issuanceX = width - marginRight - textWidth;
     console.log(`Añadiendo fecha de emisión: ${issuanceText} en (${issuanceX}, ${numberY})`);
     doc.text(issuanceText, issuanceX, numberY);
 
-    // Configurar la fuente en negrita para el nombre
     doc.setFont('Helvetica', 'bold');
     doc.setFontSize(12);
     console.log(`Añadiendo nombre: ${tarjeta.cliente_nombre} en (${marginLeft}, ${nameY})`);
     doc.text(tarjeta.cliente_nombre, marginLeft, nameY);
 
-    // --- Cara trasera ---
-    // Agregar una nueva página para la cara trasera
     doc.addPage([width, height], 'landscape');
 
     const backImage = new Image();
-    backImage.src = '/images/logo-max-back.png'; // Imagen de la cara trasera
+    backImage.src = '/images/logo-max-back.png';
 
     backImage.onload = () => {
       console.log('Imagen trasera cargada correctamente, renderizando cara trasera...');
-
-      // Usar la imagen como fondo para la cara trasera
       doc.addImage(backImage, 'PNG', 0, 0, width, height);
-
-      // Guardar el PDF
       doc.save(`tarjeta_${tarjeta.numero_tarjeta}.pdf`);
     };
 
@@ -266,15 +270,11 @@ const handlePrintCard = async (tarjeta: Tarjeta) => {
     console.error('Error al cargar la imagen frontal. Verifica la ruta: /images/logo-max-card.png');
   };
 };
-
-// ... (rest of the code unchanged)
-
-
-
-
   const fetchTarjetas = useCallback(async () => {
     try {
-      const response = await fetch(`/api/tarjetas?page=${currentPage}&limit=${itemsPerPage}&search=${encodeURIComponent(searchTerm)}`);
+      const response = await fetch(
+        `/api/tarjetas?page=${currentPage}&limit=${itemsPerPage}&search=${encodeURIComponent(searchTerm)}`
+      );
       if (response.ok) {
         const data = await response.json();
         console.log('Datos obtenidos:', data);
@@ -303,6 +303,21 @@ const handlePrintCard = async (tarjeta: Tarjeta) => {
     }
   }, []);
 
+  const fetchTiposTarjeta = useCallback(async () => {
+    try {
+      const response = await fetch('/api/tipos_tarjetas');
+      if (response.ok) {
+        const data: TipoTarjeta[] = await response.json();
+        console.log('Tipos de tarjeta obtenidos:', data);
+        setTiposTarjeta(data);
+      } else {
+        console.error('Error al obtener los tipos de tarjeta:', response.status, response.statusText);
+      }
+    } catch (error) {
+      console.error('Error en la solicitud:', error);
+    }
+  }, []);
+
   const handleEditar = async (tarjeta: Tarjeta) => {
     console.log('Editando tarjeta:', tarjeta);
     setTarjetaSeleccionada(tarjeta);
@@ -310,6 +325,7 @@ const handlePrintCard = async (tarjeta: Tarjeta) => {
       id: tarjeta.id,
       numero_tarjeta: tarjeta.numero_tarjeta,
       cliente_id: tarjeta.cliente_id,
+      tipo_tarjeta_id: tarjeta.tipo_tarjeta_id,
     });
     openPopup('editar');
   };
@@ -317,7 +333,8 @@ const handlePrintCard = async (tarjeta: Tarjeta) => {
   useEffect(() => {
     fetchTarjetas();
     fetchClientes();
-  }, [fetchTarjetas, fetchClientes]);
+    fetchTiposTarjeta();
+  }, [fetchTarjetas, fetchClientes, fetchTiposTarjeta]);
 
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
@@ -339,76 +356,82 @@ const handlePrintCard = async (tarjeta: Tarjeta) => {
   };
 
   return (
-    <div className="font-sans bg-gray-100 text-gray-900">
-      <div className="flex">
-        <Navbar />
-        <main className="w-4/5 p-8">
+    <div className="font-sans bg-white text-gray-900 min-h-screen flex">
+      <NavbarGeneral />
+      <div className="flex-1 flex flex-col">
+        <MenuMain />
+        <main className="flex-1 p-8">
           <div className="space-y-6">
             <h1
-              className="text-4xl font-bold text-gray-900 mb-4 tracking-tight 
+              className="text-4xl font-bold text-gray-900 mb-4
               bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
-              transition-all duration-300 hover:scale-105 text-center"
+              transition-all duration-300 text-center"
             >
               Gestión de Tarjetas
             </h1>
             <p
-              className="text-center text-black leading-relaxed max-w-2xl
+              className="text-center text-gray-700 leading-relaxed max-w-2xl
               p-4 rounded-lg transition-all duration-300 hover:shadow-md mx-auto"
             >
-              Administra las tarjetas registradas en la plataforma.
+              Administra las tarjetas registradas en la plataforma con facilidad y seguridad.
             </p>
           </div>
 
           <div className="flex justify-between mb-4">
-            <button onClick={() => openPopup('agregar')} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-              Agregar tarjeta
+            <button
+              onClick={() => openPopup('agregar')}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all duration-300"
+            >
+              Agregar Tarjeta
             </button>
           </div>
 
-          <div className="mb-4">
+          <div className="mb-6">
             <input
               type="text"
-              placeholder="Buscar por número de tarjeta o cliente..."
+              placeholder="Buscar por número de tarjeta, cliente o tipo de tarjeta..."
               value={searchTerm}
               onChange={handleSearchChange}
-              className="w-2/5 p-2 border border-gray-300 rounded-md"
+              className="w-2/5 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
-          <table className="min-w-full bg-white border border-gray-200 rounded shadow-md">
+          <table className="min-w-full bg-gray-100 table-auto rounded-lg shadow-md ">
             <thead>
               <tr className="bg-gray-200">
-                <th className="px-4 py-2 text-left">#</th>
-                <th className="px-4 py-2 text-left">Número de Tarjeta</th>
-                <th className="px-4 py-2 text-left">Cliente</th>
-                <th className="px-4 py-2 text-left">Fecha de Creación</th>
-                <th className="px-4 py-2 text-left">Acciones</th>
+                <th className="px-4 py-2 text-left text-gray-700 font-semibold">#</th>
+                <th className="px-4 py-2 text-left text-gray-700 font-semibold">Número de Tarjeta</th>
+                <th className="px-4 py-2 text-left text-gray-700 font-semibold">Cliente</th>
+                <th className="px-4 py-2 text-left text-gray-700 font-semibold">Tipo de Tarjeta</th>
+                <th className="px-4 py-2 text-left text-gray-700 font-semibold">Fecha de Creación</th>
+                <th className="px-4 py-2 text-left text-gray-700 font-semibold">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {tarjetas.length > 0 ? (
                 tarjetas.map((tarjeta, index) => (
-                  <tr key={tarjeta.id} className="hover:bg-gray-50">
+                  <tr key={tarjeta.id} className="hover:bg-gray-50 transition-all duration-200">
                     <td className="px-4 py-2">{(currentPage - 1) * itemsPerPage + index + 1}</td>
                     <td className="px-4 py-2">{tarjeta.numero_tarjeta}</td>
                     <td className="px-4 py-2">{tarjeta.cliente_nombre}</td>
+                    <td className="px-4 py-2">{tarjeta.tipo_tarjeta_nombre}</td>
                     <td className="px-4 py-2">{formatDate(tarjeta.created_at)}</td>
                     <td className="px-4 py-2 flex space-x-2">
                       <button
                         onClick={() => handleEditar(tarjeta)}
-                        className="bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600"
+                        className="bg-yellow-500 text-white px-3 py-1 rounded-lg hover:bg-yellow-600 transition-all duration-300"
                       >
                         Editar
                       </button>
                       <button
                         onClick={() => openDeletePopup(tarjeta)}
-                        className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
+                        className="bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600 transition-all duration-300"
                       >
                         Eliminar
                       </button>
                       <button
                         onClick={() => handlePrintCard(tarjeta)}
-                        className="bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600"
+                        className="bg-green-500 text-white px-3 py-1 rounded-lg hover:bg-green-600 transition-all duration-300"
                       >
                         Imprimir Tarjeta
                       </button>
@@ -417,7 +440,7 @@ const handlePrintCard = async (tarjeta: Tarjeta) => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={5} className="px-4 py-2 text-center text-gray-500">
+                  <td colSpan={6} className="px-4 py-2 text-center text-gray-500">
                     No hay tarjetas disponibles.
                   </td>
                 </tr>
@@ -429,17 +452,21 @@ const handlePrintCard = async (tarjeta: Tarjeta) => {
             <button
               onClick={handlePrevPage}
               disabled={currentPage === 1}
-              className={`px-4 py-2 rounded ${currentPage === 1 ? 'bg-gray-300' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+              className={`px-4 py-2 rounded-lg transition-all duration-300 ${
+                currentPage === 1 ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'
+              }`}
             >
               Anterior
             </button>
-            <span>
+            <span className="text-gray-700">
               Página {currentPage} de {totalPages}
             </span>
             <button
               onClick={handleNextPage}
               disabled={currentPage === totalPages}
-              className={`px-4 py-2 rounded ${currentPage === totalPages ? 'bg-gray-300' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+              className={`px-4 py-2 rounded-lg transition-all duration-300 ${
+                currentPage === totalPages ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'
+              }`}
             >
               Siguiente
             </button>
@@ -447,24 +474,28 @@ const handlePrintCard = async (tarjeta: Tarjeta) => {
 
           {isPopupOpen && (
             <div
-              className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md"
+              className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-md"
               onClick={(e) => {
                 if (e.target === e.currentTarget) {
                   closePopup();
                 }
               }}
             >
-              <div className="bg-white p-6 rounded shadow-lg w-2/5 border-1">
+              <div className="bg-white p-6 rounded-lg shadow-xl w-1/3 border">
                 <div className="text-center">
-                  <h2 className="text-3xl font-bold text-gray-800 mb-6 tracking-tight inline-block relative after:block after:h-1 after:w-12 after:mx-auto after:mt-2">
-                    {tarjetaSeleccionada ? 'Editar Tarjeta' : 'Agregar Tarjeta'}
+                  <h2
+                    className="text-3xl font-bold text-gray-800 mb-6 tracking-tight 
+                    bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
+                    transition-all duration-300 hover:scale-105"
+                  >
+                    {tarjetaSeleccionada ? 'Actualizar Tarjeta' : 'Agregar Tarjeta'}
                   </h2>
                 </div>
                 {tarjetaSeleccionada ? (
                   <form onSubmit={handleSubmitEditar}>
                     <input type="hidden" name="id" value={formData.id} />
                     <div className="mb-4">
-                      <label htmlFor="numero_tarjeta" className="block text-center">
+                      <label htmlFor="numero_tarjeta" className="block text-center font-medium text-gray-700 mb-2">
                         Número de Tarjeta
                       </label>
                       <input
@@ -472,18 +503,36 @@ const handlePrintCard = async (tarjeta: Tarjeta) => {
                         name="numero_tarjeta"
                         value={formData.numero_tarjeta}
                         readOnly
-                        className="w-full p-2 mb-2 border border-gray-300 rounded block text-center bg-gray-100"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none bg-gray-100 text-center"
                       />
                     </div>
                     <div className="mb-4">
-                      <label htmlFor="cliente_id" className="block text-center">
+                      <label htmlFor="tipo_tarjeta_id" className="block text-center font-medium text-gray-700 mb-2">
+                        Tipo de Tarjeta
+                      </label>
+                      <select
+                        name="tipo_tarjeta_id"
+                        value={formData.tipo_tarjeta_id}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                      >
+                        <option value="0">Seleccionar tipo de tarjeta</option>
+                        {tiposTarjeta.map((tipo) => (
+                          <option key={tipo.id} value={tipo.id}>
+                            {tipo.tipo_tarjeta}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="mb-4">
+                      <label htmlFor="cliente_id" className="block text-center font-medium text-gray-700 mb-2">
                         Cliente
                       </label>
                       <select
                         name="cliente_id"
                         value={formData.cliente_id}
                         onChange={handleInputChange}
-                        className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
                       >
                         <option value="0">Seleccionar cliente</option>
                         {clientes.map((cliente) => (
@@ -497,22 +546,22 @@ const handlePrintCard = async (tarjeta: Tarjeta) => {
                       <button
                         type="button"
                         onClick={closePopup}
-                        className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+                        className="bg-gray-400 text-white px-4 py-2 rounded-lg hover:bg-gray-500 transition-all duration-300"
                       >
                         Cancelar
                       </button>
                       <button
                         type="submit"
-                        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all duration-300"
                       >
-                        Guardar
+                        Actualizar
                       </button>
                     </div>
                   </form>
                 ) : (
                   <form onSubmit={handleSubmitAgregar}>
                     <div className="mb-4">
-                      <label htmlFor="numero_tarjeta" className="block text-center">
+                      <label htmlFor="numero_tarjeta" className="block text-center font-medium text-gray-700 mb-2">
                         Número de Tarjeta
                       </label>
                       <input
@@ -520,18 +569,36 @@ const handlePrintCard = async (tarjeta: Tarjeta) => {
                         name="numero_tarjeta"
                         value={formData.numero_tarjeta}
                         readOnly
-                        className="w-full p-2 mb-2 border border-gray-300 rounded block text-center bg-gray-100"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none bg-gray-100 text-center"
                       />
                     </div>
                     <div className="mb-4">
-                      <label htmlFor="cliente_id" className="block text-center">
+                      <label htmlFor="tipo_tarjeta_id" className="block text-center font-medium text-gray-700 mb-2">
+                        Tipo de Tarjeta
+                      </label>
+                      <select
+                        name="tipo_tarjeta_id"
+                        value={formData.tipo_tarjeta_id}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                      >
+                        <option value="0">Seleccionar tipo de tarjeta</option>
+                        {tiposTarjeta.map((tipo) => (
+                          <option key={tipo.id} value={tipo.id}>
+                            {tipo.tipo_tarjeta}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="mb-4">
+                      <label htmlFor="cliente_id" className="block text-center font-medium text-gray-700 mb-2">
                         Cliente
                       </label>
                       <select
                         name="cliente_id"
                         value={formData.cliente_id}
                         onChange={handleInputChange}
-                        className="w-full p-2 mb-2 border border-gray-300 rounded block text-center"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
                       >
                         <option value="0">Seleccionar cliente</option>
                         {clientes.map((cliente) => (
@@ -545,15 +612,15 @@ const handlePrintCard = async (tarjeta: Tarjeta) => {
                       <button
                         type="button"
                         onClick={closePopup}
-                        className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+                        className="bg-gray-400 text-white px-4 py-2 rounded-lg hover:bg-gray-500 transition-all duration-300"
                       >
                         Cancelar
                       </button>
                       <button
                         type="submit"
-                        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all duration-300"
                       >
-                        Guardar
+                        Agregar
                       </button>
                     </div>
                   </form>
@@ -564,28 +631,34 @@ const handlePrintCard = async (tarjeta: Tarjeta) => {
 
           {isDeletePopupOpen && (
             <div
-              className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md"
+              className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-md border"
               onClick={(e) => {
                 if (e.target === e.currentTarget) {
                   closeDeletePopup();
                 }
               }}
             >
-              <div className="bg-white p-6 rounded shadow-lg w-1/3 border-1">
-                <h2 className="text-xl font-semibold mb-4 text-center">Confirmar Eliminación</h2>
-                <p className="text-center mb-4">
+              <div className="bg-white p-6 rounded-lg shadow-xl w-1/3 border ">
+                <h2
+                  className="text-2xl font-bold text-gray-800 mb-4 tracking-tight 
+                  bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
+                  transition-all duration-300 hover:scale-105 text-center"
+                >
+                  Confirmar Eliminación
+                </h2>
+                <p className="text-center text-gray-700 mb-4">
                   ¿Estás seguro de que deseas eliminar la tarjeta {tarjetaAEliminar?.numero_tarjeta}?
                 </p>
                 <div className="flex justify-between">
                   <button
                     onClick={closeDeletePopup}
-                    className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+                    className="bg-gray-400 text-white px-4 py-2 rounded-lg hover:bg-gray-500 transition-all duration-300"
                   >
                     Cancelar
                   </button>
                   <button
                     onClick={handleDelete}
-                    className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                    className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-all duration-300"
                   >
                     Eliminar
                   </button>
