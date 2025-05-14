@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { ChevronRight, ChevronDown } from 'lucide-react';
 
 export default function Navbar() {
@@ -11,7 +12,10 @@ export default function Navbar() {
   const [isMaxLoyaltyOpen, setIsMaxLoyaltyOpen] = useState(false);
   const [isMaxPayOpen, setIsMaxPayOpen] = useState(false);
   const [isGeneralesOpen, setIsGeneralesOpen] = useState(false);
-  const [isConfiguracionesOpen, setIsConfiguracionesOpen] = useState(false); // Nuevo estado para Configuraciones
+  const [isConfiguracionesOpen, setIsConfiguracionesOpen] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+
+  const router = useRouter();
 
   const toggleNavbar = () => {
     setIsNavbarVisible(!isNavbarVisible);
@@ -50,23 +54,47 @@ export default function Navbar() {
   }, []);
 
   const handleMaxLoyaltyClick = () => {
-
     setIsMaxLoyaltyOpen(!isMaxLoyaltyOpen);
   };
 
   const handleMaxPayClick = () => {
-  
     setIsMaxPayOpen(!isMaxPayOpen);
   };
 
   const handleGeneralesClick = () => {
- 
     setIsGeneralesOpen(!isGeneralesOpen);
   };
 
   const handleConfiguracionesClick = () => {
- 
-    setIsConfiguracionesOpen(!isConfiguracionesOpen); // Alterna el estado del menú desplegable
+    setIsConfiguracionesOpen(!isConfiguracionesOpen);
+  };
+
+  const handleLogoutClick = () => {
+    setIsLogoutModalOpen(true);
+  };
+
+  const confirmLogout = async () => {
+    try {
+      const response = await fetch('/api/logout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        setIsLogoutModalOpen(false);
+        router.push('/login');
+      } else {
+        alert('Error al cerrar sesión. Intenta de nuevo.');
+      }
+    } catch (error) {
+      console.error(error);
+      alert('Error al conectar con el servidor.');
+    }
+  };
+
+  const cancelLogout = () => {
+    setIsLogoutModalOpen(false);
   };
 
   return (
@@ -115,7 +143,7 @@ export default function Navbar() {
                     Canjeados
                   </Link>
                 </li>
-                      <li>
+                <li>
                   <Link href="/tipo_combustible" className="block p-2 rounded hover:bg-gray-700">
                     Tipo de combustible
                   </Link>
@@ -148,13 +176,13 @@ export default function Navbar() {
             </button>
             {isMaxPayOpen && (
               <ul className="ml-4 space-y-2">
-               
+                {/* Agrega rutas de Max-Pay si es necesario */}
               </ul>
             )}
           </li>
           <li>
             <button
-              onClick={handleGeneralesClick} 
+              onClick={handleGeneralesClick}
               className="w-full text-left p-2 rounded hover:bg-gray-700 flex items-center justify-between"
             >
               Generales
@@ -258,6 +286,14 @@ export default function Navbar() {
               </ul>
             )}
           </li>
+          <li>
+            <button
+              onClick={handleLogoutClick}
+              className="w-full text-left p-2 rounded hover:bg-red-700 text-white"
+            >
+              Cerrar sesión
+            </button>
+          </li>
         </ul>
       </nav>
 
@@ -278,6 +314,40 @@ export default function Navbar() {
           </>
         )}
       </button>
+
+      {isLogoutModalOpen && (
+        <div
+          className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              cancelLogout();
+            }
+          }}
+        >
+          <div className="bg-gray-200 p-6 rounded-lg shadow-lg w-11/12 sm:w-1/3">
+            <h2 className="text-xl font-semibold mb-4 text-center text-gray-900">
+              Confirmar Cierre de Sesión
+            </h2>
+            <p className="text-center mb-4 text-gray-700">
+              ¿Estás seguro de que deseas cerrar sesión?
+            </p>
+            <div className="flex justify-between space-x-2">
+              <button
+                onClick={cancelLogout}
+                className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500 w-full"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmLogout}
+                className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 w-full"
+              >
+                Cerrar Sesión
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

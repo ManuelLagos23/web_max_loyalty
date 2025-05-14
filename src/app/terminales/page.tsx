@@ -42,7 +42,7 @@ export default function Terminales() {
   const [terminalADesactivar, setTerminalADesactivar] = useState<Terminal | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [isLoading, setIsLoading] = useState(true);
+  const [, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const itemsPerPage = 10;
 
@@ -315,17 +315,6 @@ export default function Terminales() {
       setCurrentPage(currentPage - 1);
     }
   };
-
-  if (isLoading) {
-    return (
-      <div className="font-sans bg-white text-gray-900 min-h-screen flex">
-        <Navbar />
-        <div className="flex-1 p-8">
-          <p className="text-center">Cargando...</p>
-        </div>
-      </div>
-    );
-  }
 
   if (error) {
     return (
