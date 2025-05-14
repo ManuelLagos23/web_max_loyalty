@@ -34,8 +34,7 @@ async function validateSession(request: NextRequest) {
       return null;
     }
 
-   
-    return { id: usuario.id, nombre: usuario.nombre }; // Return id and nombre
+    return { id: usuario.id, nombre: usuario.nombre };
   } catch (error) {
     console.error('Error validating session:', error);
     return null;
@@ -60,30 +59,27 @@ export async function POST(request: NextRequest) {
     const active = formData.get('active') === 'true';
     const descuento = formData.get('descuento');
     const display_name = formData.get('display_name');
-    const es_descuento_pista = formData.get('es_descuento_pista') === 'true';
-    const estacion_id = formData.get('estacion_id');
-    const partner_id = formData.get('partner_id');
+    const canal_id = formData.get('canal_id');
     const tipo_combustible_id = formData.get('tipo_combustible_id');
 
     if (
       !display_name || typeof display_name !== 'string' ||
-      !estacion_id || isNaN(Number(estacion_id)) ||
-      !partner_id || isNaN(Number(partner_id)) ||
+      !canal_id || isNaN(Number(canal_id)) ||
       !tipo_combustible_id || isNaN(Number(tipo_combustible_id)) ||
       !descuento || isNaN(Number(descuento))
     ) {
       return NextResponse.json(
-        { message: 'Todos los campos obligatorios deben ser válidos (display_name, estacion_id, partner_id, tipo_combustible_id, descuento)' },
+        { message: 'Todos los campos obligatorios deben ser válidos (display_name, canal_id, tipo_combustible_id, descuento)' },
         { status: 400 }
       );
     }
 
     const client = await pool.connect();
     const result = await client.query(
-      `INSERT INTO descuentos (active, descuento, display_name, es_descuento_pista, estacion_id, partner_id, tipo_combustible_id, create_date, write_date, create_uid, write_uid)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW(), $8, $9)
-       RETURNING id, active, create_date, create_uid, descuento, display_name, es_descuento_pista, estacion_id, partner_id, tipo_combustible_id, write_date, write_uid`,
-      [active, Number(descuento), display_name, es_descuento_pista, Number(estacion_id), Number(partner_id), Number(tipo_combustible_id), userId, userId]
+      `INSERT INTO descuentos (active, descuento, display_name, canal_id, tipo_combustible_id, create_date, write_date, create_uid, write_uid)
+       VALUES ($1, $2, $3, $4, $5, NOW(), NOW(), $6, $7)
+       RETURNING id, active, create_date, create_uid, descuento, display_name, canal_id, tipo_combustible_id, write_date, write_uid`,
+      [active, Number(descuento), display_name, Number(canal_id), Number(tipo_combustible_id), userId, userId]
     );
     client.release();
 
@@ -109,13 +105,12 @@ export async function GET(request: NextRequest) {
     const result = await client.query(
       `
       SELECT 
-        d.id, d.active, d.create_date, d.create_uid, d.descuento, d.display_name, d.es_descuento_pista, 
-        d.estacion_id, d.partner_id, d.tipo_combustible_id, d.write_date, d.write_uid,
-        c.nombre_centro_costos AS estacion_nombre, cl.nombre AS cliente_nombre, tc.name AS tipo_combustible_nombre,
+        d.id, d.active, d.create_date, d.create_uid, d.descuento, d.display_name, 
+        d.canal_id, d.tipo_combustible_id, d.write_date, d.write_uid,
+        c.canal AS canal_nombre, tc.name AS tipo_combustible_nombre,
         u1.nombre AS create_uid_name, u2.nombre AS write_uid_name
       FROM descuentos d
-      JOIN costos c ON d.estacion_id = c.id
-      JOIN clientes cl ON d.partner_id = cl.id
+      JOIN canales c ON d.canal_id = c.id
       JOIN tipo_combustible tc ON d.tipo_combustible_id = tc.id
       LEFT JOIN usuarios u1 ON d.create_uid = u1.id
       LEFT JOIN usuarios u2 ON d.write_uid = u2.id
@@ -129,8 +124,7 @@ export async function GET(request: NextRequest) {
       `
       SELECT COUNT(*) AS total
       FROM descuentos d
-      JOIN costos c ON d.estacion_id = c.id
-      JOIN clientes cl ON d.partner_id = cl.id
+      JOIN canales c ON d.canal_id = c.id
       JOIN tipo_combustible tc ON d.tipo_combustible_id = tc.id
       `,
     );
@@ -167,21 +161,18 @@ export async function PUT(request: NextRequest) {
     const active = formData.get('active') === 'true';
     const descuento = formData.get('descuento');
     const display_name = formData.get('display_name');
-    const es_descuento_pista = formData.get('es_descuento_pista') === 'true';
-    const estacion_id = formData.get('estacion_id');
-    const partner_id = formData.get('partner_id');
+    const canal_id = formData.get('canal_id');
     const tipo_combustible_id = formData.get('tipo_combustible_id');
 
     if (
       !id || isNaN(Number(id)) ||
       !display_name || typeof display_name !== 'string' ||
-      !estacion_id || isNaN(Number(estacion_id)) ||
-      !partner_id || isNaN(Number(partner_id)) ||
+      !canal_id || isNaN(Number(canal_id)) ||
       !tipo_combustible_id || isNaN(Number(tipo_combustible_id)) ||
       !descuento || isNaN(Number(descuento))
     ) {
       return NextResponse.json(
-        { message: 'El ID y todos los campos obligatorios deben ser válidos (display_name, estacion_id, partner_id, tipo_combustible_id, descuento)' },
+        { message: 'El ID y todos los campos obligatorios deben ser válidos (display_name, canal_id, tipo_combustible_id, descuento)' },
         { status: 400 }
       );
     }
@@ -189,11 +180,11 @@ export async function PUT(request: NextRequest) {
     const client = await pool.connect();
     const result = await client.query(
       `UPDATE descuentos 
-       SET active = $1, descuento = $2, display_name = $3, es_descuento_pista = $4, 
-           estacion_id = $5, partner_id = $6, tipo_combustible_id = $7, write_date = NOW(), write_uid = $8
-       WHERE id = $9
-       RETURNING id, active, create_date, create_uid, descuento, display_name, es_descuento_pista, estacion_id, partner_id, tipo_combustible_id, write_date, write_uid`,
-      [active, Number(descuento), display_name, es_descuento_pista, Number(estacion_id), Number(partner_id), Number(tipo_combustible_id), userId, Number(id)]
+       SET active = $1, descuento = $2, display_name = $3, 
+           canal_id = $4, tipo_combustible_id = $5, write_date = NOW(), write_uid = $6
+       WHERE id = $7
+       RETURNING id, active, create_date, create_uid, descuento, display_name, canal_id, tipo_combustible_id, write_date, write_uid`,
+      [active, Number(descuento), display_name, Number(canal_id), Number(tipo_combustible_id), userId, Number(id)]
     );
     client.release();
 
@@ -225,7 +216,7 @@ export async function DELETE(request: NextRequest) {
     const result = await client.query(
       `DELETE FROM descuentos 
        WHERE id = $1 
-       RETURNING id, active, create_date, create_uid, descuento, display_name, es_descuento_pista, estacion_id, partner_id, tipo_combustible_id, write_date, write_uid`,
+       RETURNING id, active, create_date, create_uid, descuento, display_name, canal_id, tipo_combustible_id, write_date, write_uid`,
       [Number(id)]
     );
     client.release();

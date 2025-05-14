@@ -1,18 +1,18 @@
-import MenuMain from '../components/MenuMain';
+
 import PageWrapper from '../components/PageWrapper';
-import NavbarMaxPay from '../components/NavbarMaxPay';
+import Navbar from '../components/Navbar';
 
 export default function Home() {
   return (
     <div className="min-h-screen flex">
       {/* Navbar lateral */}
       <PageWrapper>
-        <NavbarMaxPay />
+        <Navbar />
       </PageWrapper>
       {/* Área principal */}
       <div className="flex-1 flex flex-col">
         {/* Menú horizontal */}
-        <MenuMain />
+   
 
         {/* Contenido con fondo */}
         <div

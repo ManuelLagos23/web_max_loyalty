@@ -2,8 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
-import MenuMain from '../components/MenuMain';
-
 type Transaccion = {
   id: number;
   cliente_id: number;
@@ -154,7 +152,7 @@ export default function Transacciones() {
       {/* Área principal */}
       <div className="flex-1 flex flex-col">
         {/* Menú horizontal */}
-        <MenuMain />
+    
         {/* Contenido principal */}
         <main className="flex-1 p-8 bg-white">
         <div className="space-y-4">

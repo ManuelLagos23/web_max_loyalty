@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import NavbarMaxPay from '../components/NavbarMaxPay';
-import MenuMain from '../components/MenuMain';
+import Navbar from '../components/Navbar';
 
 type Descuento = {
   active: boolean;
@@ -10,28 +9,20 @@ type Descuento = {
   create_uid: number;
   descuento: number;
   display_name: string;
-  es_descuento_pista: boolean;
-  estacion_id: number;
+  canal_id: number;
   id: number;
-  partner_id: number; // Cambiado de cliente_id a partner_id para consistencia con el backend
   tipo_combustible_id: number;
   write_date: string;
   write_uid: number;
-  estacion_nombre: string;
-  cliente_nombre: string;
+  canal_nombre: string;
   tipo_combustible_nombre: string;
-  create_uid_name: string; // Nuevo campo para el nombre del creador
-  write_uid_name: string; // Nuevo campo para el nombre del modificador
+  create_uid_name: string;
+  write_uid_name: string;
 };
 
-type Costo = {
+type Canal = {
   id: number;
-  nombre_centro_costos: string;
-};
-
-type Cliente = {
-  id: number;
-  nombre: string;
+  canal: string;
 };
 
 type TipoCombustible = {
@@ -41,8 +32,7 @@ type TipoCombustible = {
 
 export default function Descuentos() {
   const [descuentos, setDescuentos] = useState<Descuento[]>([]);
-  const [costos, setCostos] = useState<Costo[]>([]);
-  const [clientes, setClientes] = useState<Cliente[]>([]);
+  const [canales, setCanales] = useState<Canal[]>([]);
   const [tipoCombustibles, setTipoCombustibles] = useState<TipoCombustible[]>([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
@@ -53,9 +43,7 @@ export default function Descuentos() {
     create_uid: 0,
     descuento: 0,
     display_name: '',
-    es_descuento_pista: false,
-    estacion_id: 0,
-    partner_id: 0, // Cambiado de cliente_id a partner_id
+    canal_id: 0,
     tipo_combustible_id: 0,
     write_date: '',
     write_uid: 0,
@@ -71,10 +59,8 @@ export default function Descuentos() {
       const response = await fetch(`/api/descuentos?page=${currentPage}&limit=${itemsPerPage}`);
       if (response.ok) {
         const result = await response.json();
-       
         if (result && Array.isArray(result.data)) {
           setDescuentos(result.data);
-      
         } else {
           console.error('Descuentos data is not an array:', result);
           setDescuentos([]);
@@ -89,52 +75,24 @@ export default function Descuentos() {
     }
   }, [currentPage, itemsPerPage]);
 
-  const fetchCostos = useCallback(async () => {
+  const fetchCanales = useCallback(async () => {
     try {
-      const response = await fetch('/api/costos');
+      const response = await fetch('/api/canales');
       if (response.ok) {
         const result = await response.json();
-
         if (Array.isArray(result)) {
-          setCostos(result);
-    
+          setCanales(result);
         } else {
-          console.error('Costos data is not an array:', result);
-          setCostos([]);
+          console.error('Canales data is not an array:', result);
+          setCanales([]);
         }
       } else {
-        console.error('Error fetching Costos:', response.status, await response.text());
-        setCostos([]);
+        console.error('Error fetching Canales:', response.status, await response.text());
+        setCanales([]);
       }
     } catch (error) {
-      console.error('Error in fetchCostos:', error);
-      setCostos([]);
-    }
-  }, []);
-
-  const fetchClientes = useCallback(async () => {
-    try {
-      const response = await fetch('/api/clientes');
-      if (response.ok) {
-        const result = await response.json();
-     
-        if (Array.isArray(result)) {
-          setClientes(result);
-     
-        } else if (result && Array.isArray(result.data)) {
-          setClientes(result.data);
-      
-        } else {
-          console.error('Clientes data is not an array:', result);
-          setClientes([]);
-        }
-      } else {
-        console.error('Error fetching Clientes:', response.status, await response.text());
-        setClientes([]);
-      }
-    } catch (error) {
-      console.error('Error in fetchClientes:', error);
-      setClientes([]);
+      console.error('Error in fetchCanales:', error);
+      setCanales([]);
     }
   }, []);
 
@@ -143,10 +101,8 @@ export default function Descuentos() {
       const response = await fetch('/api/tipos_combustible');
       if (response.ok) {
         const result = await response.json();
-     
         if (result && Array.isArray(result.data)) {
           setTipoCombustibles(result.data);
-    
         } else {
           console.error('TipoCombustibles data is not an array:', result);
           setTipoCombustibles([]);
@@ -163,14 +119,9 @@ export default function Descuentos() {
 
   useEffect(() => {
     fetchDescuentos();
-    fetchCostos();
-    fetchClientes();
+    fetchCanales();
     fetchTipoCombustibles();
-  }, [fetchDescuentos, fetchCostos, fetchClientes, fetchTipoCombustibles]);
-
-  useEffect(() => {
- 
-  }, [costos, clientes, tipoCombustibles]);
+  }, [fetchDescuentos, fetchCanales, fetchTipoCombustibles]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -183,8 +134,7 @@ export default function Descuentos() {
           ? checked
           : name === 'create_uid' ||
             name === 'descuento' ||
-            name === 'estacion_id' ||
-            name === 'partner_id' || // Cambiado de cliente_id a partner_id
+            name === 'canal_id' ||
             name === 'tipo_combustible_id' ||
             name === 'write_uid'
           ? parseInt(value) || 0
@@ -194,7 +144,7 @@ export default function Descuentos() {
 
   const handleSubmitAdd = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!descuentoData.display_name || !descuentoData.estacion_id || !descuentoData.partner_id || !descuentoData.tipo_combustible_id || !descuentoData.descuento) {
+    if (!descuentoData.display_name || !descuentoData.canal_id || !descuentoData.tipo_combustible_id || !descuentoData.descuento) {
       alert('Por favor, complete todos los campos obligatorios.');
       return;
     }
@@ -202,9 +152,7 @@ export default function Descuentos() {
     formData.append('active', descuentoData.active.toString());
     formData.append('descuento', descuentoData.descuento.toString());
     formData.append('display_name', descuentoData.display_name);
-    formData.append('es_descuento_pista', descuentoData.es_descuento_pista.toString());
-    formData.append('estacion_id', descuentoData.estacion_id.toString());
-    formData.append('partner_id', descuentoData.partner_id.toString()); // Cambiado de cliente_id a partner_id
+    formData.append('canal_id', descuentoData.canal_id.toString());
     formData.append('tipo_combustible_id', descuentoData.tipo_combustible_id.toString());
 
     const response = await fetch('/api/descuentos', {
@@ -222,9 +170,7 @@ export default function Descuentos() {
         create_uid: 0,
         descuento: 0,
         display_name: '',
-        es_descuento_pista: false,
-        estacion_id: 0,
-        partner_id: 0, // Cambiado de cliente_id a partner_id
+        canal_id: 0,
         tipo_combustible_id: 0,
         write_date: '',
         write_uid: 0,
@@ -239,7 +185,7 @@ export default function Descuentos() {
   const handleSubmitUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (descuentoToUpdate) {
-      if (!descuentoData.display_name || !descuentoData.estacion_id || !descuentoData.partner_id || !descuentoData.tipo_combustible_id || !descuentoData.descuento) {
+      if (!descuentoData.display_name || !descuentoData.canal_id || !descuentoData.tipo_combustible_id || !descuentoData.descuento) {
         alert('Por favor, complete todos los campos obligatorios.');
         return;
       }
@@ -248,9 +194,7 @@ export default function Descuentos() {
       formData.append('active', descuentoData.active.toString());
       formData.append('descuento', descuentoData.descuento.toString());
       formData.append('display_name', descuentoData.display_name);
-      formData.append('es_descuento_pista', descuentoData.es_descuento_pista.toString());
-      formData.append('estacion_id', descuentoData.estacion_id.toString());
-      formData.append('partner_id', descuentoData.partner_id.toString()); // Cambiado de cliente_id a partner_id
+      formData.append('canal_id', descuentoData.canal_id.toString());
       formData.append('tipo_combustible_id', descuentoData.tipo_combustible_id.toString());
 
       const response = await fetch('/api/descuentos', {
@@ -272,9 +216,7 @@ export default function Descuentos() {
           create_uid: 0,
           descuento: 0,
           display_name: '',
-          es_descuento_pista: false,
-          estacion_id: 0,
-          partner_id: 0, // Cambiado de cliente_id a partner_id
+          canal_id: 0,
           tipo_combustible_id: 0,
           write_date: '',
           write_uid: 0,
@@ -331,15 +273,14 @@ export default function Descuentos() {
 
   return (
     <div className="min-h-screen flex">
-      <NavbarMaxPay />
+      <Navbar />
       <div className="flex-1 flex flex-col">
-        <MenuMain />
         <main className="flex-1 p-8 bg-white">
           <div className="space-y-4">
             <h1
-              className="text-3xl font-bold text-gray-900 mb-2 tracking-tight 
+              className="text-3xl font-bold text-gray-900 mb-2
               bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
-              transition-all duration-300 hover:scale-105 text-center"
+              transition-all duration-300 text-center"
             >
               Gestión de Descuentos
             </h1>
@@ -347,7 +288,7 @@ export default function Descuentos() {
               className="text-center text-black leading-relaxed max-w-2xl p-2 rounded-lg 
               transition-all duration-300 hover:shadow-md mx-auto"
             >
-              Configura los descuentos disponibles para los clientes.
+              Configura los descuentos disponibles.
             </p>
           </div>
           <div className="flex justify-between mb-2">
@@ -377,9 +318,7 @@ export default function Descuentos() {
                 <th className="px-4 py-2 text-center">Activo</th>
                 <th className="px-4 py-2 text-center">Descuento</th>
                 <th className="px-4 py-2 text-center">Nombre para Mostrar</th>
-                <th className="px-4 py-2 text-center">Descuento en Pista</th>
-                <th className="px-4 py-2 text-center">Estación</th>
-                <th className="px-4 py-2 text-center">Cliente</th>
+                <th className="px-4 py-2 text-center">Canal</th>
                 <th className="px-4 py-2 text-center">Tipo de Combustible</th>
                 <th className="px-4 py-2 text-center">Fecha Creación</th>
                 <th className="px-4 py-2 text-center">Creado Por</th>
@@ -391,7 +330,7 @@ export default function Descuentos() {
             <tbody>
               {currentDescuentos.length === 0 ? (
                 <tr>
-                  <td colSpan={13} className="px-4 py-2 text-center">
+                  <td colSpan={11} className="px-4 py-2 text-center">
                     No hay descuentos disponibles
                   </td>
                 </tr>
@@ -402,13 +341,13 @@ export default function Descuentos() {
                     <td className="px-4 py-2 text-center">{descuento.active ? 'Sí' : 'No'}</td>
                     <td className="px-4 py-2 text-center">{descuento.descuento}</td>
                     <td className="px-4 py-2 text-center">{descuento.display_name}</td>
-                    <td className="px-4 py-2 text-center">{descuento.es_descuento_pista ? 'Sí' : 'No'}</td>
-                    <td className="px-4 py-2 text-center">{descuento.estacion_nombre}</td>
-                    <td className="px-4 py-2 text-center">{descuento.cliente_nombre}</td>
+                    <td className="px-4 py-2 text-center">{descuento.canal_nombre}</td>
                     <td className="px-4 py-2 text-center">{descuento.tipo_combustible_nombre}</td>
-                    <td className="px-4 py-2 text-center">{descuento.create_date}</td>
+
+                                            <td className="px-4 py-2 text-center" >{new Date(descuento.create_date).toLocaleDateString()}</td>
                     <td className="px-4 py-2 text-center">{descuento.create_uid_name || descuento.create_uid}</td>
-                    <td className="px-4 py-2 text-center">{descuento.write_date}</td>
+                    
+                        <td className="px-4 py-2 text-center" >{new Date(descuento.write_date).toLocaleDateString()}</td>
                     <td className="px-4 py-2 text-center">{descuento.write_uid_name || descuento.write_uid}</td>
                     <td className="px-4 py-2 text-center">
                       <button
@@ -420,9 +359,7 @@ export default function Descuentos() {
                             create_uid: descuento.create_uid,
                             descuento: descuento.descuento,
                             display_name: descuento.display_name,
-                            es_descuento_pista: descuento.es_descuento_pista,
-                            estacion_id: descuento.estacion_id,
-                            partner_id: descuento.partner_id, // Cambiado de cliente_id a partner_id
+                            canal_id: descuento.canal_id,
                             tipo_combustible_id: descuento.tipo_combustible_id,
                             write_date: descuento.write_date,
                             write_uid: descuento.write_uid,
@@ -507,68 +444,34 @@ export default function Descuentos() {
                       className="w-full px-4 py-2 border border-gray-300 rounded-md text-center"
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-4 mb-4">
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium mb-2 text-center" htmlFor="active">
-                        Descuento Activo
-                      </label>
-                      <input
-                        type="checkbox"
-                        id="active"
-                        name="active"
-                        checked={descuentoData.active}
-                        onChange={handleInputChange}
-                        className="w-6 h-6 mx-auto block"
-                      />
-                    </div>
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium mb-2 text-center" htmlFor="es_descuento_pista">
-                        Es descuento de pista
-                      </label>
-                      <input
-                        type="checkbox"
-                        id="es_descuento_pista"
-                        name="es_descuento_pista"
-                        checked={descuentoData.es_descuento_pista}
-                        onChange={handleInputChange}
-                        className="w-6 h-6 mx-auto block"
-                      />
-                    </div>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium mb-2 text-center" htmlFor="active">
+                      Descuento Activo
+                    </label>
+                    <input
+                      type="checkbox"
+                      id="active"
+                      name="active"
+                      checked={descuentoData.active}
+                      onChange={handleInputChange}
+                      className="w-6 h-6 mx-auto block"
+                    />
                   </div>
                   <div className="mb-4">
-                    <label className="block text-sm font-medium mb-2 text-center" htmlFor="estacion_id">
-                      Estación
+                    <label className="block text-sm font-medium mb-2 text-center" htmlFor="canal_id">
+                      Canal
                     </label>
                     <select
-                      id="estacion_id"
-                      name="estacion_id"
-                      value={descuentoData.estacion_id}
+                      id="canal_id"
+                      name="canal_id"
+                      value={descuentoData.canal_id}
                       onChange={handleInputChange}
                       className="w-full px-4 py-2 border border-gray-300 rounded-md text-center"
                     >
-                      <option value={0}>Seleccionar Estación</option>
-                      {costos.map((costo) => (
-                        <option key={costo.id} value={costo.id}>
-                          {costo.nombre_centro_costos}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium mb-2 text-center" htmlFor="partner_id">
-                      Cliente
-                    </label>
-                    <select
-                      id="partner_id"
-                      name="partner_id"
-                      value={descuentoData.partner_id}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md text-center"
-                    >
-                      <option value={0}>Seleccionar Cliente</option>
-                      {clientes.map((cliente) => (
-                        <option key={cliente.id} value={cliente.id}>
-                          {cliente.nombre}
+                      <option value={0}>Seleccionar Canal</option>
+                      {canales.map((canal) => (
+                        <option key={canal.id} value={canal.id}>
+                          {canal.canal}
                         </option>
                       ))}
                     </select>
@@ -651,68 +554,34 @@ export default function Descuentos() {
                       className="w-full px-4 py-2 border border-gray-300 rounded-md text-center"
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-4 mb-4">
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium mb-2 text-center" htmlFor="active">
-                        Descuento Activo
-                      </label>
-                      <input
-                        type="checkbox"
-                        id="active"
-                        name="active"
-                        checked={descuentoData.active}
-                        onChange={handleInputChange}
-                        className="w-6 h-6 mx-auto block"
-                      />
-                    </div>
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium mb-2 text-center" htmlFor="es_descuento_pista">
-                        Es descuento de pista
-                      </label>
-                      <input
-                        type="checkbox"
-                        id="es_descuento_pista"
-                        name="es_descuento_pista"
-                        checked={descuentoData.es_descuento_pista}
-                        onChange={handleInputChange}
-                        className="w-6 h-6 mx-auto block"
-                      />
-                    </div>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium mb-2 text-center" htmlFor="active">
+                      Descuento Activo
+                    </label>
+                    <input
+                      type="checkbox"
+                      id="active"
+                      name="active"
+                      checked={descuentoData.active}
+                      onChange={handleInputChange}
+                      className="w-6 h-6 mx-auto block"
+                    />
                   </div>
                   <div className="mb-4">
-                    <label className="block text-sm font-medium mb-2 text-center" htmlFor="estacion_id">
-                      Estación
+                    <label className="block text-sm font-medium mb-2 text-center" htmlFor="canal_id">
+                      Canal
                     </label>
                     <select
-                      id="estacion_id"
-                      name="estacion_id"
-                      value={descuentoData.estacion_id}
+                      id="canal_id"
+                      name="canal_id"
+                      value={descuentoData.canal_id}
                       onChange={handleInputChange}
                       className="w-full px-4 py-2 border border-gray-300 rounded-md text-center"
                     >
-                      <option value={0}>Seleccionar Estación</option>
-                      {costos.map((costo) => (
-                        <option key={costo.id} value={costo.id}>
-                          {costo.nombre_centro_costos}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium mb-2 text-center" htmlFor="partner_id">
-                      Cliente
-                    </label>
-                    <select
-                      id="partner_id"
-                      name="partner_id"
-                      value={descuentoData.partner_id}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md text-center"
-                    >
-                      <option value={0}>Seleccionar Cliente</option>
-                      {clientes.map((cliente) => (
-                        <option key={cliente.id} value={cliente.id}>
-                          {cliente.nombre}
+                      <option value={0}>Seleccionar Canal</option>
+                      {canales.map((canal) => (
+                        <option key={canal.id} value={canal.id}>
+                          {canal.canal}
                         </option>
                       ))}
                     </select>

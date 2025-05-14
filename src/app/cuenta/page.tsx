@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import NavbarConfiguracion from '../components/NavbarConfiguracion';
-import MenuMain from '../components/MenuMain';
+import Navbar from '../components/Navbar';
+
 import Image from 'next/image';
 
 interface UserData {
@@ -90,9 +90,9 @@ export default function Cuenta() {
   return (
     <div className="font-sans bg-white text-gray-900 min-h-screen">
       <div className="flex">
-        <NavbarConfiguracion />
+        <Navbar />
         <div className="flex-1 flex flex-col">
-          <MenuMain />
+      
           <main className="flex-1 p-8">
             <div className="space-y-6">
               <h1

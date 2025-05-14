@@ -3,11 +3,15 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, ChevronDown } from 'lucide-react';
 
 export default function Navbar() {
   const [userName, setUserName] = useState<string>('');
   const [isNavbarVisible, setIsNavbarVisible] = useState(true);
+  const [isMaxLoyaltyOpen, setIsMaxLoyaltyOpen] = useState(false);
+  const [isMaxPayOpen, setIsMaxPayOpen] = useState(false);
+  const [isGeneralesOpen, setIsGeneralesOpen] = useState(false);
+  const [isConfiguracionesOpen, setIsConfiguracionesOpen] = useState(false); // Nuevo estado para Configuraciones
 
   const toggleNavbar = () => {
     setIsNavbarVisible(!isNavbarVisible);
@@ -45,6 +49,26 @@ export default function Navbar() {
     return () => clearInterval(interval);
   }, []);
 
+  const handleMaxLoyaltyClick = () => {
+
+    setIsMaxLoyaltyOpen(!isMaxLoyaltyOpen);
+  };
+
+  const handleMaxPayClick = () => {
+  
+    setIsMaxPayOpen(!isMaxPayOpen);
+  };
+
+  const handleGeneralesClick = () => {
+ 
+    setIsGeneralesOpen(!isGeneralesOpen);
+  };
+
+  const handleConfiguracionesClick = () => {
+ 
+    setIsConfiguracionesOpen(!isConfiguracionesOpen); // Alterna el estado del menú desplegable
+  };
+
   return (
     <div className={`relative flex transition-all duration-500 ease-in-out ${isNavbarVisible ? 'pl-64' : 'pl-0'}`}>
       <nav
@@ -62,24 +86,177 @@ export default function Navbar() {
             </Link>
           </li>
           <li>
-            <Link href="/transacciones" className="block p-2 rounded hover:bg-gray-700">
-              Transacciones
+            <Link href="/inicio" className="block p-2 rounded hover:bg-gray-700">
+              Inicio
             </Link>
           </li>
           <li>
-            <Link href="/puntos" className="block p-2 rounded hover:bg-gray-700">
-              Puntos
-            </Link>
+            <button
+              onClick={handleMaxLoyaltyClick}
+              className="w-full text-left p-2 rounded hover:bg-gray-700 flex items-center justify-between"
+            >
+              Max-Loyalty
+              <ChevronDown className={`w-5 h-5 transition-transform ${isMaxLoyaltyOpen ? 'rotate-180' : ''}`} />
+            </button>
+            {isMaxLoyaltyOpen && (
+              <ul className="ml-4 space-y-2">
+                <li>
+                  <Link href="/transacciones" className="block p-2 rounded hover:bg-gray-700">
+                    Transacciones
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/puntos" className="block p-2 rounded hover:bg-gray-700">
+                    Puntos
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/redimir" className="block p-2 rounded hover:bg-gray-700">
+                    Canjeados
+                  </Link>
+                </li>
+                      <li>
+                  <Link href="/tipo_combustible" className="block p-2 rounded hover:bg-gray-700">
+                    Tipo de combustible
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/unidad_medida" className="block p-2 rounded hover:bg-gray-700">
+                    Unidad medida del producto
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/precios_semana" className="block p-2 rounded hover:bg-gray-700">
+                    Precios de la semana
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/descuentos" className="block p-2 rounded hover:bg-gray-700">
+                    Descuentos
+                  </Link>
+                </li>
+              </ul>
+            )}
           </li>
           <li>
-            <Link href="/redimir" className="block p-2 rounded hover:bg-gray-700">
-              Redimir puntos
-            </Link>
+            <button
+              onClick={handleMaxPayClick}
+              className="w-full text-left p-2 rounded hover:bg-gray-700 flex items-center justify-between"
+            >
+              Max-Pay
+              <ChevronDown className={`w-5 h-5 transition-transform ${isMaxPayOpen ? 'rotate-180' : ''}`} />
+            </button>
+            {isMaxPayOpen && (
+              <ul className="ml-4 space-y-2">
+               
+              </ul>
+            )}
           </li>
-              <li>
-            <Link href="#" className="block p-2 rounded hover:bg-gray-700">
-              Reportes
-            </Link>
+          <li>
+            <button
+              onClick={handleGeneralesClick} 
+              className="w-full text-left p-2 rounded hover:bg-gray-700 flex items-center justify-between"
+            >
+              Generales
+              <ChevronDown className={`w-5 h-5 transition-transform ${isGeneralesOpen ? 'rotate-180' : ''}`} />
+            </button>
+            {isGeneralesOpen && (
+              <ul className="ml-4 space-y-2">
+                <li>
+                  <Link href="/clientes" className="flex items-center p-2 rounded hover:bg-gray-700">
+                    Clientes
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/tarjetas" className="block p-2 rounded hover:bg-gray-700">
+                    Tarjetas
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/tipo_de_tarjetas" className="block p-2 rounded hover:bg-gray-700">
+                    Tipos de tarjetas
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/canales" className="block p-2 rounded hover:bg-gray-700">
+                    Canales
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/sub_canales" className="block p-2 rounded hover:bg-gray-700">
+                    Subcanales
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#" className="block p-2 rounded hover:bg-gray-700">
+                    Productos
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#" className="block p-2 rounded hover:bg-gray-700">
+                    Precio
+                  </Link>
+                </li>
+              </ul>
+            )}
+          </li>
+          <li>
+            <button
+              onClick={handleConfiguracionesClick}
+              className="w-full text-left p-2 rounded hover:bg-gray-700 flex items-center justify-between"
+            >
+              Configuraciones
+              <ChevronDown className={`w-5 h-5 transition-transform ${isConfiguracionesOpen ? 'rotate-180' : ''}`} />
+            </button>
+            {isConfiguracionesOpen && (
+              <ul className="ml-4 space-y-2">
+                <li>
+                  <Link href="/terminales" className="flex items-center p-2 rounded hover:bg-gray-700">
+                    Terminales
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/usuarios" className="block p-2 rounded hover:bg-gray-700">
+                    Usuarios
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/miembros" className="block p-2 rounded hover:bg-gray-700">
+                    Usuarios de terminales
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/empresas" className="block p-2 rounded hover:bg-gray-700">
+                    Red de empresas
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/centro_de_costos" className="block p-2 rounded hover:bg-gray-700">
+                    Establecimientos
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/paises" className="block p-2 rounded hover:bg-gray-700">
+                    Paises
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/estados" className="flex items-center p-2 rounded hover:bg-gray-700">
+                    Estados
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/monedas" className="flex items-center p-2 rounded hover:bg-gray-700">
+                    Monedas
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/cuenta" className="flex items-center p-2 rounded hover:bg-gray-700">
+                    Mi cuenta
+                  </Link>
+                </li>
+              </ul>
+            )}
           </li>
         </ul>
       </nav>

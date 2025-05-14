@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import NavbarGeneral from '../components/NavbarGeneral';
-import MenuMain from '../components/MenuMain';
+import Navbar from '../components/Navbar';
 
 type Subcanal = {
   id: number;
@@ -155,9 +154,9 @@ export default function Subcanales() {
 
   return (
     <div className="min-h-screen flex">
-      <NavbarGeneral />
+      <Navbar />
       <div className="flex-1 flex flex-col">
-        <MenuMain />
+   
         <main className="flex-1 p-8 bg-white">
           <div className="space-y-4">
             <h1

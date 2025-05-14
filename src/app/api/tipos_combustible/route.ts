@@ -10,19 +10,19 @@ export async function POST(request: Request) {
   try {
     const formData = await request.formData();
     const name = formData.get('name');
-    const udm_id = formData.get('udm_id');
+    const code = formData.get('code'); // Añadimos el código
 
-    if (!name || typeof name !== 'string' || !udm_id || isNaN(Number(udm_id))) {
+    if (!name || typeof name !== 'string' || !code || typeof code !== 'string') {
       return NextResponse.json(
-        { message: 'El nombre y la unidad de medida (udm_id) son obligatorios y deben ser válidos' },
+        { message: 'El nombre y el código son obligatorios y deben ser válidos' },
         { status: 400 }
       );
     }
 
     const client = await pool.connect();
     const result = await client.query(
-      `INSERT INTO tipo_combustible (name, udm_id) VALUES ($1, $2) RETURNING id, name, udm_id`,
-      [name, udm_id]
+      `INSERT INTO tipo_combustible (name, code) VALUES ($1, $2) RETURNING id, name, code`,
+      [name, code]
     );
     client.release();
 
@@ -48,11 +48,10 @@ export async function GET(request: Request) {
     const offset = (page - 1) * limit;
     const result = await client.query(
       `
-      SELECT tc.id, tc.name, tc.udm_id, u.name AS udm_nombre
-      FROM tipo_combustible tc
-      JOIN unidad_medida_producto u ON tc.udm_id = u.id
-      WHERE tc.name ILIKE $1
-      ORDER BY tc.id
+      SELECT id, name, code
+      FROM tipo_combustible
+      WHERE name ILIKE $1 OR code ILIKE $1
+      ORDER BY id
       LIMIT $2 OFFSET $3
       `,
       [`%${search}%`, limit, offset]
@@ -61,9 +60,8 @@ export async function GET(request: Request) {
     const totalResult = await client.query(
       `
       SELECT COUNT(*) AS total
-      FROM tipo_combustible tc
-      JOIN unidad_medida_producto u ON tc.udm_id = u.id
-      WHERE tc.name ILIKE $1
+      FROM tipo_combustible
+      WHERE name ILIKE $1 OR code ILIKE $1
       `,
       [`%${search}%`]
     );
@@ -87,21 +85,19 @@ export async function PUT(request: Request) {
     const formData = await request.formData();
     const id = formData.get('id');
     const name = formData.get('name');
-    const udm_id = formData.get('udm_id');
+    const code = formData.get('code');
 
-    if (!id || !name || typeof name !== 'string' || !udm_id || isNaN(Number(udm_id))) {
+    if (!id || !name || typeof name !== 'string' || !code || typeof code !== 'string') {
       return NextResponse.json(
-        { message: 'El ID, el nombre y la unidad de medida (udm_id) son obligatorios y deben ser válidos' },
+        { message: 'El ID, el nombre y el código son obligatorios y deben ser válidos' },
         { status: 400 }
       );
     }
 
-
-    
     const client = await pool.connect();
     const result = await client.query(
-      `UPDATE tipo_combustible SET name = $1, udm_id = $2 WHERE id = $3 RETURNING id, name, udm_id`,
-      [name, udm_id, id]
+      `UPDATE tipo_combustible SET name = $1, code = $2 WHERE id = $3 RETURNING id, name, code`,
+      [name, code, id]
     );
     client.release();
 
@@ -130,7 +126,7 @@ export async function DELETE(request: Request) {
 
     const client = await pool.connect();
     const result = await client.query(
-      `DELETE FROM tipo_combustible WHERE id = $1 RETURNING id, name, udm_id`,
+      `DELETE FROM tipo_combustible WHERE id = $1 RETURNING id, name, code`,
       [id]
     );
     client.release();

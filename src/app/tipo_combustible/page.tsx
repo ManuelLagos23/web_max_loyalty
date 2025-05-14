@@ -1,34 +1,23 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import NavbarMaxPay from '../components/NavbarMaxPay';
-import MenuMain from '../components/MenuMain';
+import Navbar from '../components/Navbar';
 
 // Tipo para los datos crudos de la API
-type ApiUDM = {
-  id: number;
-  name: string;
-};
+
 
 type TipoCombustible = {
   id: number;
   name: string;
-  udm_id: number;
-  udm_nombre: string;
-};
-
-type UDM = {
-  id: number;
-  name: string;
+  code: string; // Campo para el código
 };
 
 export default function TiposCombustible() {
   const [tiposCombustible, setTiposCombustible] = useState<TipoCombustible[]>([]);
-  const [udms, setUdms] = useState<UDM[]>([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [tipoCombustibleData, setTipoCombustibleData] = useState({ name: '', udm_id: 0 });
+  const [tipoCombustibleData, setTipoCombustibleData] = useState({ name: '', code: '' }); // Eliminamos udm_id
   const [tipoCombustibleToUpdate, setTipoCombustibleToUpdate] = useState<TipoCombustible | null>(null);
   const [tipoCombustibleToDelete, setTipoCombustibleToDelete] = useState<TipoCombustible | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -40,11 +29,8 @@ export default function TiposCombustible() {
       const response = await fetch(`/api/tipos_combustible?page=${currentPage}&limit=${itemsPerPage}`);
       if (response.ok) {
         const result = await response.json();
-  
-        // Extract the 'data' array if the response is an object with a 'data' property
         if (result && Array.isArray(result.data)) {
           setTiposCombustible(result.data);
-       
         } else {
           console.error('TiposCombustible data is not an array:', result);
           setTiposCombustible([]);
@@ -59,59 +45,29 @@ export default function TiposCombustible() {
     }
   }, [currentPage, itemsPerPage]);
 
-  const fetchUdms = useCallback(async () => {
-    try {
-      const response = await fetch('/api/unidad_medida');
-      if (response.ok) {
-        const result = await response.json();
-
-        if (result && Array.isArray(result.data)) {
-          const udmData = result.data.map((item: ApiUDM) => ({
-            id: item.id,
-            name: item.name,
-          }));
-          setUdms(udmData);
-  
-        } else {
-          console.error('UDM data is not an array:', result);
-          setUdms([]);
-        }
-      } else {
-        console.error('Error fetching UDMs:', response.status, await response.text());
-        setUdms([]);
-      }
-    } catch (error) {
-      console.error('Error in fetchUdms:', error);
-      setUdms([]);
-    }
-  }, []);
-
   useEffect(() => {
     fetchTiposCombustible();
-    fetchUdms();
-  }, [fetchTiposCombustible, fetchUdms]);
+  }, [fetchTiposCombustible]);
 
-  useEffect(() => {
+  useEffect(() => {}, [tiposCombustible]);
 
-  }, [tiposCombustible]);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setTipoCombustibleData({
       ...tipoCombustibleData,
-      [name]: name === 'udm_id' ? parseInt(value) : value,
+      [name]: value,
     });
   };
 
   const handleSubmitAdd = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!tipoCombustibleData.name || tipoCombustibleData.udm_id === 0) {
+    if (!tipoCombustibleData.name || !tipoCombustibleData.code) {
       alert('Por favor, complete todos los campos.');
       return;
     }
     const formData = new FormData();
     formData.append('name', tipoCombustibleData.name);
-    formData.append('udm_id', tipoCombustibleData.udm_id.toString());
+    formData.append('code', tipoCombustibleData.code);
 
     const response = await fetch('/api/tipos_combustible', {
       method: 'POST',
@@ -122,7 +78,7 @@ export default function TiposCombustible() {
       const newTipoCombustible = await response.json();
       alert('Tipo de combustible agregado exitosamente');
       setTiposCombustible((prev) => [...prev, newTipoCombustible.data]);
-      setTipoCombustibleData({ name: '', udm_id: 0 });
+      setTipoCombustibleData({ name: '', code: '' });
       setIsAddModalOpen(false);
       fetchTiposCombustible();
     } else {
@@ -133,14 +89,14 @@ export default function TiposCombustible() {
   const handleSubmitUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (tipoCombustibleToUpdate) {
-      if (!tipoCombustibleData.name || tipoCombustibleData.udm_id === 0) {
+      if (!tipoCombustibleData.name || !tipoCombustibleData.code) {
         alert('Por favor, complete todos los campos.');
         return;
       }
       const formData = new FormData();
       formData.append('id', String(tipoCombustibleToUpdate.id));
       formData.append('name', tipoCombustibleData.name);
-      formData.append('udm_id', tipoCombustibleData.udm_id.toString());
+      formData.append('code', tipoCombustibleData.code);
 
       const response = await fetch('/api/tipos_combustible', {
         method: 'PUT',
@@ -155,7 +111,7 @@ export default function TiposCombustible() {
             tipo.id === updatedTipoCombustible.data.id ? updatedTipoCombustible.data : tipo
           )
         );
-        setTipoCombustibleData({ name: '', udm_id: 0 });
+        setTipoCombustibleData({ name: '', code: '' });
         setIsUpdateModalOpen(false);
         fetchTiposCombustible();
       } else {
@@ -208,15 +164,14 @@ export default function TiposCombustible() {
 
   return (
     <div className="min-h-screen flex">
-      <NavbarMaxPay />
+      <Navbar />
       <div className="flex-1 flex flex-col">
-        <MenuMain />
         <main className="flex-1 p-8 bg-white">
           <div className="space-y-4">
             <h1
-              className="text-3xl font-bold text-gray-900 mb-2 tracking-tight 
+              className="text-3xl font-bold text-gray-900 mb-2
               bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
-              transition-all duration-300 hover:scale-105 text-center"
+              transition-all duration-300 text-center"
             >
               Gestión de Tipos de Combustible
             </h1>
@@ -251,8 +206,8 @@ export default function TiposCombustible() {
             <thead className="bg-gray-200">
               <tr>
                 <th className="px-4 py-2 text-center">#</th>
+                <th className="px-4 py-2 text-center">Código</th>
                 <th className="px-4 py-2 text-center">Nombre del Tipo de Combustible</th>
-                <th className="px-4 py-2 text-center">Unidad de Medida</th>
                 <th className="px-4 py-2 text-center">Acciones</th>
               </tr>
             </thead>
@@ -267,13 +222,13 @@ export default function TiposCombustible() {
                 currentTiposCombustible.map((tipo, index) => (
                   <tr key={tipo.id}>
                     <td className="px-4 py-2 text-center">{indexOfFirstItem + index + 1}</td>
+                    <td className="px-4 py-2 text-center">{tipo.code}</td>
                     <td className="px-4 py-2 text-center">{tipo.name}</td>
-                    <td className="px-4 py-2 text-center">{tipo.udm_nombre}</td>
                     <td className="px-4 py-2 text-center">
                       <button
                         onClick={() => {
                           setTipoCombustibleToUpdate(tipo);
-                          setTipoCombustibleData({ name: tipo.name, udm_id: tipo.udm_id });
+                          setTipoCombustibleData({ name: tipo.name, code: tipo.code });
                           setIsUpdateModalOpen(true);
                         }}
                         className="bg-yellow-500 text-white px-2 py-1 rounded mr-2 hover:bg-yellow-600"
@@ -327,6 +282,20 @@ export default function TiposCombustible() {
                 <h2 className="text-xl font-semibold mb-4 text-center">Agregar Tipo de Combustible</h2>
                 <form onSubmit={handleSubmitAdd}>
                   <div className="mb-4">
+                    <label className="block text-sm font-medium mb-2 text-center" htmlFor="code">
+                      Código del Tipo de Combustible
+                    </label>
+                    <input
+                      type="text"
+                      id="code"
+                      name="code"
+                      placeholder="Ejemplo: GAS91"
+                      value={tipoCombustibleData.code}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md text-center"
+                    />
+                  </div>
+                  <div className="mb-4">
                     <label className="block text-sm font-medium mb-2 text-center" htmlFor="name">
                       Nombre del Tipo de Combustible
                     </label>
@@ -339,25 +308,6 @@ export default function TiposCombustible() {
                       onChange={handleInputChange}
                       className="w-full px-4 py-2 border border-gray-300 rounded-md text-center"
                     />
-                  </div>
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium mb-2 text-center" htmlFor="udm_id">
-                      Unidad de Medida
-                    </label>
-                    <select
-                      id="udm_id"
-                      name="udm_id"
-                      value={tipoCombustibleData.udm_id}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md text-center"
-                    >
-                      <option value={0}>Seleccionar Unidad de Medida</option>
-                      {udms.map((udm) => (
-                        <option key={udm.id} value={udm.id}>
-                          {udm.name}
-                        </option>
-                      ))}
-                    </select>
                   </div>
                   <div className="flex justify-between">
                     <button
@@ -391,6 +341,20 @@ export default function TiposCombustible() {
                 <h2 className="text-xl font-semibold mb-4 text-center">Actualizar Tipo de Combustible</h2>
                 <form onSubmit={handleSubmitUpdate}>
                   <div className="mb-4">
+                    <label className="block text-sm font-medium mb-2 text-center" htmlFor="code">
+                      Código del Tipo de Combustible
+                    </label>
+                    <input
+                      type="text"
+                      id="code"
+                      name="code"
+                      placeholder="Ejemplo: GAS91"
+                      value={tipoCombustibleData.code}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md text-center"
+                    />
+                  </div>
+                  <div className="mb-4">
                     <label className="block text-sm font-medium mb-2 text-center" htmlFor="name">
                       Nombre del Tipo de Combustible
                     </label>
@@ -403,25 +367,6 @@ export default function TiposCombustible() {
                       onChange={handleInputChange}
                       className="w-full px-4 py-2 border border-gray-300 rounded-md text-center"
                     />
-                  </div>
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium mb-2 text-center" htmlFor="udm_id">
-                      Unidad de Medida
-                    </label>
-                    <select
-                      id="udm_id"
-                      name="udm_id"
-                      value={tipoCombustibleData.udm_id}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md text-center"
-                    >
-                      <option value={0}>Seleccionar Unidad de Medida</option>
-                      {udms.map((udm) => (
-                        <option key={udm.id} value={udm.id}>
-                          {udm.name}
-                        </option>
-                      ))}
-                    </select>
                   </div>
                   <div className="flex justify-between">
                     <button

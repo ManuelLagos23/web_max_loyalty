@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
-import MenuMain from '../components/MenuMain';
-import NavbarConfiguracion from '../components/NavbarConfiguracion';
+
+import Navbar from '../components/Navbar';
 
 interface Empresa {
   id: number;
@@ -356,9 +356,9 @@ export default function Empresas() {
   return (
     <div className="font-sans bg-white text-gray-900 min-h-screen">
       <div className="flex">
-        <NavbarConfiguracion />
+        <Navbar />
         <div className="flex-1 flex flex-col">
-          <MenuMain />
+    
           <main className="flex-1 p-8">
             <div className="space-y-6">
               <h1

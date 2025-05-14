@@ -8,15 +8,13 @@ const pool = new Pool({
 export async function DELETE(request: NextRequest) {
   try {
     const { pathname } = new URL(request.url);
-    const id = pathname.split('/').pop();  // Obtener el id desde la URL
+    const id = pathname.split('/').pop();
 
     if (!id) {
       return NextResponse.json({ message: 'El ID de la terminal es obligatorio' }, { status: 400 });
     }
 
     const client = await pool.connect();
-
-    // Realizar la eliminación de la terminal usando el ID
     const result = await client.query(
       `DELETE FROM terminales WHERE id = $1 RETURNING *`,
       [id]
@@ -37,9 +35,9 @@ export async function DELETE(request: NextRequest) {
 
 export async function GET(
   request: Request,
-  context: { params: Promise<{ id: string }> } // Cambia la firma para reflejar que params es una Promise
+  context: { params: Promise<{ id: string }> }
 ) {
-  const params = await context.params; // Await params antes de desestructurar
+  const params = await context.params;
   const { id } = params;
 
   if (!id) {
@@ -49,7 +47,7 @@ export async function GET(
   try {
     const client = await pool.connect();
     const result = await client.query(
-      `SELECT id, empresa, estacion_servicio, codigo_terminal, nombre_terminal, codigo_activacion, id_activacion FROM terminales WHERE id = $1`,
+      `SELECT id, empresa, estacion_servicio, codigo_terminal, nombre_terminal, numero_serie, mac, modelo, marca, codigo_activacion, id_activacion FROM terminales WHERE id = $1`,
       [id]
     );
     client.release();
@@ -58,12 +56,18 @@ export async function GET(
       return NextResponse.json({ message: 'No se encontró la terminal con ese ID' }, { status: 404 });
     }
 
-    // Mapeo de campos para que coincidan con la interfaz del frontend
     const terminal = {
       id: result.rows[0].id,
+      empresa: result.rows[0].empresa,
+      estacion_servicio: result.rows[0].estacion_servicio,
+      codigo_terminal: result.rows[0].codigo_terminal,
       nombre_terminal: result.rows[0].nombre_terminal,
-      empresa_id: result.rows[0].empresa,
-      establecimiento: result.rows[0].estacion_servicio.toString(),
+      numero_serie: result.rows[0].numero_serie,
+      mac: result.rows[0].mac,
+      modelo: result.rows[0].modelo,
+      marca: result.rows[0].marca,
+      codigo_activacion: result.rows[0].codigo_activacion,
+      id_activacion: result.rows[0].id_activacion,
     };
 
     return NextResponse.json(terminal);

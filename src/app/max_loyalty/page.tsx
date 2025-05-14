@@ -1,4 +1,4 @@
-import MenuMain from "../components/MenuMain";
+
 import Navbar from "../components/Navbar";
 import PageWrapper from "../components/PageWrapper";
 import TransactionChart from "../components/TransactionChart";
@@ -16,8 +16,7 @@ export default function Home() {
       {/* Área principal */}
       <div className="flex-1 flex flex-col bg-gray-100">
         {/* Menú horizontal */}
-        <MenuMain />
-
+       
         {/* Contenido con fondo */}
         <div
           className="flex-1 bg-cover bg-center bg-no-repeat p-8 text-white bg-gray-100">

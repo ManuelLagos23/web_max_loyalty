@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import NavbarConfiguracion from '../components/NavbarConfiguracion';
-import MenuMain from '../components/MenuMain';
+import Navbar from '../components/Navbar';
+
 
 interface Miembro {
   id: number;
@@ -394,15 +394,15 @@ export default function Miembros() {
   return (
     <div className="font-sans bg-white text-gray-900 min-h-screen">
       <div className="flex">
-        <NavbarConfiguracion />
+        <Navbar />
         <div className="flex-1 flex flex-col">
-          <MenuMain />
+    
           <main className="flex-1 p-8">
             <div className="space-y-6">
               <h1
-                className="text-4xl font-bold text-gray-900 Tiwmb-4 tracking-tight 
+                className="text-4xl font-bold text-gray-900 Tiwmb-4 
                 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
-                transition-all duration-300 hover:scale-105 text-center"
+                transition-all duration-300 text-center"
               >
                 Gestión de Miembros
               </h1>

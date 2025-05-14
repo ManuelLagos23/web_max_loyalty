@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Navbar from '../components/Navbar';
-import MenuMain from '../components/MenuMain';
+
 
 interface Punto {
   id: number;
@@ -262,7 +262,7 @@ export default function Puntos() {
     <div className="min-h-screen flex">
       <Navbar />
       <div className="flex-1 flex flex-col">
-        <MenuMain />
+ 
         <main className="flex-1 p-8 bg-white">
           <div className="space-y-4">
             <h1

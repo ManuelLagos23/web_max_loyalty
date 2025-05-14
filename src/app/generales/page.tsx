@@ -1,6 +1,5 @@
-import MenuMain from '../components/MenuMain';
 
-import NavbarGeneral from '../components/NavbarGeneral';
+import Navbar from '../components/Navbar';
 import PageWrapper from '../components/PageWrapper';
 
 export default function Home() {
@@ -9,13 +8,12 @@ export default function Home() {
     <div className="min-h-screen flex">
       {/* Navbar lateral */}
       <PageWrapper>
-        <NavbarGeneral />
+        <Navbar />
       </PageWrapper>
 
       {/* Área principal */}
       <div className="flex-1 flex flex-col">
         {/* Menú horizontal */}
-        <MenuMain />
 
         {/* Contenido con fondo */}
         <div

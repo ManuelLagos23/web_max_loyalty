@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import MenuMain from '../components/MenuMain';
-import NavbarConfiguracion from '../components/NavbarConfiguracion';
+import Navbar from '../components/Navbar';
+import Link from 'next/link';
 
 interface Terminal {
   id: number;
@@ -30,7 +30,6 @@ interface Empresa {
 }
 
 export default function Terminales() {
-  const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false);
   const [isActivationPopupOpen, setIsActivationPopupOpen] = useState(false);
   const [isDeactivationPopupOpen, setIsDeactivationPopupOpen] = useState(false);
@@ -38,23 +37,13 @@ export default function Terminales() {
   const [terminales, setTerminales] = useState<Terminal[]>([]);
   const [costos, setCostos] = useState<Costo[]>([]);
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
-  const [formData, setFormData] = useState({
-    id: 0,
-    empresa: '',
-    estacion_servicio: '',
-    codigo_terminal: '',
-    nombre_terminal: '',
-    numero_serie: '',
-    mac: '',
-    modelo: '',
-    marca: '',
-  });
-  const [terminalSeleccionado, setTerminalSeleccionado] = useState<Terminal | null>(null);
   const [terminalAEliminar, setTerminalAEliminar] = useState<Terminal | null>(null);
   const [terminalAActivar, setTerminalAActivar] = useState<Terminal | null>(null);
   const [terminalADesactivar, setTerminalADesactivar] = useState<Terminal | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const itemsPerPage = 10;
 
   const generateActivationCode = () => {
@@ -62,6 +51,10 @@ export default function Terminales() {
   };
 
   const handleActivate = async (terminal: Terminal) => {
+    if (!terminal.empresa) {
+      alert('Error: La terminal no tiene una empresa asignada.');
+      return;
+    }
     const newCode = generateActivationCode();
     setActivationCode(newCode);
     setTerminalAActivar(terminal);
@@ -94,14 +87,21 @@ export default function Terminales() {
       } else {
         alert('Error al activar la terminal');
         setIsActivationPopupOpen(false);
+        setTerminalAActivar(null);
       }
     } catch (error) {
       console.error('Error al activar:', error);
+      alert('Error al conectar con el servidor');
       setIsActivationPopupOpen(false);
+      setTerminalAActivar(null);
     }
   };
 
   const handleDeactivate = async (terminal: Terminal) => {
+    if (!terminal.empresa) {
+      alert('Error: La terminal no tiene una empresa asignada.');
+      return;
+    }
     const formDataToSend = new FormData();
     formDataToSend.append('id', terminal.id.toString());
     formDataToSend.append('empresa', terminal.empresa);
@@ -133,25 +133,7 @@ export default function Terminales() {
       }
     } catch (error) {
       console.error('Error al desactivar:', error);
-    }
-  };
-
-  const openDeactivationPopup = (terminal: Terminal) => {
-    setTerminalADesactivar(terminal);
-    setIsDeactivationPopupOpen(true);
-  };
-
-  const closeDeactivationPopup = () => {
-    setTerminalADesactivar(null);
-    setIsDeactivationPopupOpen(false);
-  };
-
-  const handleActivationClick = (terminal: Terminal) => {
-    const isActive = terminal.id_activacion && /^\d{6}$/.test(terminal.id_activacion);
-    if (isActive) {
-      openDeactivationPopup(terminal);
-    } else {
-      handleActivate(terminal);
+      alert('Error al conectar con el servidor');
     }
   };
 
@@ -174,43 +156,44 @@ export default function Terminales() {
           method: 'PUT',
           body: formDataToSend,
         });
+
         if (response.ok) {
           setTerminales((prev) =>
             prev.map((t) =>
               t.id === terminalAActivar.id ? { ...t, codigo_activacion: null } : t
             )
           );
+        } else {
+          console.error('Error al limpiar el código de activación');
         }
       } catch (error) {
-        console.error('Error al cerrar el popup:', error);
+        console.error('Error al conectar con el servidor:', error);
       }
     }
 
     setIsActivationPopupOpen(false);
     setActivationCode('');
     setTerminalAActivar(null);
-    window.location.reload();
   };
 
-  const openPopup = (modo: 'agregar' | 'editar') => {
-    setIsPopupOpen(true);
-    if (modo === 'agregar') {
-      setTerminalSeleccionado(null);
-      setFormData({
-        id: 0,
-        empresa: '',
-        estacion_servicio: '',
-        codigo_terminal: '',
-        nombre_terminal: '',
-        numero_serie: '',
-        mac: '',
-        modelo: '',
-        marca: '',
-      });
+  const openDeactivationPopup = (terminal: Terminal) => {
+    setTerminalADesactivar(terminal);
+    setIsDeactivationPopupOpen(true);
+  };
+
+  const closeDeactivationPopup = () => {
+    setTerminalADesactivar(null);
+    setIsDeactivationPopupOpen(false);
+  };
+
+  const handleActivationClick = (terminal: Terminal) => {
+    const isActive = terminal.id_activacion && /^\d{6}$/.test(terminal.id_activacion);
+    if (isActive) {
+      openDeactivationPopup(terminal);
+    } else {
+      handleActivate(terminal);
     }
   };
-
-  const closePopup = () => setIsPopupOpen(false);
 
   const openDeletePopup = (terminal: Terminal) => {
     setTerminalAEliminar(terminal);
@@ -222,89 +205,15 @@ export default function Terminales() {
     setIsDeletePopupOpen(false);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    if (name === 'empresa') {
-      setFormData({ ...formData, empresa: value, estacion_servicio: '' });
-    } else {
-      setFormData({ ...formData, [name]: value });
-    }
-  };
-
-  const handleSubmitAgregar = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.empresa || !formData.estacion_servicio || !formData.codigo_terminal || !formData.nombre_terminal ||
-        !formData.numero_serie || !formData.mac || !formData.modelo || !formData.marca) {
-      alert('Por favor, complete todos los campos.');
-      return;
-    }
-    const formDataToSend = new FormData();
-    formDataToSend.append('empresa', formData.empresa);
-    formDataToSend.append('estacion_servicio', formData.estacion_servicio);
-    formDataToSend.append('codigo_terminal', formData.codigo_terminal);
-    formDataToSend.append('nombre_terminal', formData.nombre_terminal);
-    formDataToSend.append('numero_serie', formData.numero_serie);
-    formDataToSend.append('mac', formData.mac);
-    formDataToSend.append('modelo', formData.modelo);
-    formDataToSend.append('marca', formData.marca);
-
-    try {
-      const response = await fetch('/api/terminales', {
-        method: 'POST',
-        body: formDataToSend,
-      });
-      if (response.ok) {
-        alert('Terminal agregado exitosamente');
-        closePopup();
-        fetchTerminales();
-      } else {
-        alert('Error al agregar el terminal');
-      }
-    } catch (error) {
-      console.error('Error en la solicitud:', error);
-    }
-  };
-
-  const handleSubmitEditar = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.id || !formData.empresa || !formData.estacion_servicio || !formData.codigo_terminal ||
-        !formData.nombre_terminal || !formData.numero_serie || !formData.mac || !formData.modelo || !formData.marca) {
-      alert('Por favor, complete todos los campos obligatorios.');
-      return;
-    }
-    const formDataToSend = new FormData();
-    formDataToSend.append('id', formData.id.toString());
-    formDataToSend.append('empresa', formData.empresa);
-    formDataToSend.append('estacion_servicio', formData.estacion_servicio);
-    formDataToSend.append('codigo_terminal', formData.codigo_terminal);
-    formDataToSend.append('nombre_terminal', formData.nombre_terminal);
-    formDataToSend.append('numero_serie', formData.numero_serie);
-    formDataToSend.append('mac', formData.mac);
-    formDataToSend.append('modelo', formData.modelo);
-    formDataToSend.append('marca', formData.marca);
-
-    try {
-      const response = await fetch('/api/terminales', {
-        method: 'PUT',
-        body: formDataToSend,
-      });
-      if (response.ok) {
-        alert('Terminal actualizado exitosamente');
-        closePopup();
-        fetchTerminales();
-      } else {
-        alert('Error al actualizar el terminal');
-      }
-    } catch (error) {
-      console.error('Error en la solicitud:', error);
-    }
-  };
-
   const handleDelete = async () => {
     if (!terminalAEliminar) return;
     try {
       const response = await fetch(`/api/terminales/${terminalAEliminar.id}`, {
-        method: 'DELETE',
+        method: 'PUT',
+        body: JSON.stringify({ deleted: true }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
       if (response.ok) {
         alert('Terminal eliminado exitosamente');
@@ -315,6 +224,7 @@ export default function Terminales() {
       }
     } catch (error) {
       console.error('Error en la solicitud:', error);
+      alert('Error al conectar con el servidor');
     }
   };
 
@@ -325,10 +235,12 @@ export default function Terminales() {
         const data: Terminal[] = await response.json();
         setTerminales(data);
       } else {
-        console.error('Error al obtener los terminales');
+        console.error('Error al obtener los terminales:', response.status);
+        setError('Error al cargar los terminales');
       }
     } catch (error) {
       console.error('Error en la solicitud:', error);
+      setError('Error al conectar con el servidor');
     }
   }, [currentPage, itemsPerPage]);
 
@@ -339,10 +251,12 @@ export default function Terminales() {
         const data: Costo[] = await response.json();
         setCostos(data);
       } else {
-        console.error('Error al obtener los costos');
+        console.error('Error al obtener los costos:', response.status);
+        setError('Error al cargar los costos');
       }
     } catch (error) {
       console.error('Error en la solicitud:', error);
+      setError('Error al conectar con el servidor');
     }
   }, []);
 
@@ -353,33 +267,28 @@ export default function Terminales() {
         const data: Empresa[] = await response.json();
         setEmpresas(data);
       } else {
-        console.error('Error al obtener las empresas');
+        console.error('Error al obtener las empresas:', response.status);
+        setError('Error al cargar las empresas');
       }
     } catch (error) {
       console.error('Error en la solicitud:', error);
+      setError('Error al conectar con el servidor');
     }
   }, []);
 
-  const handleEditar = (terminal: Terminal) => {
-    setTerminalSeleccionado(terminal);
-    setFormData({
-      id: terminal.id,
-      empresa: terminal.empresa,
-      estacion_servicio: terminal.estacion_servicio,
-      codigo_terminal: terminal.codigo_terminal,
-      nombre_terminal: terminal.nombre_terminal,
-      numero_serie: terminal.numero_serie,
-      mac: terminal.mac,
-      modelo: terminal.modelo,
-      marca: terminal.marca,
-    });
-    openPopup('editar');
-  };
-
   useEffect(() => {
-    fetchTerminales();
-    fetchCostos();
-    fetchEmpresas();
+    const loadData = async () => {
+      setIsLoading(true);
+      try {
+        await Promise.all([fetchTerminales(), fetchCostos(), fetchEmpresas()]);
+      } catch (error) {
+        console.error('Error loading data:', error);
+        setError('Error al cargar los datos');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadData();
   }, [fetchTerminales, fetchCostos, fetchEmpresas]);
 
   const filteredTerminales = terminales.filter((terminal) =>
@@ -407,16 +316,33 @@ export default function Terminales() {
     }
   };
 
-  const filteredCostos = formData.empresa
-    ? costos.filter((costo) => costo.empresa === formData.empresa)
-    : [];
+  if (isLoading) {
+    return (
+      <div className="font-sans bg-white text-gray-900 min-h-screen flex">
+        <Navbar />
+        <div className="flex-1 p-8">
+          <p className="text-center">Cargando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="font-sans bg-white text-gray-900 min-h-screen flex">
+        <Navbar />
+        <div className="flex-1 p-8">
+          <p className="text-center text-red-500">{error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="font-sans bg-white text-gray-900 min-h-screen">
       <div className="flex">
-        <NavbarConfiguracion />
+        <Navbar />
         <div className="flex-1 flex flex-col">
-          <MenuMain />
           <main className="flex-1 p-8">
             <div className="space-y-6">
               <h1
@@ -435,12 +361,11 @@ export default function Terminales() {
             </div>
 
             <div className="flex justify-between mb-4">
-              <button
-                onClick={() => openPopup('agregar')}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all duration-300"
-              >
-                Agregar terminal
-              </button>
+              <Link href="/terminales/crear">
+                <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                  Agregar terminal
+                </button>
+              </Link>
             </div>
 
             <div className="mb-6">
@@ -456,9 +381,9 @@ export default function Terminales() {
               />
             </div>
 
-            <table className="min-w-full bg-gray-100  table-auto rounded-lg shadow-md">
+            <table className="min-w-full bg-gray-100 table-auto rounded-lg shadow-md">
               <thead className="bg-gray-200">
-                <tr className="bg-gray-200">
+                <tr>
                   <th className="px-4 py-2 text-left text-gray-700 font-semibold">#</th>
                   <th className="px-4 py-2 text-left text-gray-700 font-semibold">Empresa</th>
                   <th className="px-4 py-2 text-left text-gray-700 font-semibold">Estación de servicio</th>
@@ -491,12 +416,11 @@ export default function Terminales() {
                         <td className="px-4 py-2">{terminal.modelo}</td>
                         <td className="px-4 py-2">{terminal.marca}</td>
                         <td className="px-4 py-2 flex space-x-2">
-                          <button
-                            onClick={() => handleEditar(terminal)}
-                            className="bg-yellow-500 text-white px-3 py-1 rounded-lg hover:bg-yellow-600 transition-all duration-300"
-                          >
-                            Editar
-                          </button>
+                          <Link href={`/terminales/editar/${terminal.id}`}>
+                            <button className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 mr-2">
+                              Editar
+                            </button>
+                          </Link>
                           <button
                             onClick={() => handleActivationClick(terminal)}
                             className={`px-3 py-1 rounded text-white transition-all duration-300 ${
@@ -548,309 +472,6 @@ export default function Terminales() {
                 Siguiente
               </button>
             </div>
-
-            {isPopupOpen && (
-              <div
-                className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md"
-                onClick={(e) => {
-                  if (e.target === e.currentTarget) {
-                    closePopup();
-                  }
-                }}
-              >
-                <div className="bg-white p-6 rounded-lg shadow-xl w-1/3 border border-gray-200">
-                  <div className="text-center">
-                    <h2
-                      className="text-3xl font-bold text-gray-800 mb-6 tracking-tight 
-                      bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
-                      transition-all duration-300 hover:scale-105"
-                    >
-                      {terminalSeleccionado ? 'Editar Terminal' : 'Agregar Terminal'}
-                    </h2>
-                  </div>
-                  {terminalSeleccionado ? (
-                    <form onSubmit={handleSubmitEditar}>
-                      <input type="hidden" name="id" value={formData.id} />
-                      <div className="mb-4">
-                        <label htmlFor="empresa" className="block text-center font-medium text-gray-700">
-                          Empresa
-                        </label>
-                        <select
-                          name="empresa"
-                          value={formData.empresa}
-                          onChange={handleInputChange}
-                          className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
-                        >
-                          <option value="">Seleccione una empresa</option>
-                          {empresas.map((empresa) => (
-                            <option key={empresa.id} value={empresa.id}>
-                              {empresa.nombre_empresa}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="mb-4">
-                        <label htmlFor="estacion_servicio" className="block text-center font-medium text-gray-700">
-                          Estación de servicio
-                        </label>
-                        <select
-                          name="estacion_servicio"
-                          value={formData.estacion_servicio}
-                          onChange={handleInputChange}
-                          className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
-                          disabled={!formData.empresa}
-                        >
-                          <option value="">Seleccione una estación</option>
-                          {filteredCostos.map((costo) => (
-                            <option key={costo.id} value={costo.id}>
-                              {costo.nombre_centro_costos}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="mb-4">
-                          <label htmlFor="codigo_terminal" className="block text-center font-medium text-gray-700">
-                            Código terminal
-                          </label>
-                          <input
-                            type="text"
-                            name="codigo_terminal"
-                            placeholder="Ejemplo: TER-001"
-                            value={formData.codigo_terminal}
-                            onChange={handleInputChange}
-                            className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
-                          />
-                        </div>
-                        <div className="mb-4">
-                          <label htmlFor="nombre_terminal" className="block text-center font-medium text-gray-700">
-                            Nombre terminal
-                          </label>
-                          <input
-                            type="text"
-                            name="nombre_terminal"
-                            placeholder="Ejemplo: Terminal GSIE El Paraíso"
-                            value={formData.nombre_terminal}
-                            onChange={handleInputChange}
-                            className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
-                          />
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="mb-4">
-                          <label htmlFor="numero_serie" className="block text-center font-medium text-gray-700">
-                            Número de serie
-                          </label>
-                          <input
-                            type="text"
-                            name="numero_serie"
-                            placeholder="Ejemplo: SN123456"
-                            value={formData.numero_serie}
-                            onChange={handleInputChange}
-                            className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
-                          />
-                        </div>
-                        <div className="mb-4">
-                          <label htmlFor="mac" className="block text-center font-medium text-gray-700">
-                            Dirección MAC
-                          </label>
-                          <input
-                            type="text"
-                            name="mac"
-                            placeholder="Ejemplo: 00:1A:2B:3C:4D:5E"
-                            value={formData.mac}
-                            onChange={handleInputChange}
-                            className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
-                          />
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="mb-4">
-                          <label htmlFor="modelo" className="block text-center font-medium text-gray-700">
-                            Modelo
-                          </label>
-                          <input
-                            type="text"
-                            name="modelo"
-                            placeholder="Ejemplo: V2 PRO"
-                            value={formData.modelo}
-                            onChange={handleInputChange}
-                            className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
-                          />
-                        </div>
-                        <div className="mb-4">
-                          <label htmlFor="marca" className="block text-center font-medium text-gray-700">
-                            Marca
-                          </label>
-                          <input
-                            type="text"
-                            name="marca"
-                            placeholder="Ejemplo: SUNMI"
-                            value={formData.marca}
-                            onChange={handleInputChange}
-                            className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
-                          />
-                        </div>
-                      </div>
-                      <div className="flex justify-between">
-                        <button
-                          type="button"
-                          onClick={closePopup}
-                          className="bg-gray-400 text-white px-4 py-2 rounded-lg hover:bg-gray-500 transition-all duration-300"
-                        >
-                          Cancelar
-                        </button>
-                        <button
-                          type="submit"
-                          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all duration-300"
-                        >
-                          Guardar
-                        </button>
-                      </div>
-                    </form>
-                  ) : (
-                    <form onSubmit={handleSubmitAgregar}>
-                      <div className="mb-4">
-                        <label htmlFor="empresa" className="block text-center font-medium text-gray-700">
-                          Empresa
-                        </label>
-                        <select
-                          name="empresa"
-                          value={formData.empresa}
-                          onChange={handleInputChange}
-                          className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
-                        >
-                          <option value="">Seleccione una empresa</option>
-                          {empresas.map((empresa) => (
-                            <option key={empresa.id} value={empresa.id}>
-                              {empresa.nombre_empresa}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="mb-4">
-                        <label htmlFor="estacion_servicio" className="block text-center font-medium text-gray-700">
-                          Estación de servicio
-                        </label>
-                        <select
-                          name="estacion_servicio"
-                          value={formData.estacion_servicio}
-                          onChange={handleInputChange}
-                          className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
-                          disabled={!formData.empresa}
-                        >
-                          <option value="">Seleccione una estación</option>
-                          {filteredCostos.map((costo) => (
-                            <option key={costo.id} value={costo.id}>
-                              {costo.nombre_centro_costos}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="mb-4">
-                          <label htmlFor="codigo_terminal" className="block text-center font-medium text-gray-700">
-                            Código terminal
-                          </label>
-                          <input
-                            type="text"
-                            name="codigo_terminal"
-                            placeholder="Ejemplo: TER-001"
-                            value={formData.codigo_terminal}
-                            onChange={handleInputChange}
-                            className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
-                          />
-                        </div>
-                        <div className="mb-4">
-                          <label htmlFor="nombre_terminal" className="block text-center font-medium text-gray-700">
-                            Nombre terminal
-                          </label>
-                          <input
-                            type="text"
-                            name="nombre_terminal"
-                            placeholder="Ejemplo: Terminal GSIE El Paraíso"
-                            value={formData.nombre_terminal}
-                            onChange={handleInputChange}
-                            className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
-                          />
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="mb-4">
-                          <label htmlFor="numero_serie" className="block text-center font-medium text-gray-700">
-                            Número de serie
-                          </label>
-                          <input
-                            type="text"
-                            name="numero_serie"
-                            placeholder="Ejemplo: SN123456"
-                            value={formData.numero_serie}
-                            onChange={handleInputChange}
-                            className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
-                          />
-                        </div>
-                        <div className="mb-4">
-                          <label htmlFor="mac" className="block text-center font-medium text-gray-700">
-                            Dirección MAC
-                          </label>
-                          <input
-                            type="text"
-                            name="mac"
-                            placeholder="Ejemplo: 00:1A:2B:3C:4D:5E"
-                            value={formData.mac}
-                            onChange={handleInputChange}
-                            className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
-                          />
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="mb-4">
-                          <label htmlFor="modelo" className="block text-center font-medium text-gray-700">
-                            Modelo
-                          </label>
-                          <input
-                            type="text"
-                            name="modelo"
-                            placeholder="Ejemplo: V2 PRO"
-                            value={formData.modelo}
-                            onChange={handleInputChange}
-                            className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
-                          />
-                        </div>
-                        <div className="mb-4">
-                          <label htmlFor="marca" className="block text-center font-medium text-gray-700">
-                            Marca
-                          </label>
-                          <input
-                            type="text"
-                            name="marca"
-                            placeholder="Ejemplo: SUNMI"
-                            value={formData.marca}
-                            onChange={handleInputChange}
-                            className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
-                          />
-                        </div>
-                      </div>
-                      <div className="flex justify-between">
-                        <button
-                          type="button"
-                          onClick={closePopup}
-                          className="bg-gray-400 text-white px-4 py-2 rounded-lg hover:bg-gray-500 transition-all duration-300"
-                        >
-                          Cancelar
-                        </button>
-                        <button
-                          type="submit"
-                          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all duration-300"
-                        >
-                          Guardar
-                        </button>
-                      </div>
-                    </form>
-                  )}
-                </div>
-              </div>
-            )}
 
             {isDeletePopupOpen && terminalAEliminar && (
               <div

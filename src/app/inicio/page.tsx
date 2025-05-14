@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import MenuMain from '../components/MenuMain';
 import { FaUsers, FaBuilding, FaMoneyCheckAlt, FaNetworkWired, FaSitemap, FaDesktop, FaUserFriends, FaCreditCard, FaMoneyBillWave } from 'react-icons/fa';
+import Navbar from '../components/Navbar';
+import PageWrapper from '../components/PageWrapper'; // Importamos PageWrapper
 
 interface DashboardData {
   clientes: number;
@@ -73,7 +74,6 @@ export default function Home() {
         canjeadosRes.ok ? canjeadosRes.json().catch(() => Promise.reject('Error al parsear canjeados')) : Promise.reject(`Error al obtener canjeados: ${canjeadosRes.status}`),
       ]);
 
-
       setDashboardData({
         clientes: results[0].total || (Array.isArray(results[0].clientes) ? results[0].clientes.length : Array.isArray(results[0]) ? results[0].length : results[0].count || results[0].data?.length || 0),
         empresas: Array.isArray(results[1]) ? results[1].length : results[1].count || results[1].data?.length || 0,
@@ -88,18 +88,16 @@ export default function Home() {
           (results[9].total || (Array.isArray(results[9].canjeados) ? results[9].canjeados.length : Array.isArray(results[9]) ? results[9].length : results[9].count || results[9].data?.length || 0))
         ),
       });
-    }  catch (error: unknown) {
+    } catch (error: unknown) {
       console.error('Error al obtener datos del dashboard:', error);
-    
       const message =
         error instanceof Error
           ? error.message
           : typeof error === 'string'
             ? error
             : 'Error desconocido';
-    
       setErrorMessages((prev) => [...prev, message]);
-    }finally {
+    } finally {
       setLoading(false);
     }
   };
@@ -127,75 +125,84 @@ export default function Home() {
   };
 
   return (
-    <div className="font-sans bg-gray-100 text-gray-900 min-h-screen flex flex-col">
-      <MenuMain />
-      <main className="flex-1 p-8">
-        <h1
-          className="text-4xl font-bold text-gray-900 mb-6
-          bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
-          transition-all duration-300 text-center"
-        >
-          Dashboard de Max Platform
-        </h1>
-        <p
-          className="text-center text-gray-700 leading-relaxed max-w-2xl
-          p-4 rounded-lg transition-all duration-300 hover:shadow-md mx-auto mb-8"
-        >
-          Visualiza los indicadores clave de tu plataforma de fidelidad en tiempo real.
-        </p>
+    <div className="font-sans min-h-screen flex bg-gray-100 text-gray-900">
+      {/* Navbar lateral */}
+      <PageWrapper>
+        <Navbar />
+      </PageWrapper>
+      {/* Área principal */}
+      <div className="flex-1 flex flex-col">
+        {/* Menú horizontal */}
+      
+        {/* Contenido principal */}
+        <main className="flex-1 p-8">
+          <h1
+            className="text-4xl font-bold text-gray-900 mb-6
+            bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
+            transition-all duration-300 text-center"
+          >
+            Dashboard de Max Platform
+          </h1>
+          <p
+            className="text-center text-gray-700 leading-relaxed max-w-2xl
+            p-4 rounded-lg transition-all duration-300 hover:shadow-md mx-auto mb-8"
+          >
+            Visualiza los indicadores clave de tu plataforma de fidelidad en tiempo real.
+          </p>
 
-        {loading && (
-          <p className="text-center text-gray-600 mb-6">Cargando datos...</p>
-        )}
+          {loading && (
+            <p className="text-center text-gray-600 mb-6">Cargando datos...</p>
+          )}
 
-        {errorMessages.length > 0 && (
-          <div className="text-center text-red-500 mb-6">
-            {errorMessages.map((error, index) => (
-              <p key={index}>{error}</p>
+          {errorMessages.length > 0 && (
+            <div className="text-center text-red-500 mb-6">
+              {errorMessages.map((error, index) => (
+                <p key={index}>{error}</p>
+              ))}
+              <button
+                onClick={fetchDashboardData}
+                className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all duration-300"
+              >
+                Reintentar
+              </button>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            {indicators.map((indicator, index) => (
+              <div
+                key={index}
+                className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg 
+                transition-all duration-300 flex items-center space-x-4"
+              >
+                <div>{indicator.icon}</div>
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-800">{indicator.title}</h2>
+                  <p className="text-2xl font-bold text-blue-600">
+                    {loading ? '...' : indicator.value}
+                  </p>
+                </div>
+              </div>
             ))}
-            <button
-              onClick={fetchDashboardData}
-              className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all duration-300"
-            >
-              Reintentar
-            </button>
           </div>
-        )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {indicators.map((indicator, index) => (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div
-              key={index}
-              className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg 
-              transition-all duration-300 flex items-center space-x-4"
+              className="bg-gradient-to-r from-green-100 to-blue-100 p-8 rounded-lg shadow-lg 
+              hover:shadow-xl transition-all duration-300 flex items-center space-x-6 max-w-2xl mx-auto col-span-2"
             >
-              <div>{indicator.icon}</div>
+              <div>{totalIndicator.icon}</div>
               <div>
-                <h2 className="text-lg font-semibold text-gray-800">{indicator.title}</h2>
-                <p className="text-2xl font-bold text-blue-600">
-                  {loading ? '...' : indicator.value}
+                <h2 className="text-xl font-semibold text-gray-800">{totalIndicator.title}</h2>
+                <p className="text-lg text-gray-700 mb-2">{totalIndicator.text}</p>
+                <p className="text-3xl font-bold text-green-600">
+                  {loading ? '...' : totalIndicator.value}
                 </p>
               </div>
             </div>
-          ))}
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div
-            className="bg-gradient-to-r from-green-100 to-blue-100 p-8 rounded-lg shadow-lg 
-            hover:shadow-xl transition-all duration-300 flex items-center space-x-6 max-w-2xl mx-auto col-span-2"
-          >
-            <div>{totalIndicator.icon}</div>
-            <div>
-              <h2 className="text-xl font-semibold text-gray-800">{totalIndicator.title}</h2>
-              <p className="text-lg text-gray-700 mb-2">{totalIndicator.text}</p>
-              <p className="text-3xl font-bold text-green-600">
-                {loading ? '...' : totalIndicator.value}
-              </p>
-            </div>
           </div>
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }
