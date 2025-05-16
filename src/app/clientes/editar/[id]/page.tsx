@@ -369,13 +369,13 @@ export default function EditarCliente() {
             <button
               type="button"
               onClick={() => router.push('/clientes')}
-              className="w-full sm:w-auto bg-gray-500 text-white px-4 sm:px-6 py-1.5 sm:py-2 rounded hover:bg-gray-600 text-sm sm:text-base"
+              className="w-full sm:w-auto bg-gray-500 text-white px-4 sm:px-6 py-1.5 sm:py-2 rounded-lg hover:bg-gray-600 text-sm sm:text-base"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="w-full sm:w-auto bg-blue-500 text-white px-4 sm:px-6 py-1.5 sm:py-2 rounded hover:bg-blue-600 text-sm sm:text-base"
+              className="w-full sm:w-auto bg-blue-500 text-white px-4 sm:px-6 py-1.5 sm:py-2 rounded-lg hover:bg-blue-600 text-sm sm:text-base"
             >
               Guardar
             </button>

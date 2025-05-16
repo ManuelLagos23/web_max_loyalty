@@ -176,7 +176,7 @@ export default function Subcanales() {
           <div className="flex justify-between mb-2">
             <button
               onClick={() => setIsAddModalOpen(true)}
-              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
             >
               Agregar Subcanal
             </button>
@@ -228,7 +228,7 @@ export default function Subcanales() {
                           });
                           setIsUpdateModalOpen(true);
                         }}
-                        className="bg-yellow-500 text-white px-2 py-1 rounded mr-2 hover:bg-yellow-600"
+                        className="bg-yellow-500 text-white px-2 py-1 rounded-lg mr-2 hover:bg-yellow-600"
                       >
                         Editar
                       </button>
@@ -237,7 +237,7 @@ export default function Subcanales() {
                           setSubcanalToDelete(subcanal);
                           setIsDeleteModalOpen(true);
                         }}
-                        className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
+                        className="bg-red-500 text-white px-2 py-1 rounded-lg hover:bg-red-600"
                       >
                         Eliminar
                       </button>
@@ -251,7 +251,7 @@ export default function Subcanales() {
             <button
               onClick={handlePrevPage}
               disabled={currentPage === 1}
-              className={`px-4 py-2 rounded ${
+              className={`px-4 py-2 rounded-lg ${
                 currentPage === 1 ? 'bg-gray-300' : 'bg-blue-600 text-white hover:bg-blue-700'
               }`}
             >
@@ -263,7 +263,7 @@ export default function Subcanales() {
             <button
               onClick={handleNextPage}
               disabled={currentPage === totalPages}
-              className={`px-4 py-2 rounded ${
+              className={`px-4 py-2 rounded-lg ${
                 currentPage === totalPages ? 'bg-gray-300' : 'bg-blue-600 text-white hover:bg-blue-700'
               }`}
             >
@@ -333,13 +333,13 @@ export default function Subcanales() {
                     <button
                       type="button"
                       onClick={() => setIsAddModalOpen(false)}
-                      className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
+                      className="bg-gray-400 text-white px-4 py-2 rounded-lg hover:bg-gray-500"
                     >
                       Cancelar
                     </button>
                     <button
                       type="submit"
-                      className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                      className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
                     >
                       Agregar
                     </button>
@@ -411,13 +411,13 @@ export default function Subcanales() {
                     <button
                       type="button"
                       onClick={() => setIsUpdateModalOpen(false)}
-                      className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
+                      className="bg-gray-400 text-white px-4 py-2 rounded-lg hover:bg-gray-500"
                     >
                       Cancelar
                     </button>
                     <button
                       type="submit"
-                      className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                      className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
                     >
                       Actualizar
                     </button>
@@ -444,13 +444,13 @@ export default function Subcanales() {
                   <button
                     type="button"
                     onClick={() => setIsDeleteModalOpen(false)}
-                    className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
+                    className="bg-gray-400 text-white px-4 py-2 rounded-lg hover:bg-gray-500"
                   >
                     Cancelar
                   </button>
                   <button
                     onClick={handleDelete}
-                    className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+                    className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700"
                   >
                     Eliminar
                   </button>

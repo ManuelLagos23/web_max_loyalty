@@ -1,9 +1,11 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { Suspense, useState, useEffect, useCallback } from 'react';
 import Navbar from '../components/Navbar';
+import CustomAlert from '@/app/components/CustomAlert';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 interface Cliente {
   id: number;
@@ -23,6 +25,22 @@ interface Cliente {
   logo?: string | null;
 }
 
+function AlertSection({ setAlert }: { setAlert: (alert: { message: string; type: 'success' | 'error' } | null) => void }) {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  useEffect(() => {
+    const alertType = searchParams.get('alert');
+    const message = searchParams.get('message');
+    if (alertType && message) {
+      setAlert({ type: alertType as 'success' | 'error', message: decodeURIComponent(message) });
+      router.replace('/clientes');
+    }
+  }, [searchParams, router, setAlert]);
+
+  return null; // No renderiza nada directamente, solo maneja la lógica de alertas
+}
+
 export default function Clientes() {
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -31,6 +49,8 @@ export default function Clientes() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [alert, setAlert] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const router = useRouter();
 
   const fetchClientes = useCallback(async () => {
     try {
@@ -53,6 +73,13 @@ export default function Clientes() {
   useEffect(() => {
     fetchClientes();
   }, [fetchClientes]);
+
+  const handleAlertClose = () => {
+    if (alert?.type === 'success') {
+      router.push('/clientes'); // Ensure no redirect loop
+    }
+    setAlert(null);
+  };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
@@ -79,7 +106,6 @@ export default function Clientes() {
         method: 'DELETE',
       });
       if (response.ok) {
-        alert('Cliente eliminado exitosamente');
         closeDeletePopup();
         fetchClientes();
       } else {
@@ -133,6 +159,9 @@ export default function Clientes() {
       <Navbar />
       <div className="flex-1 flex flex-col">
         <main className="flex-1 p-8 bg-white">
+          <Suspense fallback={<></>}>
+            <AlertSection setAlert={setAlert} />
+          </Suspense>
           <div className="space-y-2">
             <h1
               className="text-4xl font-bold text-gray-900 mb-4 
@@ -149,9 +178,17 @@ export default function Clientes() {
             </p>
           </div>
 
+          {alert && (
+            <CustomAlert
+              type={alert.type}
+              message={alert.message}
+              onClose={handleAlertClose}
+            />
+          )}
+
           <div className="flex justify-between mb-4">
             <Link href="/clientes/crear">
-              <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+              <button className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
                 Agregar cliente
               </button>
             </Link>
@@ -216,13 +253,13 @@ export default function Clientes() {
                     <td className="px-4 py-2">{cliente.nfi}</td>
                     <td className="px-4 py-2 flex space-x-2">
                       <Link href={`/clientes/editar/${cliente.id}`}>
-                        <button className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 mr-2">
+                        <button className="bg-yellow-500 text-white px-3 py-1 rounded-lg hover:bg-yellow-600 mr-2">
                           Editar
                         </button>
                       </Link>
                       <button
                         onClick={() => openDeletePopup(cliente)}
-                        className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
+                        className="bg-red-500 text-white px-2 py-1 rounded-lg hover:bg-red-600"
                       >
                         Eliminar
                       </button>

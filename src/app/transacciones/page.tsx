@@ -2,20 +2,36 @@
 
 import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
+
 type Transaccion = {
   id: number;
-  cliente_id: number;
-  cliente_nombre: string | null;
-  establecimiento_id: number;
+  cliente_nombre: string;
+  establecimiento_nombre: string;
   fecha: string;
   monto: number;
-  terminal_id: number;
+  terminal_nombre: string;
   numero_tarjeta: string | null;
-  estado: boolean;
+  estado: string | null;
+  unidades: number;
+  descuento: number;
+  canal_nombre: string;
+  tipo_combustible_nombre: string;
+};
+
+type Canal = {
+  id: number;
+  nombre_canal: string;
+};
+
+type TipoCombustible = {
+  id: number;
+  nombre_combustible: string;
 };
 
 export default function Transacciones() {
   const [transacciones, setTransacciones] = useState<Transaccion[]>([]);
+  const [canales, setCanales] = useState<Canal[]>([]);
+  const [tiposCombustible, setTiposCombustible] = useState<TipoCombustible[]>([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -25,6 +41,10 @@ export default function Transacciones() {
     fecha: '',
     monto: 0,
     terminal_id: 0,
+    unidades: 0,
+    descuento: 0,
+    canal_id: 0,
+    tipo_combustible_id: 0,
   });
   const [transaccionToUpdate, setTransaccionToUpdate] = useState<Transaccion | null>(null);
   const [transaccionToDelete, setTransaccionToDelete] = useState<Transaccion | null>(null);
@@ -40,14 +60,43 @@ export default function Transacciones() {
         setTransacciones(data);
       }
     };
+
+    const fetchCanales = async () => {
+      const response = await fetch('/api/canales');
+      if (response.ok) {
+        const data = await response.json();
+        setCanales(data);
+      }
+    };
+
+    const fetchTiposCombustible = async () => {
+      const response = await fetch('/api/tipos_combustible');
+      if (response.ok) {
+        const data = await response.json();
+        setTiposCombustible(data);
+      }
+    };
+
     fetchTransacciones();
+    fetchCanales();
+    fetchTiposCombustible();
   }, [currentPage]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setTransaccionData((prevData) => ({
       ...prevData,
-      [name]: name === 'cliente_id' || name === 'establecimiento_id' || name === 'monto' || name === 'terminal_id' ? Number(value) : value,
+      [name]:
+        name === 'cliente_id' ||
+        name === 'establecimiento_id' ||
+        name === 'monto' ||
+        name === 'terminal_id' ||
+        name === 'unidades' ||
+        name === 'descuento' ||
+        name === 'canal_id' ||
+        name === 'tipo_combustible_id'
+          ? Number(value)
+          : value,
     }));
   };
 
@@ -59,6 +108,10 @@ export default function Transacciones() {
     formData.append('fecha', transaccionData.fecha);
     formData.append('monto', String(transaccionData.monto));
     formData.append('terminal_id', String(transaccionData.terminal_id));
+    formData.append('unidades', String(transaccionData.unidades));
+    formData.append('descuento', String(transaccionData.descuento));
+    formData.append('canal_id', String(transaccionData.canal_id));
+    formData.append('tipo_combustible_id', String(transaccionData.tipo_combustible_id));
 
     const response = await fetch('/api/transacciones', {
       method: 'POST',
@@ -69,7 +122,17 @@ export default function Transacciones() {
       const newTransaccion = await response.json();
       alert('Transacción agregada exitosamente');
       setTransacciones((prev) => [...prev, newTransaccion.data]);
-      setTransaccionData({ cliente_id: 0, establecimiento_id: 0, fecha: '', monto: 0, terminal_id: 0 });
+      setTransaccionData({
+        cliente_id: 0,
+        establecimiento_id: 0,
+        fecha: '',
+        monto: 0,
+        terminal_id: 0,
+        unidades: 0,
+        descuento: 0,
+        canal_id: 0,
+        tipo_combustible_id: 0,
+      });
       setIsAddModalOpen(false);
     } else {
       alert('Error al agregar la transacción');
@@ -86,8 +149,12 @@ export default function Transacciones() {
       formData.append('fecha', transaccionData.fecha);
       formData.append('monto', String(transaccionData.monto));
       formData.append('terminal_id', String(transaccionData.terminal_id));
+      formData.append('unidades', String(transaccionData.unidades));
+      formData.append('descuento', String(transaccionData.descuento));
+      formData.append('canal_id', String(transaccionData.canal_id));
+      formData.append('tipo_combustible_id', String(transaccionData.tipo_combustible_id));
 
-      const response = await fetch(`/api/transacciones`, {
+      const response = await fetch('/api/transacciones', {
         method: 'PUT',
         body: formData,
       });
@@ -100,7 +167,17 @@ export default function Transacciones() {
             transaccion.id === updatedTransaccion.data.id ? updatedTransaccion.data : transaccion
           )
         );
-        setTransaccionData({ cliente_id: 0, establecimiento_id: 0, fecha: '', monto: 0, terminal_id: 0 });
+        setTransaccionData({
+          cliente_id: 0,
+          establecimiento_id: 0,
+          fecha: '',
+          monto: 0,
+          terminal_id: 0,
+          unidades: 0,
+          descuento: 0,
+          canal_id: 0,
+          tipo_combustible_id: 0,
+        });
         setIsUpdateModalOpen(false);
       } else {
         alert('Error al actualizar la transacción');
@@ -147,37 +224,25 @@ export default function Transacciones() {
 
   return (
     <div className="min-h-screen flex">
-      {/* Navbar lateral */}
       <Navbar />
-      {/* Área principal */}
       <div className="flex-1 flex flex-col">
-        {/* Menú horizontal */}
-    
-        {/* Contenido principal */}
         <main className="flex-1 p-8 bg-white">
-        <div className="space-y-4">
-  <h1
-    className="text-4xl font-bold text-gray-900 mb-2
-    bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
-    transition-all duration-300 text-center"
-  >
-    Gestión de Transacciones
-  </h1>
-  <p
-    className="text-center text-black leading-relaxed max-w-2xl
-    p-2 rounded-lg transition-all duration-300 hover:shadow-md mx-auto"
-  >
-    Administra las transacciones de Max Loyalty.
-  </p>
-</div>
-<div className="flex justify-between mb-2">
-  <button
-    onClick={() => setIsAddModalOpen(true)}
-    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-  >
-    Agregar Transacción
-  </button>
-</div>
+          <div className="space-y-4">
+            <h1 className="text-4xl font-bold text-gray-900 mb-2 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent transition-all duration-300 text-center">
+              Gestión de Transacciones
+            </h1>
+            <p className="text-center text-black leading-relaxed max-w-2xl p-2 rounded-lg transition-all duration-300 hover:shadow-md mx-auto">
+              Administra las transacciones de Max Loyalty.
+            </p>
+          </div>
+          <div className="flex justify-between mb-2">
+            <button
+              onClick={() => setIsAddModalOpen(true)}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+            >
+              Agregar Transacción
+            </button>
+          </div>
           <div className="mb-6">
             <input
               type="text"
@@ -194,7 +259,6 @@ export default function Transacciones() {
             <thead className="bg-gray-200">
               <tr>
                 <th className="px-4 py-2">#</th>
-                <th className="px-4 py-2" hidden>Cliente ID</th>
                 <th className="px-4 py-2">Cliente</th>
                 <th className="px-4 py-2">Establecimiento</th>
                 <th className="px-4 py-2">Fecha</th>
@@ -202,40 +266,58 @@ export default function Transacciones() {
                 <th className="px-4 py-2">Terminal</th>
                 <th className="px-4 py-2">Número de Tarjeta</th>
                 <th className="px-4 py-2">Estado</th>
+                <th className="px-4 py-2">Unidades</th>
+                <th className="px-4 py-2">Descuento</th>
+                <th className="px-4 py-2">Canal</th>
+                <th className="px-4 py-2">Tipo Combustible</th>
                 <th className="px-4 py-2">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {currentTransacciones.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="px-4 py-2 text-center">No hay transacciones disponibles</td>
+                  <td colSpan={13} className="px-4 py-2 text-center">
+                    No hay transacciones disponibles
+                  </td>
                 </tr>
               ) : (
                 currentTransacciones.map((transaccion, index) => (
                   <tr className="hover:bg-gray-50" key={transaccion.id}>
                     <td className="px-4 py-2 text-center">{indexOfFirstItem + index + 1}</td>
-                    <td className="px-4 py-2 text-center" hidden>{transaccion.cliente_id}</td>
                     <td className="px-4 py-2 text-center">{transaccion.cliente_nombre ?? 'Sin cliente'}</td>
-                    <td className="px-4 py-2 text-center">{transaccion.establecimiento_id}</td>
+                    <td className="px-4 py-2 text-center">{transaccion.establecimiento_nombre}</td>
                     <td className="px-4 py-2">{new Date(transaccion.fecha).toLocaleDateString()}</td>
-                    <td className="px-4 py-2 text-center">{transaccion.monto}</td>
-                    <td className="px-4 py-2 text-center">{transaccion.terminal_id}</td>
+                    <td className="px-4 py-2 text-center">{transaccion.monto.toFixed(2)}</td>
+                    <td className="px-4 py-2 text-center">{transaccion.terminal_nombre}</td>
                     <td className="px-4 py-2 text-center">{transaccion.numero_tarjeta ?? 'Sin tarjeta'}</td>
-                    <td className="px-4 py-2 text-center">{transaccion.estado ? 'Validada' : 'Cancelada'}</td>
+                    <td className="px-4 py-2 text-center">{transaccion.estado ?? 'N/A'}</td>
+                 <td className="px-4 py-2 text-center">
+  {transaccion.unidades != null ? transaccion.unidades.toFixed(2) : 'N/A'}
+</td>
+    <td className="px-4 py-2 text-center">
+  {transaccion.descuento != null ? transaccion.descuento.toFixed(2) : 'N/A'}
+</td>
+
+                    <td className="px-4 py-2 text-center">{transaccion.canal_nombre}</td>
+                    <td className="px-4 py-2 text-center">{transaccion.tipo_combustible_nombre}</td>
                     <td className="px-4 py-2 text-center">
                       <button
                         onClick={() => {
                           setTransaccionToUpdate(transaccion);
                           setTransaccionData({
-                            cliente_id: transaccion.cliente_id,
-                            establecimiento_id: transaccion.establecimiento_id,
-                            fecha: transaccion.fecha,
+                            cliente_id: 0, // Must fetch ID from API or store mapping
+                            establecimiento_id: 0,
+                            fecha: transaccion.fecha.split('T')[0],
                             monto: transaccion.monto,
-                            terminal_id: transaccion.terminal_id,
+                            terminal_id: 0,
+                            unidades: transaccion.unidades,
+                            descuento: transaccion.descuento,
+                            canal_id: 0,
+                            tipo_combustible_id: 0,
                           });
                           setIsUpdateModalOpen(true);
                         }}
-                        className="bg-yellow-500 text-white px-2 py-1 rounded mr-2"
+                        className="bg-yellow-500 text-white px-2 py-1 rounded-lg mr-2"
                       >
                         Editar
                       </button>
@@ -244,7 +326,7 @@ export default function Transacciones() {
                           setTransaccionToDelete(transaccion);
                           setIsDeleteModalOpen(true);
                         }}
-                        className="bg-red-500 text-white px-2 py-1 rounded"
+                        className="bg-red-500 text-white px-2 py-1 rounded-lg"
                       >
                         Eliminar
                       </button>
@@ -258,7 +340,7 @@ export default function Transacciones() {
             <button
               onClick={handlePrevPage}
               disabled={currentPage === 1}
-              className={`px-4 py-2 rounded ${currentPage === 1 ? 'bg-gray-300' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+              className={`px-4 py-2 rounded-lg ${currentPage === 1 ? 'bg-gray-300' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
             >
               Anterior
             </button>
@@ -266,7 +348,7 @@ export default function Transacciones() {
             <button
               onClick={handleNextPage}
               disabled={currentPage === totalPages}
-              className={`px-4 py-2 rounded ${currentPage === totalPages ? 'bg-gray-300' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+              className={`px-4 py-2 rounded-lg ${currentPage === totalPages ? 'bg-gray-300' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
             >
               Siguiente
             </button>
@@ -332,6 +414,7 @@ export default function Transacciones() {
                       name="monto"
                       value={transaccionData.monto}
                       onChange={handleInputChange}
+                      step="0.01"
                       className="w-full px-4 py-2 border border-gray-300 rounded-md"
                     />
                   </div>
@@ -347,6 +430,72 @@ export default function Transacciones() {
                       onChange={handleInputChange}
                       className="w-full px-4 py-2 border border-gray-300 rounded-md"
                     />
+                  </div>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium mb-2" htmlFor="unidades">
+                      Unidades
+                    </label>
+                    <input
+                      type="number"
+                      id="unidades"
+                      name="unidades"
+                      value={transaccionData.unidades}
+                      onChange={handleInputChange}
+                      step="0.01"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium mb-2" htmlFor="descuento">
+                      Descuento
+                    </label>
+                    <input
+                      type="number"
+                      id="descuento"
+                      name="descuento"
+                      value={transaccionData.descuento}
+                      onChange={handleInputChange}
+                      step="0.01"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium mb-2" htmlFor="canal_id">
+                      Canal
+                    </label>
+                    <select
+                      id="canal_id"
+                      name="canal_id"
+                      value={transaccionData.canal_id}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                    >
+                      <option value="0">Seleccione un canal</option>
+                      {canales.map((canal) => (
+                        <option key={canal.id} value={canal.id}>
+                          {canal.nombre_canal}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium mb-2" htmlFor="tipo_combustible_id">
+                      Tipo Combustible
+                    </label>
+                    <select
+                      id="tipo_combustible_id"
+                      name="tipo_combustible_id"
+                      value={transaccionData.tipo_combustible_id}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                    >
+                      <option value="0">Seleccione un tipo de combustible</option>
+                      {tiposCombustible.map((tipo) => (
+                        <option key={tipo.id} value={tipo.id}>
+                          {tipo.nombre_combustible}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div className="flex justify-between">
                     <button
@@ -428,6 +577,7 @@ export default function Transacciones() {
                       name="monto"
                       value={transaccionData.monto}
                       onChange={handleInputChange}
+                      step="0.01"
                       className="w-full px-4 py-2 border border-gray-300 rounded-md"
                     />
                   </div>
@@ -443,6 +593,72 @@ export default function Transacciones() {
                       onChange={handleInputChange}
                       className="w-full px-4 py-2 border border-gray-300 rounded-md"
                     />
+                  </div>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium mb-2" htmlFor="unidades">
+                      Unidades
+                    </label>
+                    <input
+                      type="number"
+                      id="unidades"
+                      name="unidades"
+                      value={transaccionData.unidades}
+                      onChange={handleInputChange}
+                      step="0.01"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium mb-2" htmlFor="descuento">
+                      Descuento
+                    </label>
+                    <input
+                      type="number"
+                      id="descuento"
+                      name="descuento"
+                      value={transaccionData.descuento}
+                      onChange={handleInputChange}
+                      step="0.01"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium mb-2" htmlFor="canal_id">
+                      Canal
+                    </label>
+                    <select
+                      id="canal_id"
+                      name="canal_id"
+                      value={transaccionData.canal_id}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                    >
+                      <option value="0">Seleccione un canal</option>
+                      {canales.map((canal) => (
+                        <option key={canal.id} value={canal.id}>
+                          {canal.nombre_canal}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium mb-2" htmlFor="tipo_combustible_id">
+                      Tipo Combustible
+                    </label>
+                    <select
+                      id="tipo_combustible_id"
+                      name="tipo_combustible_id"
+                      value={transaccionData.tipo_combustible_id}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                    >
+                      <option value="0">Seleccione un tipo de combustible</option>
+                      {tiposCombustible.map((tipo) => (
+                        <option key={tipo.id} value={tipo.id}>
+                          {tipo.nombre_combustible}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div className="flex justify-between">
                     <button
