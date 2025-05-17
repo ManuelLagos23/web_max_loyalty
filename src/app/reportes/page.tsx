@@ -7,6 +7,8 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
+import { usePathname } from 'next/navigation';
+
 
 interface Establecimiento {
   id: number;
@@ -33,6 +35,8 @@ export default function Reportes() {
   const [loading, setLoading] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const itemsPerPage = 10;
+  const pathname = usePathname();
+
 
   useEffect(() => {
     const fetchEstablecimientos = async () => {
@@ -214,17 +218,24 @@ export default function Reportes() {
               <h1 className="text-4xl font-bold text-gray-900 mb-4 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent transition-all duration-300 text-center">
                 Reportes
               </h1>
-              <nav className="flex justify-center space-x-4">
-                {reportRoutes.map((reporte) => (
-                  <Link key={reporte.name} href={reporte.href}>
-                    <button
-                      className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-blue-600 hover:text-white transition-all duration-300"
-                    >
-                      {reporte.name}
-                    </button>
-                  </Link>
-                ))}
-              </nav>
+          <nav className="flex justify-center space-x-4">
+  {reportRoutes.map((reporte) => {
+    const isActive = pathname === reporte.href;
+    return (
+      <Link key={reporte.name} href={reporte.href}>
+        <button
+          className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-300 ${
+            isActive
+              ? 'bg-blue-600 text-white'
+              : 'text-gray-700 bg-gray-200 hover:bg-blue-600 hover:text-white'
+          }`}
+        >
+          {reporte.name}
+        </button>
+      </Link>
+    );
+  })}
+</nav>
             </div>
 
             <div className="mt-6 bg-gray-100 p-4 rounded-lg shadow-md max-w-3xl mx-auto">
