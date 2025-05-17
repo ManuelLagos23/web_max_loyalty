@@ -118,7 +118,9 @@ export default function CrearTerminal() {
     <div className="min-h-screen flex items-center justify-center bg-gray-100 py-4 px-3 sm:px-4 lg:px-6">
         <Navbar />
       <div className="w-full max-w-2xl sm:max-w-5xl bg-white border border-gray-300 p-6 sm:p-10 mx-auto">
-        <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-10 text-center">Crear Terminal</h1>
+        <h1 className="text-4xl font-bold text-gray-900 mb-4 
+              bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
+              transition-all duration-300 text-center">Crear Terminal</h1>
         <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
           <div>
             <label htmlFor="empresa" className="block text-center text-base sm:text-lg font-medium">

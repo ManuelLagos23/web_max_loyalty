@@ -8,9 +8,9 @@ import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 
-interface Establecimiento {
+interface Canal {
   id: number;
-  nombre_centro_costos: string;
+  canal: string;
 }
 
 interface Transaccion {
@@ -26,8 +26,8 @@ interface Transaccion {
 export default function Reportes() {
   const [fechaInicio, setFechaInicio] = useState<string>('');
   const [fechaFinal, setFechaFinal] = useState<string>('');
-  const [establecimientoId, setEstablecimientoId] = useState<string>('');
-  const [establecimientos, setEstablecimientos] = useState<Establecimiento[]>([]);
+  const [canalId, setCanalId] = useState<string>('');
+  const [canales, setCanales] = useState<Canal[]>([]);
   const [transacciones, setTransacciones] = useState<Transaccion[]>([]);
   const [error, setError] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
@@ -35,25 +35,30 @@ export default function Reportes() {
   const itemsPerPage = 10;
 
   useEffect(() => {
-    const fetchEstablecimientos = async () => {
+    const fetchCanales = async () => {
       try {
-        const response = await fetch('/api/costos', { method: 'GET' });
+        const response = await fetch('/api/canales', { method: 'GET' });
         if (response.ok) {
           const data = await response.json();
-          setEstablecimientos(data);
+          if (Array.isArray(data)) {
+            setCanales(data);
+          } else {
+            console.error('Expected an array for canales, received:', data);
+            setError('Datos de canales no válidos.');
+          }
         } else {
           const { message } = await response.json();
-          setError(message || 'Error al obtener los establecimientos.');
+          setError(message || 'Error al obtener los canales.');
         }
       } catch (err) {
-        console.error('Error al obtener establecimientos:', err);
+        console.error('Error al obtener canales:', err);
         setError('Error al conectar con el servidor.');
       }
     };
-    fetchEstablecimientos();
+    fetchCanales();
   }, []);
 
-  const isButtonDisabled = !fechaInicio || !fechaFinal || !establecimientoId;
+  const isButtonDisabled = !fechaInicio || !fechaFinal || !canalId;
 
   const handleObtenerReporte = async () => {
     setError('');
@@ -62,21 +67,26 @@ export default function Reportes() {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/reporte_general', {
+      const response = await fetch('/api/reporte_canal', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           fechaInicio,
           fechaFinal,
-          establecimientoId: parseInt(establecimientoId),
+          canalId: parseInt(canalId),
         }),
       });
 
       if (response.ok) {
         const data = await response.json();
-        setTransacciones(data);
-        if (data.length === 0) {
-          setError('No se encontraron transacciones para los criterios seleccionados.');
+        if (Array.isArray(data)) {
+          setTransacciones(data);
+          if (data.length === 0) {
+            setError('No se encontraron transacciones para los criterios seleccionados.');
+          }
+        } else {
+          console.error('Expected an array for transacciones, received:', data);
+          setError('Datos de transacciones no válidos.');
         }
       } else {
         const { message, error } = await response.json();
@@ -105,15 +115,15 @@ export default function Reportes() {
   // PDF Export
   const exportToPDF = () => {
     const doc = new jsPDF();
-    const establecimiento = establecimientos.find((est) => est.id === parseInt(establecimientoId));
-    const establecimientoNombre = establecimiento?.nombre_centro_costos || 'Desconocido';
+    const canal = canales.find((c) => c.id === parseInt(canalId));
+    const canalNombre = canal?.canal || 'Desconocido';
 
     doc.setFontSize(16);
-    doc.text('Reporte de Transacciones', 14, 20);
+    doc.text('Reporte de Transacciones por Canal', 14, 20);
     doc.setFontSize(12);
     doc.text(`Fecha Inicio: ${fechaInicio || 'N/A'}`, 14, 30);
     doc.text(`Fecha Final: ${fechaFinal || 'N/A'}`, 14, 40);
-    doc.text(`Establecimiento: ${establecimientoNombre}`, 14, 50);
+    doc.text(`Canal: ${canalNombre}`, 14, 50);
 
     autoTable(doc, {
       startY: 60,
@@ -130,24 +140,27 @@ export default function Reportes() {
       styles: { fontSize: 10 },
       headStyles: { fillColor: [66, 153, 225] },
     });
-    doc.save(`reporte_transacciones_${fechaInicio}_${fechaFinal}.pdf`);
+    doc.save(`reporte_transacciones_canal_${fechaInicio}_${fechaFinal}.pdf`);
   };
 
   // Excel Export
   const exportToExcel = () => {
-    const establecimiento = establecimientos.find((est) => est.id === parseInt(establecimientoId));
-    const establecimientoNombre = establecimiento?.nombre_centro_costos || 'Desconocido';
+    const canal = canales.find((c) => c.id === parseInt(canalId));
+    const canalNombre = canal?.canal || 'Desconocido';
 
+    // Debug log to verify transaction count
     console.log('Exporting transactions:', transacciones);
 
+    // Create header rows
     const headerData = [
       { Canal: `Fecha Inicio: ${fechaInicio || 'N/A'}`, Monto: '', Descuento: '', 'Tipo Combustible': '', Unidades: '', Cliente: '', Fecha: '' },
       { Canal: `Fecha Final: ${fechaFinal || 'N/A'}`, Monto: '', Descuento: '', 'Tipo Combustible': '', Unidades: '', Cliente: '', Fecha: '' },
-      { Canal: `Establecimiento: ${establecimientoNombre}`, Monto: '', Descuento: '', 'Tipo Combustible': '', Unidades: '', Cliente: '', Fecha: '' },
-      { Canal: '', Monto: '', Descuento: '', 'Tipo Combustible': '', Unidades: '', Cliente: '', Fecha: '' },
-      { Canal: 'Canal', Monto: 'Monto', Descuento: 'Descuento', 'Tipo Combustible': 'Tipo Combustible', Unidades: 'Unidades', Cliente: 'Cliente', Fecha: 'Fecha' },
+      { Canal: `Canal: ${canalNombre}`, Monto: '', Descuento: '', 'Tipo Combustible': '', Unidades: '', Cliente: '', Fecha: '' },
+      { Canal: '', Monto: '', Descuento: '', 'Tipo Combustible': '', Unidades: '', Cliente: '', Fecha: '' }, // Empty row
+      { Canal: 'Canal', Monto: 'Monto', Descuento: 'Descuento', 'Tipo Combustible': 'Tipo Combustible', Unidades: 'Unidades', Cliente: 'Cliente', Fecha: 'Fecha' }, // Column headers
     ];
 
+    // Create transaction rows
     const transactionData = transacciones.map((t) => ({
       Canal: t.canal ?? 'N/A',
       Monto: t.monto.toFixed(2),
@@ -158,10 +171,13 @@ export default function Reportes() {
       Fecha: new Date(t.fecha).toLocaleDateString(),
     }));
 
+    // Combine header and transaction data
     const worksheetData = [...headerData, ...transactionData];
 
+    // Create worksheet without header option to avoid extra columns
     const worksheet = XLSX.utils.json_to_sheet(worksheetData, { skipHeader: true });
 
+    // Set column widths
     worksheet['!cols'] = [
       { wch: 20 },
       { wch: 10 },
@@ -172,33 +188,27 @@ export default function Reportes() {
       { wch: 15 },
     ];
 
+    // Set merges for header rows (first three rows only)
     worksheet['!merges'] = [
       { s: { r: 0, c: 0 }, e: { r: 0, c: 6 } },
       { s: { r: 1, c: 0 }, e: { r: 1, c: 6 } },
       { s: { r: 2, c: 0 }, e: { r: 2, c: 6 } },
     ];
 
-    // Apply bold style to header row (A5:G5)
-    const headerCells = ['A5', 'B5', 'C5', 'D5', 'E5', 'F5', 'G5'];
-    headerCells.forEach((cell) => {
-      if (worksheet[cell]) {
-        worksheet[cell].s = {
-          font: { bold: true },
-        };
-      }
-    });
-
+    // Create workbook and append sheet
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Transacciones');
 
+    // Generate and save file
     const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
     const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
-    saveAs(blob, `reporte_transacciones_${fechaInicio}_${fechaFinal}.xlsx`);
+    saveAs(blob, `reporte_transacciones_canal_${fechaInicio}_${fechaFinal}.xlsx`);
   };
 
+  // Define report routes
   const reportRoutes = [
     { name: 'Reporte general', href: '/reportes' },
-    { name: 'Reporte por canal', href: '/reportes/canal' },
+    { name: 'Reporte por canal', href: '/reportes/canal' }, // Fixed route
     { name: 'Reporte 3', href: '/reportes/reporte3' },
     { name: 'Reporte 4', href: '/reportes/reporte4' },
     { name: 'Reporte 5', href: '/reportes/reporte5' },
@@ -212,7 +222,7 @@ export default function Reportes() {
           <main className="flex-1 p-8">
             <div className="space-y-6">
               <h1 className="text-4xl font-bold text-gray-900 mb-4 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent transition-all duration-300 text-center">
-                Reportes
+                Reporte por canal
               </h1>
               <nav className="flex justify-center space-x-4">
                 {reportRoutes.map((reporte) => (
@@ -258,20 +268,20 @@ export default function Reportes() {
                   />
                 </div>
                 <div>
-                  <label htmlFor="establecimiento" className="block text-sm font-medium text-gray-700">
-                    Establecimiento
+                  <label htmlFor="canal" className="block text-sm font-medium text-gray-700">
+                    Canal
                   </label>
                   <select
-                    id="establecimiento"
-                    value={establecimientoId}
-                    onChange={(e) => setEstablecimientoId(e.target.value)}
+                    id="canal"
+                    value={canalId}
+                    onChange={(e) => setCanalId(e.target.value)}
                     required
                     className="mt-1 block w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                   >
-                    <option value="">Seleccione un establecimiento</option>
-                    {establecimientos.map((est) => (
-                      <option key={est.id} value={est.id}>
-                        {est.nombre_centro_costos}
+                    <option value="">Seleccione un canal</option>
+                    {canales.map((canal) => (
+                      <option key={canal.id} value={canal.id}>
+                        {canal.canal}
                       </option>
                     ))}
                   </select>

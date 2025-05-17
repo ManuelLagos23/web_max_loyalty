@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { ChevronRight, ChevronDown } from 'lucide-react';
 
 export default function Navbar() {
@@ -17,6 +18,7 @@ export default function Navbar() {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
   const router = useRouter();
+  const pathname = usePathname();
 
   const toggleNavbar = () => {
     setIsNavbarVisible(!isNavbarVisible);
@@ -53,6 +55,38 @@ export default function Navbar() {
     const interval = setInterval(updateUserName, 1000);
     return () => clearInterval(interval);
   }, []);
+
+  // Determine which section should be open based on the current route
+  useEffect(() => {
+    setIsMaxLoyaltyOpen(
+      pathname.startsWith('/transacciones') ||
+      pathname.startsWith('/puntos') ||
+      pathname.startsWith('/redimir') ||
+      pathname.startsWith('/tipo_combustible') ||
+      pathname.startsWith('/unidad_medida') ||
+      pathname.startsWith('/precios_semana') ||
+      pathname.startsWith('/descuentos') ||
+      pathname.startsWith('/reportes')
+    );
+    setIsMaxPayOpen(false); // No child routes defined yet
+    setIsGeneralesOpen(
+      pathname.startsWith('/clientes') ||
+      pathname.startsWith('/tarjetas') ||
+      pathname.startsWith('/tipo_de_tarjetas') ||
+      pathname.startsWith('/canales') ||
+      pathname.startsWith('/sub_canales')
+    );
+    setIsConfiguracionesOpen(
+      pathname.startsWith('/terminales') ||
+      pathname.startsWith('/usuarios') ||
+      pathname.startsWith('/miembros') ||
+      pathname.startsWith('/empresas') ||
+      pathname.startsWith('/centro_de_costos') ||
+      pathname.startsWith('/paises') ||
+      pathname.startsWith('/estados') ||
+      pathname.startsWith('/monedas')
+    );
+  }, [pathname]);
 
   const handleMaxLoyaltyClick = () => {
     setIsMaxLoyaltyOpen(!isMaxLoyaltyOpen);
@@ -113,8 +147,7 @@ export default function Navbar() {
         <Link href="/inicio">
           <Image src="/images/logo-max-loyalty-white.png" alt="Logo" width={250} height={250} />
         </Link>
-       <div className="mt-4 h-[calc(100vh-280px)] overflow-y-auto pr-2 custom-scrollbar">
-
+        <div className="mt-4 h-[calc(100vh-280px)] overflow-y-auto pr-2 custom-scrollbar">
           <ul className="space-y-2">
             <li>
               <button
@@ -127,42 +160,82 @@ export default function Navbar() {
               {isMaxLoyaltyOpen && (
                 <ul className="ml-4 space-y-2">
                   <li>
-                    <Link href="/transacciones" className="block p-2 rounded hover:bg-gray-700">
+                    <Link
+                      href="/transacciones"
+                      className={`block p-2 rounded hover:bg-gray-700 ${
+                        pathname === '/transacciones' ? 'active-subitem' : ''
+                      }`}
+                    >
                       Transacciones
                     </Link>
                   </li>
                   <li>
-                    <Link href="/puntos" className="block p-2 rounded hover:bg-gray-700">
+                    <Link
+                      href="/puntos"
+                      className={`block p-2 rounded hover:bg-gray-700 ${
+                        pathname === '/puntos' ? 'active-subitem' : ''
+                      }`}
+                    >
                       Puntos
                     </Link>
                   </li>
                   <li>
-                    <Link href="/redimir" className="block p-2 rounded hover:bg-gray-700">
+                    <Link
+                      href="/redimir"
+                      className={`block p-2 rounded hover:bg-gray-700 ${
+                        pathname === '/redimir' ? 'active-subitem' : ''
+                      }`}
+                    >
                       Canjeados
                     </Link>
                   </li>
                   <li>
-                    <Link href="/tipo_combustible" className="block p-2 rounded hover:bg-gray-700">
+                    <Link
+                      href="/tipo_combustible"
+                      className={`block p-2 rounded hover:bg-gray-700 ${
+                        pathname === '/tipo_combustible' ? 'active-subitem' : ''
+                      }`}
+                    >
                       Tipo de combustible
                     </Link>
                   </li>
                   <li>
-                    <Link href="/unidad_medida" className="block p-2 rounded hover:bg-gray-700">
+                    <Link
+                      href="/unidad_medida"
+                      className={`block p-2 rounded hover:bg-gray-700 ${
+                        pathname === '/unidad_medida' ? 'active-subitem' : ''
+                      }`}
+                    >
                       Unidad medida del producto
                     </Link>
                   </li>
                   <li>
-                    <Link href="/precios_semana" className="block p-2 rounded hover:bg-gray-700">
+                    <Link
+                      href="/precios_semana"
+                      className={`block p-2 rounded hover:bg-gray-700 ${
+                        pathname === '/precios_semana' ? 'active-subitem' : ''
+                      }`}
+                    >
                       Precios de la semana
                     </Link>
                   </li>
                   <li>
-                    <Link href="/descuentos" className="block p-2 rounded hover:bg-gray-700">
+                    <Link
+                      href="/descuentos"
+                      className={`block p-2 rounded hover:bg-gray-700 ${
+                        pathname === '/descuentos' ? 'active-subitem' : ''
+                      }`}
+                    >
                       Descuentos
                     </Link>
                   </li>
                   <li>
-                    <Link href="/reportes" className="block p-2 rounded hover:bg-gray-700">
+                    <Link
+                      href="/reportes"
+                      className={`block p-2 rounded hover:bg-gray-700 ${
+                        pathname === '/reportes' ? 'active-subitem' : ''
+                      }`}
+                    >
                       Reportes
                     </Link>
                   </li>
@@ -173,6 +246,7 @@ export default function Navbar() {
               <button
                 onClick={handleMaxPayClick}
                 className="w-full text-left p-2 rounded hover:bg-gray-700 flex items-center justify-between"
+                hidden
               >
                 Max-Pay
                 <ChevronDown className={`w-5 h-5 transition-transform ${isMaxPayOpen ? 'rotate-180' : ''}`} />
@@ -194,31 +268,55 @@ export default function Navbar() {
               {isGeneralesOpen && (
                 <ul className="ml-4 space-y-2">
                   <li>
-                    <Link href="/clientes" className="flex items-center p-2 rounded hover:bg-gray-700">
+                    <Link
+                      href="/clientes"
+                      className={`block p-2 rounded hover:bg-gray-700 ${
+                        pathname === '/clientes' ? 'active-subitem' : ''
+                      }`}
+                    >
                       Clientes
                     </Link>
                   </li>
                   <li>
-                    <Link href="/tarjetas" className="block p-2 rounded hover:bg-gray-700">
+                    <Link
+                      href="/tarjetas"
+                      className={`block p-2 rounded hover:bg-gray-700 ${
+                        pathname === '/tarjetas' ? 'active-subitem' : ''
+                      }`}
+                    >
                       Tarjetas
                     </Link>
                   </li>
                   <li>
-                    <Link href="/tipo_de_tarjetas" className="block p-2 rounded hover:bg-gray-700">
+                    <Link
+                      href="/tipo_de_tarjetas"
+                      className={`block p-2 rounded hover:bg-gray-700 ${
+                        pathname === '/tipo_de_tarjetas' ? 'active-subitem' : ''
+                      }`}
+                    >
                       Tipos de tarjetas
                     </Link>
                   </li>
                   <li>
-                    <Link href="/canales" className="block p-2 rounded hover:bg-gray-700">
+                    <Link
+                      href="/canales"
+                      className={`block p-2 rounded hover:bg-gray-700 ${
+                        pathname === '/canales' ? 'active-subitem' : ''
+                      }`}
+                    >
                       Canales
                     </Link>
                   </li>
                   <li>
-                    <Link href="/sub_canales" className="block p-2 rounded hover:bg-gray-700">
+                    <Link
+                      href="/sub_canales"
+                      className={`block p-2 rounded hover:bg-gray-700 ${
+                        pathname === '/sub_canales' ? 'active-subitem' : ''
+                      }`}
+                    >
                       Subcanales
                     </Link>
                   </li>
-             
                 </ul>
               )}
             </li>
@@ -233,42 +331,82 @@ export default function Navbar() {
               {isConfiguracionesOpen && (
                 <ul className="ml-4 space-y-2">
                   <li>
-                    <Link href="/terminales" className="flex items-center p-2 rounded hover:bg-gray-700">
+                    <Link
+                      href="/terminales"
+                      className={`block p-2 rounded hover:bg-gray-700 ${
+                        pathname === '/terminales' ? 'active-subitem' : ''
+                      }`}
+                    >
                       Terminales
                     </Link>
                   </li>
                   <li>
-                    <Link href="/usuarios" className="block p-2 rounded hover:bg-gray-700">
+                    <Link
+                      href="/usuarios"
+                      className={`block p-2 rounded hover:bg-gray-700 ${
+                        pathname === '/usuarios' ? 'active-subitem' : ''
+                      }`}
+                    >
                       Usuarios
                     </Link>
                   </li>
                   <li>
-                    <Link href="/miembros" className="block p-2 rounded hover:bg-gray-700">
+                    <Link
+                      href="/miembros"
+                      className={`block p-2 rounded hover:bg-gray-700 ${
+                        pathname === '/miembros' ? 'active-subitem' : ''
+                      }`}
+                    >
                       Usuarios de terminales
                     </Link>
                   </li>
                   <li>
-                    <Link href="/empresas" className="block p-2 rounded hover:bg-gray-700">
+                    <Link
+                      href="/empresas"
+                      className={`block p-2 rounded hover:bg-gray-700 ${
+                        pathname === '/empresas' ? 'active-subitem' : ''
+                      }`}
+                    >
                       Red de empresas
                     </Link>
                   </li>
                   <li>
-                    <Link href="/centro_de_costos" className="block p-2 rounded hover:bg-gray-700">
+                    <Link
+                      href="/centro_de_costos"
+                      className={`block p-2 rounded hover:bg-gray-700 ${
+                        pathname === '/centro_de_costos' ? 'active-subitem' : ''
+                      }`}
+                    >
                       Establecimientos
                     </Link>
                   </li>
                   <li>
-                    <Link href="/paises" className="block p-2 rounded hover:bg-gray-700">
+                    <Link
+                      href="/paises"
+                      className={`block p-2 rounded hover:bg-gray-700 ${
+                        pathname === '/paises' ? 'active-subitem' : ''
+                      }`}
+                    >
                       Paises
                     </Link>
                   </li>
                   <li>
-                    <Link href="/estados" className="flex items-center p-2 rounded hover:bg-gray-700">
+                    <Link
+                      href="/estados"
+                      className={`block p-2 rounded hover:bg-gray-700 ${
+                        pathname === '/estados' ? 'active-subitem' : ''
+                      }`}
+                    >
                       Estados
                     </Link>
                   </li>
                   <li>
-                    <Link href="/monedas" className="flex items-center p-2 rounded hover:bg-gray-700">
+                    <Link
+                      href="/monedas"
+                      className={`block p-2 rounded hover:bg-gray-700 ${
+                        pathname === '/monedas' ? 'active-subitem' : ''
+                      }`}
+                    >
                       Monedas
                     </Link>
                   </li>
@@ -291,7 +429,7 @@ export default function Navbar() {
           </div>
         ) : (
           <>
-            <span>Navbar</span>
+            <span>Menú</span>
             <ChevronRight className="w-5 h-5" />
           </>
         )}
@@ -367,17 +505,40 @@ export default function Navbar() {
       )}
 
       <style jsx>{`
-  .custom-scrollbar::-webkit-scrollbar {
-    width: 0px;
-    background: transparent;
-  }
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 0px;
+          background: transparent;
+        }
 
-  .custom-scrollbar {
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* IE 10+ */
-  }
-`}</style>
+        .custom-scrollbar {
+          scrollbar-width: none; /* Firefox */
+          -ms-overflow-style: none; /* IE 10+ */
+        }
 
+        /* Default style for submenu items */
+        .block {
+          color: white;
+          transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        /* Style for active submenu item */
+        .active-subitem {
+          background-color: #4B5EAA; /* A distinct blue shade */
+          color: white;
+          font-weight: 500;
+        }
+
+        /* Hover effect for active submenu item */
+        .active-subitem:hover {
+          background-color: #6B7280; /* Slightly lighter gray on hover */
+          color: white;
+        }
+
+        /* Ensure non-active items keep their hover effect */
+        .block:hover {
+          background-color: #4B5563; /* Same as hover:bg-gray-700 */
+        }
+      `}</style>
     </div>
   );
 }

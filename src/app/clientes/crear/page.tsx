@@ -129,7 +129,7 @@ export default function CrearCliente() {
       
       <div className="flex items-center justify-center py-4 px-3 sm:px-4 lg:px-6">
         <Navbar />
-        <div className="w-full max-w-xl sm:max-w-4xl bg-white border border-gray-300 p-5 sm:p-8 mx-auto">
+        <div className="w-full max-w-xl sm:max-w-4xl bg-white border p-5 sm:p-8 mx-auto">
           <h1 className="text-4xl font-bold text-gray-900 mb-4 
               bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
               transition-all duration-300 text-center">

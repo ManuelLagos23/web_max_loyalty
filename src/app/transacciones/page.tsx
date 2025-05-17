@@ -20,12 +20,12 @@ type Transaccion = {
 
 type Canal = {
   id: number;
-  nombre_canal: string;
+  canal: string;
 };
 
 type TipoCombustible = {
   id: number;
-  nombre_combustible: string;
+  name: string;
 };
 
 export default function Transacciones() {
@@ -54,26 +54,57 @@ export default function Transacciones() {
 
   useEffect(() => {
     const fetchTransacciones = async () => {
-      const response = await fetch(`/api/transacciones?page=${currentPage}&limit=${itemsPerPage}`);
-      if (response.ok) {
-        const data = await response.json();
-        setTransacciones(data);
+      try {
+        const response = await fetch(`/api/transacciones?page=${currentPage}&limit=${itemsPerPage}`);
+        if (response.ok) {
+          const data = await response.json();
+          setTransacciones(data);
+        } else {
+          console.error('Failed to fetch transacciones:', response.statusText);
+          setTransacciones([]);
+        }
+      } catch (error) {
+        console.error('Error fetching transacciones:', error);
+        setTransacciones([]);
       }
     };
 
     const fetchCanales = async () => {
-      const response = await fetch('/api/canales');
-      if (response.ok) {
-        const data = await response.json();
-        setCanales(data);
+      try {
+        const response = await fetch('/api/canales');
+        if (response.ok) {
+          const data = await response.json();
+          setCanales(data);
+        } else {
+          console.error('Failed to fetch canales:', response.statusText);
+          setCanales([]);
+        }
+      } catch (error) {
+        console.error('Error fetching canales:', error);
+        setCanales([]);
       }
     };
 
     const fetchTiposCombustible = async () => {
-      const response = await fetch('/api/tipos_combustible');
-      if (response.ok) {
-        const data = await response.json();
-        setTiposCombustible(data);
+      try {
+        const response = await fetch('/api/tipos_combustible');
+        if (response.ok) {
+          const data = await response.json();
+          console.log('TiposCombustible data:', data);
+          const tiposArray = data.data || data; // Adjust based on API response structure
+          if (Array.isArray(tiposArray)) {
+            setTiposCombustible(tiposArray);
+          } else {
+            console.error('Expected an array for tiposCombustible, received:', tiposArray);
+            setTiposCombustible([]);
+          }
+        } else {
+          console.error('Failed to fetch tiposCombustible:', response.statusText);
+          setTiposCombustible([]);
+        }
+      } catch (error) {
+        console.error('Error fetching tiposCombustible:', error);
+        setTiposCombustible([]);
       }
     };
 
@@ -113,28 +144,33 @@ export default function Transacciones() {
     formData.append('canal_id', String(transaccionData.canal_id));
     formData.append('tipo_combustible_id', String(transaccionData.tipo_combustible_id));
 
-    const response = await fetch('/api/transacciones', {
-      method: 'POST',
-      body: formData,
-    });
-
-    if (response.ok) {
-      const newTransaccion = await response.json();
-      alert('Transacción agregada exitosamente');
-      setTransacciones((prev) => [...prev, newTransaccion.data]);
-      setTransaccionData({
-        cliente_id: 0,
-        establecimiento_id: 0,
-        fecha: '',
-        monto: 0,
-        terminal_id: 0,
-        unidades: 0,
-        descuento: 0,
-        canal_id: 0,
-        tipo_combustible_id: 0,
+    try {
+      const response = await fetch('/api/transacciones', {
+        method: 'POST',
+        body: formData,
       });
-      setIsAddModalOpen(false);
-    } else {
+
+      if (response.ok) {
+        const newTransaccion = await response.json();
+        alert('Transacción agregada exitosamente');
+        setTransacciones((prev) => [...prev, newTransaccion.data]);
+        setTransaccionData({
+          cliente_id: 0,
+          establecimiento_id: 0,
+          fecha: '',
+          monto: 0,
+          terminal_id: 0,
+          unidades: 0,
+          descuento: 0,
+          canal_id: 0,
+          tipo_combustible_id: 0,
+        });
+        setIsAddModalOpen(false);
+      } else {
+        alert('Error al agregar la transacción');
+      }
+    } catch (error) {
+      console.error('Error submitting add transaccion:', error);
       alert('Error al agregar la transacción');
     }
   };
@@ -154,32 +190,37 @@ export default function Transacciones() {
       formData.append('canal_id', String(transaccionData.canal_id));
       formData.append('tipo_combustible_id', String(transaccionData.tipo_combustible_id));
 
-      const response = await fetch('/api/transacciones', {
-        method: 'PUT',
-        body: formData,
-      });
-
-      if (response.ok) {
-        const updatedTransaccion = await response.json();
-        alert('Transacción actualizada exitosamente');
-        setTransacciones((prev) =>
-          prev.map((transaccion) =>
-            transaccion.id === updatedTransaccion.data.id ? updatedTransaccion.data : transaccion
-          )
-        );
-        setTransaccionData({
-          cliente_id: 0,
-          establecimiento_id: 0,
-          fecha: '',
-          monto: 0,
-          terminal_id: 0,
-          unidades: 0,
-          descuento: 0,
-          canal_id: 0,
-          tipo_combustible_id: 0,
+      try {
+        const response = await fetch('/api/transacciones', {
+          method: 'PUT',
+          body: formData,
         });
-        setIsUpdateModalOpen(false);
-      } else {
+
+        if (response.ok) {
+          const updatedTransaccion = await response.json();
+          alert('Transacción actualizada exitosamente');
+          setTransacciones((prev) =>
+            prev.map((transaccion) =>
+              transaccion.id === updatedTransaccion.data.id ? updatedTransaccion.data : transaccion
+            )
+          );
+          setTransaccionData({
+            cliente_id: 0,
+            establecimiento_id: 0,
+            fecha: '',
+            monto: 0,
+            terminal_id: 0,
+            unidades: 0,
+            descuento: 0,
+            canal_id: 0,
+            tipo_combustible_id: 0,
+          });
+          setIsUpdateModalOpen(false);
+        } else {
+          alert('Error al actualizar la transacción');
+        }
+      } catch (error) {
+        console.error('Error submitting update transaccion:', error);
         alert('Error al actualizar la transacción');
       }
     }
@@ -187,15 +228,20 @@ export default function Transacciones() {
 
   const handleDelete = async () => {
     if (transaccionToDelete) {
-      const response = await fetch(`/api/transacciones/${transaccionToDelete.id}`, {
-        method: 'DELETE',
-      });
+      try {
+        const response = await fetch(`/api/transacciones/${transaccionToDelete.id}`, {
+          method: 'DELETE',
+        });
 
-      if (response.ok) {
-        alert('Transacción eliminada exitosamente');
-        setTransacciones((prev) => prev.filter((transaccion) => transaccion.id !== transaccionToDelete.id));
-        setIsDeleteModalOpen(false);
-      } else {
+        if (response.ok) {
+          alert('Transacción eliminada exitosamente');
+          setTransacciones((prev) => prev.filter((transaccion) => transaccion.id !== transaccionToDelete.id));
+          setIsDeleteModalOpen(false);
+        } else {
+          alert('Error al eliminar la transacción');
+        }
+      } catch (error) {
+        console.error('Error deleting transaccion:', error);
         alert('Error al eliminar la transacción');
       }
     }
@@ -291,13 +337,12 @@ export default function Transacciones() {
                     <td className="px-4 py-2 text-center">{transaccion.terminal_nombre}</td>
                     <td className="px-4 py-2 text-center">{transaccion.numero_tarjeta ?? 'Sin tarjeta'}</td>
                     <td className="px-4 py-2 text-center">{transaccion.estado ?? 'N/A'}</td>
-                 <td className="px-4 py-2 text-center">
-  {transaccion.unidades != null ? transaccion.unidades.toFixed(2) : 'N/A'}
-</td>
-    <td className="px-4 py-2 text-center">
-  {transaccion.descuento != null ? transaccion.descuento.toFixed(2) : 'N/A'}
-</td>
-
+                    <td className="px-4 py-2 text-center">
+                      {transaccion.unidades != null ? transaccion.unidades.toFixed(2) : 'N/A'}
+                    </td>
+                    <td className="px-4 py-2 text-center">
+                      {transaccion.descuento != null ? transaccion.descuento.toFixed(2) : 'N/A'}
+                    </td>
                     <td className="px-4 py-2 text-center">{transaccion.canal_nombre}</td>
                     <td className="px-4 py-2 text-center">{transaccion.tipo_combustible_nombre}</td>
                     <td className="px-4 py-2 text-center">
@@ -305,7 +350,7 @@ export default function Transacciones() {
                         onClick={() => {
                           setTransaccionToUpdate(transaccion);
                           setTransaccionData({
-                            cliente_id: 0, // Must fetch ID from API or store mapping
+                            cliente_id: 0,
                             establecimiento_id: 0,
                             fecha: transaccion.fecha.split('T')[0],
                             monto: transaccion.monto,
@@ -471,11 +516,15 @@ export default function Transacciones() {
                       className="w-full px-4 py-2 border border-gray-300 rounded-md"
                     >
                       <option value="0">Seleccione un canal</option>
-                      {canales.map((canal) => (
-                        <option key={canal.id} value={canal.id}>
-                          {canal.nombre_canal}
-                        </option>
-                      ))}
+                      {Array.isArray(canales) && canales.length > 0 ? (
+                        canales.map((canal) => (
+                          <option key={canal.id} value={canal.id}>
+                            {canal.canal}
+                          </option>
+                        ))
+                      ) : (
+                        <option disabled>No hay canales disponibles</option>
+                      )}
                     </select>
                   </div>
                   <div className="mb-4">
@@ -490,11 +539,15 @@ export default function Transacciones() {
                       className="w-full px-4 py-2 border border-gray-300 rounded-md"
                     >
                       <option value="0">Seleccione un tipo de combustible</option>
-                      {tiposCombustible.map((tipo) => (
-                        <option key={tipo.id} value={tipo.id}>
-                          {tipo.nombre_combustible}
-                        </option>
-                      ))}
+                      {Array.isArray(tiposCombustible) && tiposCombustible.length > 0 ? (
+                        tiposCombustible.map((tipo) => (
+                          <option key={tipo.id} value={tipo.id}>
+                            {tipo.name}
+                          </option>
+                        ))
+                      ) : (
+                        <option disabled>No hay tipos de combustible disponibles</option>
+                      )}
                     </select>
                   </div>
                   <div className="flex justify-between">
@@ -634,11 +687,15 @@ export default function Transacciones() {
                       className="w-full px-4 py-2 border border-gray-300 rounded-md"
                     >
                       <option value="0">Seleccione un canal</option>
-                      {canales.map((canal) => (
-                        <option key={canal.id} value={canal.id}>
-                          {canal.nombre_canal}
-                        </option>
-                      ))}
+                      {Array.isArray(canales) && canales.length > 0 ? (
+                        canales.map((canal) => (
+                          <option key={canal.id} value={canal.id}>
+                            {canal.canal}
+                          </option>
+                        ))
+                      ) : (
+                        <option disabled>No hay canales disponibles</option>
+                      )}
                     </select>
                   </div>
                   <div className="mb-4">
@@ -653,11 +710,15 @@ export default function Transacciones() {
                       className="w-full px-4 py-2 border border-gray-300 rounded-md"
                     >
                       <option value="0">Seleccione un tipo de combustible</option>
-                      {tiposCombustible.map((tipo) => (
-                        <option key={tipo.id} value={tipo.id}>
-                          {tipo.nombre_combustible}
-                        </option>
-                      ))}
+                      {Array.isArray(tiposCombustible) && tiposCombustible.length > 0 ? (
+                        tiposCombustible.map((tipo) => (
+                          <option key={tipo.id} value={tipo.id}>
+                            {tipo.name}
+                          </option>
+                        ))
+                      ) : (
+                        <option disabled>No hay tipos de combustible disponibles</option>
+                      )}
                     </select>
                   </div>
                   <div className="flex justify-between">

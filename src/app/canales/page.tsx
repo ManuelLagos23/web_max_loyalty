@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import NavbarGeneral from '../components/NavbarGeneral';
+import Navbar from '../components/Navbar';
 
 
 type Canal = {
@@ -136,7 +136,7 @@ export default function Canales() {
 
   return (
     <div className="min-h-screen flex">
-      <NavbarGeneral />
+      <Navbar/>
       <div className="flex-1 flex flex-col">
         
         <main className="flex-1 p-8 bg-white">
