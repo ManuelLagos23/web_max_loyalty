@@ -208,7 +208,7 @@ export default function Reportes() {
   // Define report routes
   const reportRoutes = [
     { name: 'Reporte general', href: '/reportes' },
-    { name: 'Reporte por canal', href: '/reportes/canal' }, // Fixed route
+    { name: 'Reporte por canal', href: '/reporte_canal' }, // Fixed route
     { name: 'Reporte 3', href: '/reportes/reporte3' },
     { name: 'Reporte 4', href: '/reportes/reporte4' },
     { name: 'Reporte 5', href: '/reportes/reporte5' },
