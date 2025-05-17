@@ -260,7 +260,7 @@ export default function Reportes() {
                     id="fechaInicio"
                     value={fechaInicio}
                     onChange={(e) => setFechaInicio(e.target.value)}
-                    max="2025-05-15"
+                  
                     required
                     className="mt-1 block w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                   />
@@ -274,7 +274,7 @@ export default function Reportes() {
                     id="fechaFinal"
                     value={fechaFinal}
                     onChange={(e) => setFechaFinal(e.target.value)}
-                    max="2025-05-15"
+                  
                     required
                     className="mt-1 block w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                   />
