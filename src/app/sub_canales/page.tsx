@@ -160,9 +160,9 @@ export default function Subcanales() {
         <main className="flex-1 p-8 bg-white">
           <div className="space-y-4">
             <h1
-              className="text-3xl font-bold text-gray-900 mb-2 tracking-tight 
+              className="text-3xl font-bold text-gray-900 mb-2
               bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
-              transition-all duration-300 hover:scale-105 text-center"
+              transition-all duration-300 text-center"
             >
               Gestión de Subcanales
             </h1>

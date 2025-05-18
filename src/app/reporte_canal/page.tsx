@@ -213,9 +213,9 @@ export default function Reportes() {
   const reportRoutes = [
     { name: 'Reporte general', href: '/reportes' },
     { name: 'Reporte por canal', href: '/reporte_canal' }, // Fixed route
-    { name: 'Reporte 3', href: '/reportes/reporte3' },
-    { name: 'Reporte 4', href: '/reportes/reporte4' },
-    { name: 'Reporte 5', href: '/reportes/reporte5' },
+    { name: 'Reporte 3', href: '#' },
+    { name: 'Reporte 4', href: '#' },
+    { name: 'Reporte 5', href: '#' },
   ];
 
   return (
@@ -256,7 +256,7 @@ export default function Reportes() {
                     Fecha de Inicio
                   </label>
                   <input
-                    type="date"
+                    type="datetime-local"
                     id="fechaInicio"
                     value={fechaInicio}
                     onChange={(e) => setFechaInicio(e.target.value)}
@@ -270,7 +270,7 @@ export default function Reportes() {
                     Fecha Final
                   </label>
                   <input
-                    type="date"
+                      type="datetime-local"
                     id="fechaFinal"
                     value={fechaFinal}
                     onChange={(e) => setFechaFinal(e.target.value)}

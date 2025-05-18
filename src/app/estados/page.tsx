@@ -257,7 +257,7 @@ export default function Estados() {
                   }
                 }}
               >
-                <div className="bg-white p-6 rounded-lg shadow-xl w-1/3 border border-gray-200">
+                <div className="bg-white p-6 rounded-lg shadow-xl w-1/3 border">
                   <div className="text-center">
                     <h2
                       className="text-3xl font-bold text-gray-800 mb-6 tracking-tight 
@@ -312,7 +312,7 @@ export default function Estados() {
                   }
                 }}
               >
-                <div className="bg-white p-6 rounded-lg shadow-xl w-1/3 border border-gray-200">
+                <div className="bg-white p-6 rounded-lg shadow-xl w-1/3 border">
                   <div className="text-center">
                     <h2
                       className="text-3xl font-bold text-gray-800 mb-6 tracking-tight 

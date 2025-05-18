@@ -281,7 +281,7 @@ export default function Transacciones() {
               Administra las transacciones de Max Loyalty.
             </p>
           </div>
-          <div className="flex justify-between mb-2">
+          <div className="flex justify-between mb-2" hidden>
             <button
               onClick={() => setIsAddModalOpen(true)}
               className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
@@ -336,7 +336,8 @@ export default function Transacciones() {
                     <td className="px-4 py-2 text-center">{transaccion.monto.toFixed(2)}</td>
                     <td className="px-4 py-2 text-center">{transaccion.terminal_nombre}</td>
                     <td className="px-4 py-2 text-center">{transaccion.numero_tarjeta ?? 'Sin tarjeta'}</td>
-                    <td className="px-4 py-2 text-center">{transaccion.estado ?? 'N/A'}</td>
+                 
+                       <td className="px-4 py-2 text-center">{transaccion.estado  ? 'Validada' : 'Cancelada'}</td>
                     <td className="px-4 py-2 text-center">
                       {transaccion.unidades != null ? transaccion.unidades.toFixed(2) : 'N/A'}
                     </td>

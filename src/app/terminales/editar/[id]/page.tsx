@@ -165,7 +165,7 @@ export default function EditarTerminal() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 py-4 px-3 sm:px-4 lg:px-6">
       <Navbar />
-      <div className="w-full max-w-2xl sm:max-w-5xl bg-white border border-gray-300 p-6 sm:p-10 mx-auto">
+      <div className="w-full max-w-2xl sm:max-w-5xl bg-white border p-6 sm:p-10 mx-auto">
         <h1 className="text-4xl font-bold text-gray-900 mb-4 
               bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
               transition-all duration-300 text-center">Editar Terminal</h1>
@@ -304,13 +304,13 @@ export default function EditarTerminal() {
             <button
               type="button"
               onClick={() => router.push('/terminales')}
-              className="w-full sm:w-auto bg-gray-500 text-white px-5 sm:px-8 py-2 sm:py-2.5 rounded hover:bg-gray-600 text-base sm:text-lg"
+              className="w-full sm:w-auto bg-gray-500 text-white px-5 sm:px-8 py-2 sm:py-2.5 rounded-lg hover:bg-gray-600 text-base sm:text-lg"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="w-full sm:w-auto bg-blue-500 text-white px-5 sm:px-8 py-2 sm:py-2.5 rounded hover:bg-blue-600 text-base sm:text-lg"
+              className="w-full sm:w-auto bg-blue-500 text-white px-5 sm:px-8 py-2 sm:py-2.5 rounded-lg hover:bg-blue-600 text-base sm:text-lg"
             >
               Guardar
             </button>

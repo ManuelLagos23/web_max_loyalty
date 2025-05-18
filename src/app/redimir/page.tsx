@@ -214,10 +214,11 @@ export default function Canjeados() {
               Administra los puntos canjeados registrados en la plataforma.
             </p>
           </div>
-          <div className="flex justify-between mb-2">
+          <div className="flex justify-between mb-2" hidden>
             <button
               onClick={() => openPopup('agregar')}
               className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+              
             >
               Agregar Canjeado
             </button>

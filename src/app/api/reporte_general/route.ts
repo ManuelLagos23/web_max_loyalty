@@ -18,11 +18,12 @@ export async function POST(request: Request) {
       );
     }
 
+   console.log(fechaInicio, fechaFinal, establecimientoId);
     const costos_id = Number(establecimientoId);
-    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-    if (!dateRegex.test(fechaInicio) || !dateRegex.test(fechaFinal)) {
+    const dateTimeRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
+    if (!dateTimeRegex.test(fechaInicio) || !dateTimeRegex.test(fechaFinal)) {
       return NextResponse.json(
-        { message: 'Formato de fecha inválido (use YYYY-MM-DD)' },
+        { message: 'Formato de fecha y hora inválido (use YYYY-MM-DDThh:mm)' },
         { status: 400 }
       );
     }
@@ -43,7 +44,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Query transactions with joins
+    // Query transactions with joins, using timestamp comparison
     const result = await client.query(
       `SELECT 
          c.canal,
@@ -78,17 +79,17 @@ export async function POST(request: Request) {
     client.release();
 
     return NextResponse.json(transacciones);
-    } catch (error) {
-  const err = error as Error & { code?: string };
-  console.error('Error en la consulta:', {
-    message: err.message,
-    code: err.code,
-    requestBody: await request.json().catch(() => 'Invalid JSON'),
-  });
+  } catch (error) {
+    const err = error as Error & { code?: string };
+    console.error('Error en la consulta:', {
+      message: err.message,
+      code: err.code,
+      requestBody: await request.json().catch(() => 'Invalid JSON'),
+    });
 
-  return NextResponse.json(
-    { message: 'Error en la consulta', error: err.message },
-    { status: 500 }
-  );
-}
+    return NextResponse.json(
+      { message: 'Error en la consulta', error: err.message },
+      { status: 500 }
+    );
+  }
 }

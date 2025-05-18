@@ -40,7 +40,9 @@ export async function GET() {
       `SELECT p.id, p.cliente_id, c.nombre AS cliente_nombre, p.transaccion_id, p.debe, p.haber, p.canjeados_id, p.created_at 
        FROM puntos p
        LEFT JOIN clientes c ON p.cliente_id = c.id
-       where p.estado= true`
+       where p.estado= true
+       order by id desc
+       `
     );
     client.release();
 

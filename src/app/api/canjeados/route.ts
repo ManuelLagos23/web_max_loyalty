@@ -53,7 +53,8 @@ export async function GET() {
        FROM canjeados c
        LEFT JOIN clientes cl ON c.cliente_id = cl.id
        LEFT JOIN costos cs ON c.establecimiento_id = cs.id
-       LEFT JOIN terminales tr ON c.terminal_id = tr.id`
+       LEFT JOIN terminales tr ON c.terminal_id = tr.id
+       order by id desc`
     );
     client.release();
 

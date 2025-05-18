@@ -117,6 +117,7 @@ export async function GET() {
       LEFT JOIN terminales te ON t.terminal_id = te.id
       LEFT JOIN canales ca ON t.canal_id = ca.id
       LEFT JOIN tipo_combustible tc ON t.tipo_combustible_id = tc.id
+      order by id desc
       `
     );
     client.release();

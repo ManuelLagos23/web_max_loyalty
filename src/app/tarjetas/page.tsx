@@ -48,14 +48,12 @@ export default function Tarjetas() {
 
   const generateCardNumber = async () => {
     try {
-    
       const response = await fetch('/api/tarjetas?tipo=generar', {
         method: 'GET',
       });
 
       if (response.ok) {
         const data = await response.json();
-  
         return data.numero_tarjeta;
       } else {
         console.error('Error al generar número de tarjeta:', response.status, response.statusText);
@@ -70,12 +68,10 @@ export default function Tarjetas() {
 
   const openPopup = async (modo: 'agregar' | 'editar') => {
     try {
-
       setIsPopupOpen(true);
       if (modo === 'agregar') {
         setTarjetaSeleccionada(null);
         const newCardNumber = await generateCardNumber();
-     
         setFormData({
           id: 0,
           numero_tarjeta: newCardNumber,
@@ -91,7 +87,6 @@ export default function Tarjetas() {
   };
 
   const closePopup = () => {
-
     setIsPopupOpen(false);
   };
 
@@ -201,75 +196,73 @@ export default function Tarjetas() {
       alert('Error al eliminar la tarjeta');
     }
   };
-const handlePrintCard = async (tarjeta: Tarjeta) => {
-  const mmToPt = (mm: number) => mm * 2.83465;
-  const width = mmToPt(102.72);
-  const height = mmToPt(64.776);
 
-  const doc = new jsPDF({
-    orientation: 'landscape',
-    unit: 'pt',
-    format: [width, height],
-  });
+  const handlePrintCard = async (tarjeta: Tarjeta) => {
+    const mmToPt = (mm: number) => mm * 2.83465;
+    const width = mmToPt(102.72);
+    const height = mmToPt(64.776);
 
-  const frontImage = new Image();
-  frontImage.src = '/images/logo-max-card.png';
+    const doc = new jsPDF({
+      orientation: 'landscape',
+      unit: 'pt',
+      format: [width, height],
+    });
 
-  frontImage.onload = () => {
+    const frontImage = new Image();
+    frontImage.src = '/images/logo-max-card.png';
 
-    doc.addImage(frontImage, 'PNG', 0, 0, width, height);
+    frontImage.onload = () => {
+      doc.addImage(frontImage, 'PNG', 0, 0, width, height);
 
-    const marginLeft = 10;
-    const marginRight = 100;
-    const bottomMargin = 10;
-    const numberY = height - bottomMargin - 16;
-    const nameY = height - bottomMargin;
-    const canalY = 30; // Moved lower to 40 pt
-    const canalX = 30; // Moved more to the left to 20 pt
+      const marginLeft = 10;
+      const marginRight = 170;
+      const bottomMargin = 10;
+      const numberY = height - bottomMargin - 16;
+      const nameY = height - bottomMargin;
 
-    doc.setFont('Helvetica', 'normal');
-    doc.setFontSize(12);
-    doc.setTextColor('#000000');
+      doc.setFont('Helvetica', 'normal');
+      doc.setFontSize(12);
+      doc.setTextColor('#000000');
 
-    // Add codigo_canal at the top, next to the contactless icon
-  
-    doc.text(tarjeta.codigo_canal, canalX, canalY);
+      doc.text(tarjeta.numero_tarjeta, marginLeft, numberY);
 
+      doc.setFont('Helvetica', 'bold');
+      doc.setFontSize(12);
+      doc.text(tarjeta.cliente_nombre, marginLeft, nameY);
 
-    doc.text(tarjeta.numero_tarjeta, marginLeft, numberY);
+      doc.addPage([width, height], 'landscape');
 
-    doc.setFontSize(10);
-    const issuanceText = `Emitida: ${formatDate(tarjeta.created_at)}`;
-    const textWidth = doc.getTextWidth(issuanceText);
-    const issuanceX = width - marginRight - textWidth;
+      const backImage = new Image();
+      backImage.src = '/images/logo-max-back.png';
 
-    doc.text(issuanceText, issuanceX, numberY);
+      backImage.onload = () => {
+        doc.addImage(backImage, 'PNG', 0, 0, width, height);
 
-    doc.setFont('Helvetica', 'bold');
-    doc.setFontSize(12);
- 
-    doc.text(tarjeta.cliente_nombre, marginLeft, nameY);
+        const canalY = 40;
+        const issuanceY = 150;
+        const canalX = 30;
+        const issuanceText = `Emitida: ${formatDate(tarjeta.created_at)}`;
+        const textWidth = doc.getTextWidth(issuanceText);
+        const issuanceX = width - marginRight - textWidth;
 
-    doc.addPage([width, height], 'landscape');
+        doc.setFont('Helvetica', 'normal');
+        doc.setFontSize(10);
+        doc.text(tarjeta.codigo_canal, canalX, canalY);
+        doc.text(issuanceText, issuanceX, issuanceY);
 
-    const backImage = new Image();
-    backImage.src = '/images/logo-max-back.png';
+        doc.save(`tarjeta_${tarjeta.numero_tarjeta}.pdf`);
+      };
 
-    backImage.onload = () => {
-
-      doc.addImage(backImage, 'PNG', 0, 0, width, height);
-      doc.save(`tarjeta_${tarjeta.numero_tarjeta}.pdf`);
+      backImage.onerror = () => {
+        console.error('Error al cargar la imagen trasera. Verifica la ruta: /images/logo-max-back.png');
+      };
     };
 
-    backImage.onerror = () => {
-      console.error('Error al cargar la imagen trasera. Verifica la ruta: /images/logo-max-back.png');
+    frontImage.onerror = () => {
+      console.error('Error al cargar la imagen frontal. Verifica la ruta: /images/logo-max-card.png');
     };
   };
 
-  frontImage.onerror = () => {
-    console.error('Error al cargar la imagen frontal. Verifica la ruta: /images/logo-max-card.png');
-  };
-};
   const fetchTarjetas = useCallback(async () => {
     try {
       const response = await fetch(
@@ -277,7 +270,6 @@ const handlePrintCard = async (tarjeta: Tarjeta) => {
       );
       if (response.ok) {
         const data = await response.json();
-   
         setTarjetas(data.tarjetas);
         setTotalItems(data.total);
       } else {
@@ -293,7 +285,6 @@ const handlePrintCard = async (tarjeta: Tarjeta) => {
       const response = await fetch('/api/clientes');
       if (response.ok) {
         const data: Cliente[] = await response.json();
-    
         setClientes(data);
       } else {
         console.error('Error al obtener los clientes:', response.status, response.statusText);
@@ -308,7 +299,6 @@ const handlePrintCard = async (tarjeta: Tarjeta) => {
       const response = await fetch('/api/tipos_tarjetas');
       if (response.ok) {
         const data: TipoTarjeta[] = await response.json();
-   
         setTiposTarjeta(data);
       } else {
         console.error('Error al obtener los tipos de tarjeta:', response.status, response.statusText);
@@ -319,7 +309,6 @@ const handlePrintCard = async (tarjeta: Tarjeta) => {
   }, []);
 
   const handleEditar = async (tarjeta: Tarjeta) => {
-  
     setTarjetaSeleccionada(tarjeta);
     setFormData({
       id: tarjeta.id,
@@ -359,7 +348,6 @@ const handlePrintCard = async (tarjeta: Tarjeta) => {
     <div className="font-sans bg-white text-gray-900 min-h-screen flex">
       <Navbar />
       <div className="flex-1 flex flex-col">
-
         <main className="flex-1 p-8">
           <div className="space-y-6">
             <h1

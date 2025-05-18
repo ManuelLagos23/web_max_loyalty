@@ -512,7 +512,7 @@ export default function Empresas() {
                   }
                 }}
               >
-                <div className="bg-white p-6 rounded-lg shadow-xl w-1/3 border border-gray-200">
+                <div className="bg-white p-6 rounded-lg shadow-xl w-1/3 border">
                   <div className="text-center">
                     <h2
                       className="text-3xl font-bold text-gray-800 mb-6 tracking-tight 
@@ -655,6 +655,7 @@ distance: 10,                             <input
                             />
                           </div>
                         </div>
+                            <div className="grid grid-cols-2 gap-4">
                         <div>
                           <label htmlFor="logo" className="block text-center font-medium text-gray-700">
                             Logo
@@ -718,6 +719,7 @@ distance: 10,                             <input
                           )}
                         </div>
                       </div>
+                       </div>
                       <div className="flex justify-between mt-4">
                         <button
                           type="button"
@@ -865,6 +867,7 @@ distance: 10,                             <input
                             />
                           </div>
                         </div>
+                            <div className="grid grid-cols-2 gap-4">
                         <div>
                           <label htmlFor="logo" className="block text-center font-medium text-gray-700">
                             Logo
@@ -902,6 +905,7 @@ distance: 10,                             <input
                           )}
                         </div>
                       </div>
+                       </div>
                       <div className="flex justify-between mt-4">
                         <button
                           type="button"

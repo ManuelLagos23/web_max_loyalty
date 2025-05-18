@@ -62,29 +62,30 @@ export default function Navbar() {
       pathname.startsWith('/transacciones') ||
       pathname.startsWith('/puntos') ||
       pathname.startsWith('/redimir') ||
-      pathname.startsWith('/tipo_combustible') ||
-      pathname.startsWith('/unidad_medida') ||
-      pathname.startsWith('/precios_semana') ||
-      pathname.startsWith('/descuentos') ||
       pathname.startsWith('/reportes')
     );
     setIsMaxPayOpen(false); // No child routes defined yet
     setIsGeneralesOpen(
       pathname.startsWith('/clientes') ||
       pathname.startsWith('/tarjetas') ||
-      pathname.startsWith('/tipo_de_tarjetas') ||
       pathname.startsWith('/canales') ||
-      pathname.startsWith('/sub_canales')
+      pathname.startsWith('/empresas') ||
+      pathname.startsWith('/centro_de_costos') ||
+      pathname.startsWith('/paises') ||
+      pathname.startsWith('/estados') ||
+      pathname.startsWith('/sub_canales') ||
+      pathname.startsWith('/monedas')
     );
     setIsConfiguracionesOpen(
       pathname.startsWith('/terminales') ||
       pathname.startsWith('/usuarios') ||
       pathname.startsWith('/miembros') ||
-      pathname.startsWith('/empresas') ||
-      pathname.startsWith('/centro_de_costos') ||
-      pathname.startsWith('/paises') ||
-      pathname.startsWith('/estados') ||
-      pathname.startsWith('/monedas')
+      pathname.startsWith('/tipo_de_tarjetas') ||
+      pathname.startsWith('/descuentos') ||
+      pathname.startsWith('/precios_semana') ||
+      pathname.startsWith('/tipo_combustible') ||
+      pathname.startsWith('/unidad_medida')
+      
     );
   }, [pathname]);
 
@@ -189,46 +190,7 @@ export default function Navbar() {
                       Canjeados
                     </Link>
                   </li>
-                  <li>
-                    <Link
-                      href="/tipo_combustible"
-                      className={`block p-2 rounded hover:bg-gray-700 ${
-                        pathname === '/tipo_combustible' ? 'active-subitem' : ''
-                      }`}
-                    >
-                      Tipo de combustible
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      href="/unidad_medida"
-                      className={`block p-2 rounded hover:bg-gray-700 ${
-                        pathname === '/unidad_medida' ? 'active-subitem' : ''
-                      }`}
-                    >
-                      Unidad medida del producto
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      href="/precios_semana"
-                      className={`block p-2 rounded hover:bg-gray-700 ${
-                        pathname === '/precios_semana' ? 'active-subitem' : ''
-                      }`}
-                    >
-                      Precios de la semana
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      href="/descuentos"
-                      className={`block p-2 rounded hover:bg-gray-700 ${
-                        pathname === '/descuentos' ? 'active-subitem' : ''
-                      }`}
-                    >
-                      Descuentos
-                    </Link>
-                  </li>
+               
                   <li>
                     <Link
                       href="/reportes"
@@ -287,16 +249,7 @@ export default function Navbar() {
                       Tarjetas
                     </Link>
                   </li>
-                  <li>
-                    <Link
-                      href="/tipo_de_tarjetas"
-                      className={`block p-2 rounded hover:bg-gray-700 ${
-                        pathname === '/tipo_de_tarjetas' ? 'active-subitem' : ''
-                      }`}
-                    >
-                      Tipos de tarjetas
-                    </Link>
-                  </li>
+                
                   <li>
                     <Link
                       href="/canales"
@@ -317,6 +270,61 @@ export default function Navbar() {
                       Subcanales
                     </Link>
                   </li>
+
+
+                  <li>
+                    <Link
+                      href="/empresas"
+                      className={`block p-2 rounded hover:bg-gray-700 ${
+                        pathname === '/empresas' ? 'active-subitem' : ''
+                      }`}
+                    >
+                      Red de empresas
+                    </Link>
+                  </li>
+
+                  
+                  <li>
+                    <Link
+                      href="/centro_de_costos"
+                      className={`block p-2 rounded hover:bg-gray-700 ${
+                        pathname === '/centro_de_costos' ? 'active-subitem' : ''
+                      }`}
+                    >
+                      Establecimientos
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/paises"
+                      className={`block p-2 rounded hover:bg-gray-700 ${
+                        pathname === '/paises' ? 'active-subitem' : ''
+                      }`}
+                    >
+                      Paises
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/estados"
+                      className={`block p-2 rounded hover:bg-gray-700 ${
+                        pathname === '/estados' ? 'active-subitem' : ''
+                      }`}
+                    >
+                      Estados
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/monedas"
+                      className={`block p-2 rounded hover:bg-gray-700 ${
+                        pathname === '/monedas' ? 'active-subitem' : ''
+                      }`}
+                    >
+                      Monedas
+                    </Link>
+                  </li>
+
                 </ul>
               )}
             </li>
@@ -360,56 +368,60 @@ export default function Navbar() {
                       Usuarios de terminales
                     </Link>
                   </li>
-                  <li>
+
+                    <li>
                     <Link
-                      href="/empresas"
+                      href="/tipo_de_tarjetas"
                       className={`block p-2 rounded hover:bg-gray-700 ${
-                        pathname === '/empresas' ? 'active-subitem' : ''
+                        pathname === '/tipo_de_tarjetas' ? 'active-subitem' : ''
                       }`}
                     >
-                      Red de empresas
+                      Tipos de tarjetas
+                    </Link>
+                  </li>
+
+
+                   <li>
+                    <Link
+                      href="/tipo_combustible"
+                      className={`block p-2 rounded hover:bg-gray-700 ${
+                        pathname === '/tipo_combustible' ? 'active-subitem' : ''
+                      }`}
+                    >
+                      Tipo de combustible
                     </Link>
                   </li>
                   <li>
                     <Link
-                      href="/centro_de_costos"
+                      href="/unidad_medida"
                       className={`block p-2 rounded hover:bg-gray-700 ${
-                        pathname === '/centro_de_costos' ? 'active-subitem' : ''
+                        pathname === '/unidad_medida' ? 'active-subitem' : ''
                       }`}
                     >
-                      Establecimientos
+                      Unidad medida del producto
                     </Link>
                   </li>
                   <li>
                     <Link
-                      href="/paises"
+                      href="/precios_semana"
                       className={`block p-2 rounded hover:bg-gray-700 ${
-                        pathname === '/paises' ? 'active-subitem' : ''
+                        pathname === '/precios_semana' ? 'active-subitem' : ''
                       }`}
                     >
-                      Paises
+                      Precios de la semana
                     </Link>
                   </li>
                   <li>
                     <Link
-                      href="/estados"
+                      href="/descuentos"
                       className={`block p-2 rounded hover:bg-gray-700 ${
-                        pathname === '/estados' ? 'active-subitem' : ''
+                        pathname === '/descuentos' ? 'active-subitem' : ''
                       }`}
                     >
-                      Estados
+                      Descuentos
                     </Link>
                   </li>
-                  <li>
-                    <Link
-                      href="/monedas"
-                      className={`block p-2 rounded hover:bg-gray-700 ${
-                        pathname === '/monedas' ? 'active-subitem' : ''
-                      }`}
-                    >
-                      Monedas
-                    </Link>
-                  </li>
+
                 </ul>
               )}
             </li>

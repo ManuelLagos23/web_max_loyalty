@@ -19,10 +19,10 @@ export async function POST(request: Request) {
     }
 
     const canal_id = Number(canalId);
-    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-    if (!dateRegex.test(fechaInicio) || !dateRegex.test(fechaFinal)) {
+    const dateTimeRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
+    if (!dateTimeRegex.test(fechaInicio) || !dateTimeRegex.test(fechaFinal)) {
       return NextResponse.json(
-        { message: 'Formato de fecha inválido (use YYYY-MM-DD)' },
+        { message: 'Formato de fecha y hora inválido (use YYYY-MM-DDThh:mm)' },
         { status: 400 }
       );
     }
@@ -43,7 +43,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Query transactions with joins
+    // Query transactions with joins, using timestamp comparison
     const result = await client.query(
       `SELECT 
          c.canal,
@@ -58,8 +58,8 @@ export async function POST(request: Request) {
        INNER JOIN tipo_combustible tc ON t.tipo_combustible_id = tc.id
        INNER JOIN clientes cl ON t.cliente_id = cl.id
        WHERE t.canal_id = $1
-       AND t.fecha >= $2
-       AND t.fecha <= $3
+       AND t.fecha >= $2::timestamp
+       AND t.fecha <= $3::timestamp
        ORDER BY t.fecha`,
       [canal_id, fechaInicio, fechaFinal]
     );

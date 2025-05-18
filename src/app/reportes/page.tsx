@@ -203,9 +203,9 @@ export default function Reportes() {
   const reportRoutes = [
     { name: 'Reporte general', href: '/reportes' },
     { name: 'Reporte por canal', href: '/reporte_canal' },
-    { name: 'Reporte 3', href: '/reportes/reporte3' },
-    { name: 'Reporte 4', href: '/reportes/reporte4' },
-    { name: 'Reporte 5', href: '/reportes/reporte5' },
+    { name: 'Reporte 3', href: '#' },
+    { name: 'Reporte 4', href: '#' },
+    { name: 'Reporte 5', href: '#' },
   ];
 
   return (
@@ -240,34 +240,32 @@ export default function Reportes() {
 
             <div className="mt-6 bg-gray-100 p-4 rounded-lg shadow-md max-w-3xl mx-auto">
               <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-3">
-                <div>
-                  <label htmlFor="fechaInicio" className="block text-sm font-medium text-gray-700">
-                    Fecha de Inicio
-                  </label>
-                  <input
-                    type="date"
-                    id="fechaInicio"
-                    value={fechaInicio}
-                    onChange={(e) => setFechaInicio(e.target.value)}
-                 
-                    required
-                    className="mt-1 block w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="fechaFinal" className="block text-sm font-medium text-gray-700">
-                    Fecha Final
-                  </label>
-                  <input
-                    type="date"
-                    id="fechaFinal"
-                    value={fechaFinal}
-                    onChange={(e) => setFechaFinal(e.target.value)}
-                
-                    required
-                    className="mt-1 block w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                  />
-                </div>
+          <div>
+  <label htmlFor="fechaInicio" className="block text-sm font-medium text-gray-700">
+    Fecha de Inicio
+  </label>
+  <input
+    type="datetime-local"
+    id="fechaInicio"
+    value={fechaInicio}
+    onChange={(e) => setFechaInicio(e.target.value)}
+    required
+    className="mt-1 block w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+  />
+</div>
+<div>
+  <label htmlFor="fechaFinal" className="block text-sm font-medium text-gray-700">
+    Fecha Final
+  </label>
+  <input
+    type="datetime-local"
+    id="fechaFinal"
+    value={fechaFinal}
+    onChange={(e) => setFechaFinal(e.target.value)}
+    required
+    className="mt-1 block w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+  />
+</div>
                 <div>
                   <label htmlFor="establecimiento" className="block text-sm font-medium text-gray-700">
                     Establecimiento
