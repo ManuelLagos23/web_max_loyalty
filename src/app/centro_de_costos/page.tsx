@@ -352,7 +352,7 @@ export default function Costos() {
                 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
                 transition-all duration-300 text-center"
               >
-                Gestión de Centros de Costos
+                Gestión de Establecimientos
               </h1>
               <p
                 className="text-center text-gray-700 leading-relaxed max-w-2xl
@@ -367,7 +367,7 @@ export default function Costos() {
                 onClick={() => openPopup('agregar')}
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all duration-300"
               >
-                Agregar Centro de Costos
+                Agregar Establecimiento
               </button>
             </div>
 
@@ -433,7 +433,7 @@ export default function Costos() {
                 ) : (
                   <tr>
                     <td colSpan={9} className="px-4 py-2 text-center text-gray-500">
-                      No hay centros de costos disponibles.
+                      No hay establecimientos disponibles.
                     </td>
                   </tr>
                 )}
@@ -480,7 +480,7 @@ export default function Costos() {
                       bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
                       transition-all duration-300 hover:scale-105"
                     >
-                      {costoSeleccionado ? 'Editar Centro de Costos' : 'Agregar Centro de Costos'}
+                      {costoSeleccionado ? 'Editar Establecimiento' : 'Agregar Establecimiento'}
                     </h2>
                   </div>
                   {errorMessage && <p className="text-center text-red-500 mb-4">{errorMessage}</p>}
@@ -489,7 +489,7 @@ export default function Costos() {
                       <input type="hidden" name="id" value={formData.id} />
                       <div className="mb-4">
                         <label htmlFor="nombre_centro_costos" className="block text-center font-medium text-gray-700">
-                          Nombre Centro de Costos
+                          Nombre Establecimiento
                         </label>
                         <input
                           type="text"
@@ -624,7 +624,7 @@ export default function Costos() {
                     <form onSubmit={handleSubmitAgregar}>
                       <div className="mb-4">
                         <label htmlFor="nombre_centro_costos" className="block text-center font-medium text-gray-700">
-                          Nombre Centro de Costos
+                          Nombre Establecimiento
                         </label>
                         <input
                           type="text"
@@ -778,7 +778,7 @@ export default function Costos() {
                     Confirmar Eliminación
                   </h2>
                   <p className="text-center text-gray-700 mb-4">
-                    ¿Está seguro de que desea eliminar el centro de costos {costoAEliminar.nombre_centro_costos}?
+                    ¿Está seguro de que desea eliminar el establecimiento? {costoAEliminar.nombre_centro_costos}?
                   </p>
                   {errorMessage && <p className="text-center text-red-500 mb-4">{errorMessage}</p>}
                   <div className="flex justify-between">

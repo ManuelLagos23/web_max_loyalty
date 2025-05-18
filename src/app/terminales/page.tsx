@@ -33,6 +33,7 @@ export default function Terminales() {
   const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false);
   const [isActivationPopupOpen, setIsActivationPopupOpen] = useState(false);
   const [isDeactivationPopupOpen, setIsDeactivationPopupOpen] = useState(false);
+  const [isSuccessPopupOpen, setIsSuccessPopupOpen] = useState(false);
   const [activationCode, setActivationCode] = useState('');
   const [terminales, setTerminales] = useState<Terminal[]>([]);
   const [costos, setCostos] = useState<Costo[]>([]);
@@ -42,7 +43,7 @@ export default function Terminales() {
   const [terminalADesactivar, setTerminalADesactivar] = useState<Terminal | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const itemsPerPage = 10;
 
@@ -195,6 +196,50 @@ export default function Terminales() {
     }
   };
 
+  const checkActivationStatus = useCallback(async () => {
+    if (!terminalAActivar) return;
+
+    try {
+      const response = await fetch(`/api/terminales/${terminalAActivar.id}`);
+      if (response.ok) {
+        const terminal: Terminal = await response.json();
+        if (terminal.id_activacion && /^\d{6}$/.test(terminal.id_activacion)) {
+          setTerminales((prev) =>
+            prev.map((t) =>
+              t.id === terminalAActivar.id ? { ...t, id_activacion: terminal.id_activacion } : t
+            )
+          );
+          setIsActivationPopupOpen(false);
+          setIsSuccessPopupOpen(true);
+          setTerminalAActivar(null);
+          setActivationCode('');
+        }
+      } else {
+        console.error('Error al verificar el estado de activación:', response.status);
+        setError('Error al verificar el estado de activación');
+      }
+    } catch (error) {
+      console.error('Error al conectar con el servidor:', error);
+      setError('Error al conectar con el servidor');
+    }
+  }, [terminalAActivar]);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
+
+    if (isActivationPopupOpen && terminalAActivar) {
+      interval = setInterval(() => {
+        checkActivationStatus();
+      }, 2000); // Verificar cada 2 segundos
+    }
+
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [isActivationPopupOpen, terminalAActivar, checkActivationStatus]);
+
   const openDeletePopup = (terminal: Terminal) => {
     setTerminalAEliminar(terminal);
     setIsDeletePopupOpen(true);
@@ -316,256 +361,308 @@ export default function Terminales() {
     }
   };
 
-  if (error) {
-    return (
-      <div className="font-sans bg-white text-gray-900 min-h-screen flex">
-        <Navbar />
-        <div className="flex-1 p-8">
-          <p className="text-center text-red-500">{error}</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="font-sans bg-white text-gray-900 min-h-screen">
-      <div className="flex">
-        <Navbar />
-        <div className="flex-1 flex flex-col">
-          <main className="flex-1 p-8">
-            <div className="space-y-6">
-              <h1
-                className="text-4xl font-bold text-gray-900 mb-4
-                bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
-                transition-all duration-300 text-center"
-              >
-                Gestión de Terminales
-              </h1>
-              <p
-                className="text-center text-gray-700 leading-relaxed max-w-2xl
-                p-4 rounded-lg transition-all duration-300 hover:shadow-md mx-auto"
-              >
-                Administra los terminales registrados en la plataforma.
-              </p>
-            </div>
-
-            <div className="flex justify-between mb-4">
-              <Link href="/terminales/crear">
-                <button className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
-                  Agregar terminal
-                </button>
-              </Link>
-            </div>
-
-            <div className="mb-6">
-              <input
-                type="text"
-                placeholder="Buscar terminales..."
-                value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="w-2/5 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <table className="min-w-full bg-gray-100 table-auto rounded-lg shadow-md">
-              <thead className="bg-gray-200">
-                <tr>
-                  <th className="px-4 py-2 text-left text-gray-700 font-semibold">#</th>
-                  <th className="px-4 py-2 text-left text-gray-700 font-semibold">Empresa</th>
-                  <th className="px-4 py-2 text-left text-gray-700 font-semibold">Estación de servicio</th>
-                  <th className="px-4 py-2 text-left text-gray-700 font-semibold">Código terminal</th>
-                  <th className="px-4 py-2 text-left text-gray-700 font-semibold">Nombre terminal</th>
-                  <th className="px-4 py-2 text-left text-gray-700 font-semibold">S/N</th>
-                  <th className="px-4 py-2 text-left text-gray-700 font-semibold">MAC</th>
-                  <th className="px-4 py-2 text-left text-gray-700 font-semibold">Modelo</th>
-                  <th className="px-4 py-2 text-left text-gray-700 font-semibold">Marca</th>
-                  <th className="px-4 py-2 text-left text-gray-700 font-semibold">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {currentTerminales.length > 0 ? (
-                  currentTerminales.map((terminal, index) => {
-                    const isActive = terminal.id_activacion && /^\d{6}$/.test(terminal.id_activacion);
-                    return (
-                      <tr className="hover:bg-gray-50 transition-all duration-200" key={terminal.id}>
-                        <td className="px-4 py-2">{indexOfFirstItem + index + 1}</td>
-                        <td className="px-4 py-2">
-                          {empresas.find((e) => e.id === parseInt(terminal.empresa))?.nombre_empresa || 'Desconocida'}
-                        </td>
-                        <td className="px-4 py-2">
-                          {costos.find((c) => c.id === parseInt(terminal.estacion_servicio))?.nombre_centro_costos || 'Desconocida'}
-                        </td>
-                        <td className="px-4 py-2">{terminal.codigo_terminal}</td>
-                        <td className="px-4 py-2">{terminal.nombre_terminal}</td>
-                        <td className="px-4 py-2">{terminal.numero_serie}</td>
-                        <td className="px-4 py-2">{terminal.mac}</td>
-                        <td className="px-4 py-2">{terminal.modelo}</td>
-                        <td className="px-4 py-2">{terminal.marca}</td>
-                        <td className="px-4 py-2 flex space-x-2">
-                          <Link href={`/terminales/editar/${terminal.id}`}>
-                            <button className="bg-yellow-500 text-white px-3 py-1 rounded-lg hover:bg-yellow-600 mr-2">
-                              Editar
-                            </button>
-                          </Link>
-                          <button
-                            onClick={() => handleActivationClick(terminal)}
-                            className={`px-3 py-1 rounded-lg text-white transition-all duration-300 ${
-                              isActive ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'
-                            }`}
-                          >
-                            {isActive ? 'Desactivar' : 'Activar'}
-                          </button>
-                          <button
-                            onClick={() => openDeletePopup(terminal)}
-                            className="bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600 transition-all duration-300"
-                          >
-                            Eliminar
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })
-                ) : (
-                  <tr>
-                    <td colSpan={10} className="px-4 py-2 text-center text-gray-500">
-                      No hay terminales disponibles.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-
-            <div className="mt-4 flex justify-between items-center">
-              <button
-                onClick={handlePrevPage}
-                disabled={currentPage === 1}
-                className={`px-4 py-2 rounded-lg transition-all duration-300 ${
-                  currentPage === 1 ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'
-                }`}
-              >
-                Anterior
-              </button>
-              <span className="text-gray-700">
-                Página {currentPage} de {totalPages}
-              </span>
-              <button
-                onClick={handleNextPage}
-                disabled={currentPage === totalPages}
-                className={`px-4 py-2 rounded-lg transition-all duration-300 ${
-                  currentPage === totalPages ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'
-                }`}
-              >
-                Siguiente
-              </button>
-            </div>
-
-            {isDeletePopupOpen && terminalAEliminar && (
-              <div
-                className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md"
-                onClick={(e) => {
-                  if (e.target === e.currentTarget) {
-                    closeDeletePopup();
-                  }
-                }}
-              >
-                <div className="bg-white p-6 rounded-lg shadow-xl w-1/3 border border-gray-200">
-                  <h2
-                    className="text-2xl font-bold text-gray-800 mb-4 tracking-tight 
-                    bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
-                    transition-all duration-300 hover:scale-105 text-center"
-                  >
-                    ¿Estás seguro de eliminar este terminal?
-                  </h2>
-                  <div className="flex justify-between">
-                    <button
-                      type="button"
-                      onClick={closeDeletePopup}
-                      className="bg-gray-400 text-white px-4 py-2 rounded-lg hover:bg-gray-500 transition-all duration-300"
-                    >
-                      Cancelar
-                    </button>
-                    <button
-                      onClick={handleDelete}
-                      className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-all duration-300"
-                    >
-                      Eliminar
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {isActivationPopupOpen && (
-              <div
-                className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md"
-                onClick={(e) => {
-                  if (e.target === e.currentTarget) {
-                    closeActivationPopup();
-                  }
-                }}
-              >
-                <div className="bg-white p-6 rounded-lg shadow-xl w-1/3 border border-gray-200">
-                  <h2
-                    className="text-2xl font-bold text-gray-800 mb-4 tracking-tight 
-                    bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
-                    transition-all duration-300 hover:scale-105 text-center"
-                  >
-                    Código de Activación
-                  </h2>
-                  <p className="text-center text-lg mb-4 text-gray-700">{activationCode}</p>
-                  <div className="flex justify-center">
-                    <button
-                      onClick={closeActivationPopup}
-                      className="bg-gray-400 text-white px-4 py-2 rounded-lg hover:bg-gray-500 transition-all duration-300"
-                    >
-                      Cerrar
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {isDeactivationPopupOpen && terminalADesactivar && (
-              <div
-                className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md"
-                onClick={(e) => {
-                  if (e.target === e.currentTarget) {
-                    closeDeactivationPopup();
-                  }
-                }}
-              >
-                <div className="bg-white p-6 rounded-lg shadow-xl w-1/3 border border-gray-200">
-                  <h2
-                    className="text-2xl font-bold text-gray-800 mb-4 tracking-tight 
-                    bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
-                    transition-all duration-300 hover:scale-105 text-center"
-                  >
-                    ¿Estás seguro de desactivar este terminal?
-                  </h2>
-                  <div className="flex justify-between">
-                    <button
-                      type="button"
-                      onClick={closeDeactivationPopup}
-                      className="bg-gray-400 text-white px-4 py-2 rounded-lg hover:bg-gray-500 transition-all duration-300"
-                    >
-                      Cancelar
-                    </button>
-                    <button
-                      onClick={() => handleDeactivate(terminalADesactivar)}
-                      className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-all duration-300"
-                    >
-                      Desactivar
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </main>
+      {isLoading ? (
+        <div className="flex min-h-screen">
+          <Navbar />
+          <div className="flex-1 p-8">
+            <p className="text-center text-gray-500">Cargando terminales...</p>
+          </div>
         </div>
-      </div>
+      ) : error ? (
+        <div className="flex min-h-screen">
+          <Navbar />
+          <div className="flex-1 p-8">
+            <p className="text-center text-red-500">{error}</p>
+          </div>
+        </div>
+      ) : (
+        <div className="flex">
+          <Navbar />
+          <div className="flex-1 flex flex-col">
+            <main className="flex-1 p-8">
+              <div className="space-y-6">
+                <h1
+                  className="text-4xl font-bold text-gray-900 mb-4
+                  bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
+                  transition-all duration-300 text-center"
+                >
+                  Gestión de Terminales
+                </h1>
+                <p
+                  className="text-center text-gray-700 leading-relaxed max-w-2xl
+                  p-4 rounded-lg transition-all duration-300 hover:shadow-md mx-auto"
+                >
+                  Administra los terminales registrados en la plataforma.
+                </p>
+              </div>
+
+              <div className="flex justify-between mb-4">
+                <Link href="/terminales/crear">
+                  <button className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
+                    Agregar terminal
+                  </button>
+                </Link>
+              </div>
+
+              <div className="mb-6">
+                <input
+                  type="text"
+                  placeholder="Buscar terminales..."
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="w-2/5 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <table className="min-w-full bg-gray-100 table-auto rounded-lg shadow-md">
+                <thead className="bg-gray-200">
+                  <tr>
+                    <th className="px-4 py-2 text-left text-gray-700 font-semibold">#</th>
+                    <th className="px-4 py-2 text-left text-gray-700 font-semibold">Empresa</th>
+                    <th className="px-4 py-2 text-left text-gray-700 font-semibold">Estación de servicio</th>
+                    <th className="px-4 py-2 text-left text-gray-700 font-semibold">Código terminal</th>
+                    <th className="px-4 py-2 text-left text-gray-700 font-semibold">Nombre terminal</th>
+                    <th className="px-4 py-2 text-left text-gray-700 font-semibold">S/N</th>
+                    <th className="px-4 py-2 text-left text-gray-700 font-semibold">MAC</th>
+                    <th className="px-4 py-2 text-left text-gray-700 font-semibold">Modelo</th>
+                    <th className="px-4 py-2 text-left text-gray-700 font-semibold">Marca</th>
+                    <th className="px-4 py-2 text-left text-gray-700 font-semibold">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {currentTerminales.length > 0 ? (
+                    currentTerminales.map((terminal, index) => {
+                      const isActive = terminal.id_activacion && /^\d{6}$/.test(terminal.id_activacion);
+                      return (
+                        <tr className="hover:bg-gray-50 transition-all duration-200" key={terminal.id}>
+                          <td className="px-4 py-2">{indexOfFirstItem + index + 1}</td>
+                          <td className="px-4 py-2">
+                            {empresas.find((e) => e.id === parseInt(terminal.empresa))?.nombre_empresa || 'Desconocida'}
+                          </td>
+                          <td className="px-4 py-2">
+                            {costos.find((c) => c.id === parseInt(terminal.estacion_servicio))?.nombre_centro_costos || 'Desconocida'}
+                          </td>
+                          <td className="px-4 py-2">{terminal.codigo_terminal}</td>
+                          <td className="px-4 py-2">{terminal.nombre_terminal}</td>
+                          <td className="px-4 py-2">{terminal.numero_serie}</td>
+                          <td className="px-4 py-2">{terminal.mac}</td>
+                          <td className="px-4 py-2">{terminal.modelo}</td>
+                          <td className="px-4 py-2">{terminal.marca}</td>
+                          <td className="px-4 py-2 flex space-x-2">
+                            <Link href={`/terminales/editar/${terminal.id}`}>
+                              <button className="bg-yellow-500 text-white px-3 py-1 rounded-lg hover:bg-yellow-600 mr-2">
+                                Editar
+                              </button>
+                            </Link>
+                            <button
+                              onClick={() => handleActivationClick(terminal)}
+                              className={`px-3 py-1 rounded-lg text-white transition-all duration-300 ${
+                                isActive ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'
+                              }`}
+                            >
+                              {isActive ? 'Desactivar' : 'Activar'}
+                            </button>
+                            <button
+                              onClick={() => openDeletePopup(terminal)}
+                              className="bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600 transition-all duration-300"
+                            >
+                              Eliminar
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan={10} className="px-4 py-2 text-center text-gray-500">
+                        No hay terminales disponibles.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+
+              <div className="mt-4 flex justify-between items-center">
+                <button
+                  onClick={handlePrevPage}
+                  disabled={currentPage === 1}
+                  className={`px-4 py-2 rounded-lg transition-all duration-300 ${
+                    currentPage === 1 ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'
+                  }`}
+                >
+                  Anterior
+                </button>
+                <span className="text-gray-700">
+                  Página {currentPage} de {totalPages}
+                </span>
+                <button
+                  onClick={handleNextPage}
+                  disabled={currentPage === totalPages}
+                  className={`px-4 py-2 rounded-lg transition-all duration-300 ${
+                    currentPage === totalPages ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'
+                  }`}
+                >
+                  Siguiente
+                </button>
+              </div>
+
+              {isDeletePopupOpen && terminalAEliminar && (
+                <div
+                  className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md"
+                  onClick={(e) => {
+                    if (e.target === e.currentTarget) {
+                      closeDeletePopup();
+                    }
+                  }}
+                >
+                  <div className="bg-white p-6 rounded-lg shadow-xl w-1/3 border border-gray-200">
+                    <h2
+                      className="text-2xl font-bold text-gray-800 mb-4 tracking-tight 
+                      bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
+                      transition-all duration-300 hover:scale-105 text-center"
+                    >
+                      ¿Estás seguro de eliminar este terminal?
+                    </h2>
+                    <div className="flex justify-between">
+                      <button
+                        type="button"
+                        onClick={closeDeletePopup}
+                        className="bg-gray-400 text-white px-4 py-2 rounded-lg hover:bg-gray-500 transition-all duration-300"
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        onClick={handleDelete}
+                        className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-all duration-300"
+                      >
+                        Eliminar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {isActivationPopupOpen && (
+                <div
+                  className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md"
+                  onClick={(e) => {
+                    if (e.target === e.currentTarget) {
+                      closeActivationPopup();
+                    }
+                  }}
+                >
+                  <div className="bg-white p-6 rounded-lg shadow-xl w-1/3 border border-gray-200">
+                    <h2
+                      className="text-2xl font-bold text-gray-800 mb-4 tracking-tight 
+                      bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
+                      transition-all duration-300 hover:scale-105 text-center"
+                    >
+                      Código de Activación
+                    </h2>
+                    <p className="text-center text-lg mb-4 text-gray-700">{activationCode}</p>
+                    {error && <p className="text-center text-red-500 mb-4">{error}</p>}
+                    <p className="text-center text-gray-500 text-sm mb-4">Verificando activación...</p>
+                    <div className="flex justify-center">
+                      <button
+                        onClick={closeActivationPopup}
+                        className="bg-gray-400 text-white px-4 py-2 rounded-lg hover:bg-gray-500 transition-all duration-300"
+                      >
+                        Cerrar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {isSuccessPopupOpen && (
+                <div
+                  className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md"
+                  onClick={(e) => {
+                    if (e.target === e.currentTarget) {
+                      setIsSuccessPopupOpen(false);
+                    }
+                  }}
+                >
+                  <div className="bg-white p-6 rounded-lg shadow-xl w-1/3 border border-gray-200">
+                    <h2
+                      className="text-2xl font-bold text-gray-800 mb-4 tracking-tight 
+                      bg-gradient-to-r from-green-600 to-green-400 bg-clip-text text-transparent
+                      transition-all duration-300 hover:scale-105 text-center"
+                    >
+                      Terminal activada exitosamente
+                    </h2>
+                    <div className="flex justify-center mb-4">
+                      <svg
+                        className="w-12 h-12 text-green-500"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 10l7-7m0 0l7 7m-7-7v18"
+                        />
+                      </svg>
+                    </div>
+                    <div className="flex justify-center">
+                      <button
+                        onClick={() => setIsSuccessPopupOpen(false)}
+                        className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-all duration-300"
+                      >
+                        Cerrar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {isDeactivationPopupOpen && terminalADesactivar && (
+                <div
+                  className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md"
+                  onClick={(e) => {
+                    if (e.target === e.currentTarget) {
+                      closeDeactivationPopup();
+                    }
+                  }}
+                >
+                  <div className="bg-white p-6 rounded-lg shadow-xl w-1/3 border border-gray-200">
+                    <h2
+                      className="text-2xl font-bold text-gray-800 mb-4 tracking-tight 
+                      bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
+                      transition-all duration-300 hover:scale-105 text-center"
+                    >
+                      ¿Estás seguro de desactivar este terminal?
+                    </h2>
+                    <div className="flex justify-between">
+                      <button
+                        type="button"
+                        onClick={closeDeactivationPopup}
+                        className="bg-gray-400 text-white px-4 py-2 rounded-lg hover:bg-gray-500 transition-all duration-300"
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        onClick={() => handleDeactivate(terminalADesactivar)}
+                        className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-all duration-300"
+                      >
+                        Desactivar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </main>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
