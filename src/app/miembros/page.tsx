@@ -31,8 +31,8 @@ interface Empresa {
 interface Terminal {
   id: number;
   nombre_terminal: string;
-  empresa_id: number;
-  establecimiento: number;
+  empresa: number;
+  estacion_servicio: number;
 }
 
 export default function Miembros() {
@@ -132,8 +132,8 @@ export default function Miembros() {
         const terminalData: Terminal = await response.json();
         setFormData((prevData) => ({
           ...prevData,
-          empresa_id: terminalData.empresa_id,
-          establecimiento: terminalData.establecimiento,
+          empresa_id: terminalData.empresa,
+          establecimiento: terminalData.estacion_servicio,
         }));
       } else {
         const errorText = `Error al obtener los detalles de la terminal: ${response.status} ${response.statusText}`;
@@ -582,21 +582,21 @@ export default function Miembros() {
                           <label className="block text-center font-medium text-gray-700" htmlFor="empresa_id">
                             Empresa
                           </label>
-                          <select
-                            name="empresa_id"
-                            value={formData.empresa_id.toString()}
-                            onChange={handleInputChange}
-                            className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
-                            required
-                            disabled
-                          >
-                            <option value="0">Seleccione una empresa</option>
-                            {empresas.map((empresa) => (
-                              <option key={empresa.id} value={empresa.id.toString()}>
-                                {empresa.nombre_empresa}
-                              </option>
-                            ))}
-                          </select>
+                        <select
+  name="empresa_id"
+  value={formData.empresa_id != null ? formData.empresa_id.toString() : "0"}
+  onChange={handleInputChange}
+  className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center bg-gray-100"
+  required
+  disabled
+>
+  <option value="0">Seleccione una empresa</option>
+  {empresas.map((empresa) => (
+    <option key={empresa.id} value={empresa.id.toString()}>
+      {empresa.nombre_empresa}
+    </option>
+  ))}
+</select>
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-4">
@@ -712,21 +712,21 @@ export default function Miembros() {
                           <label className="block text-center font-medium text-gray-700" htmlFor="empresa_id">
                             Empresa
                           </label>
-                          <select
-                            name="empresa_id"
-                            value={formData.empresa_id.toString()}
-                            onChange={handleInputChange}
-                            className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center bg-gray-100"
-                            required
-                            disabled
-                          >
-                            <option value="0">Seleccione una empresa</option>
-                            {empresas.map((empresa) => (
-                              <option key={empresa.id} value={empresa.id.toString()}>
-                                {empresa.nombre_empresa}
-                              </option>
-                            ))}
-                          </select>
+                        <select
+  name="empresa_id"
+  value={formData.empresa_id != null ? formData.empresa_id.toString() : "0"}
+  onChange={handleInputChange}
+  className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center bg-gray-100"
+  required
+  disabled
+>
+  <option value="0">Seleccione una empresa</option>
+  {empresas.map((empresa) => (
+    <option key={empresa.id} value={empresa.id.toString()}>
+      {empresa.nombre_empresa}
+    </option>
+  ))}
+</select>
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-4">
