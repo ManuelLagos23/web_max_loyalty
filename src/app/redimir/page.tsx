@@ -194,7 +194,7 @@ export default function Canjeados() {
   };
 
   return (
-    <div className="min-h-screen flex">
+      <div className="font-sans bg-white text-gray-900 min-h-screen flex">
       <Navbar />
       <div className="flex-1 flex flex-col">
   

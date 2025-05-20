@@ -259,7 +259,7 @@ export default function Puntos() {
   };
 
   return (
-    <div className="min-h-screen flex">
+     <div className="font-sans bg-white text-gray-900 min-h-screen flex">
       <Navbar />
       <div className="flex-1 flex flex-col">
  
@@ -279,11 +279,11 @@ export default function Puntos() {
               Administra los puntos registrados en la plataforma.
             </p>
           </div>
-          <div className="flex justify-between mb-2" hidden>
+          <div className="flex justify-between mb-2" >
             <button
               onClick={() => openPopup('agregar')}
               className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-        
+        hidden
             >
               Agregar Punto
             </button>

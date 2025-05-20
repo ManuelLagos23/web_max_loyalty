@@ -19,8 +19,8 @@ export async function POST(request: Request) {
     const nfi = formData.get('nfi')?.toString();
     const logo = formData.get('logo');
 
-    if (!nombre || !pais || !estado || !canal_id || !subcanal_id || !ciudad || !email || !telefono || !nfi || !logo) {
-      return NextResponse.json({ message: 'Todos los campos son obligatorios' }, { status: 400 });
+    if (!nombre || !pais || !estado || !canal_id || !subcanal_id || !ciudad || !email || !telefono || !nfi) {
+      return NextResponse.json({ message: 'Todos los campos excepto el logo son obligatorios' }, { status: 400 });
     }
 
     const client = await pool.connect();
@@ -47,8 +47,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: 'Subcanal no encontrado o no corresponde al canal' }, { status: 400 });
     }
 
-    const arrayBuffer = await (logo as File).arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    let buffer: Buffer | null = null;
+    if (logo && typeof logo !== 'string') {
+      const arrayBuffer = await (logo as File).arrayBuffer();
+      buffer = Buffer.from(arrayBuffer);
+    }
 
     const result = await client.query(
       `
@@ -126,7 +129,7 @@ export async function PUT(request: Request) {
     const logo = formData.get('logo');
 
     if (!id || !nombre || !pais || !estado || !canal_id || !subcanal_id || !ciudad || !email || !telefono || !nfi) {
-      return NextResponse.json({ message: 'El ID y todos los campos del cliente son obligatorios' }, { status: 400 });
+      return NextResponse.json({ message: 'El ID y todos los campos del cliente excepto el logo son obligatorios' }, { status: 400 });
     }
 
     const client = await pool.connect();
@@ -156,13 +159,15 @@ export async function PUT(request: Request) {
     let query = `
       UPDATE clientes 
       SET nombre = $1, pais = $2, estado = $3, canal_id = $4, subcanal_id = $5, ciudad = $6, email = $7, telefono = $8, nfi = $9`;
-    const values: (string | Buffer)[] = [nombre, pais, estado, canal_id, subcanal_id, ciudad, email, telefono, nfi];
+    const values: (string | Buffer | null)[] = [nombre, pais, estado, canal_id, subcanal_id, ciudad, email, telefono, nfi];
 
     if (logo && typeof logo !== 'string') {
       const arrayBuffer = await (logo as File).arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
       query += `, logo = $${values.length + 1}`;
       values.push(buffer);
+    } else if (logo === null || logo === 'null') {
+      query += `, logo = NULL`;
     }
 
     query += ` WHERE id = $${values.length + 1} 
