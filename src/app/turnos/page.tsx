@@ -6,12 +6,12 @@ import Navbar from '../components/Navbar';
 interface Turno {
   id: number;
   fecha_inicio: string;
-  fecha_final: string;
+  fecha_final: string | null;
   miembro_id: number;
   usuario_nombre: string;
   empresa_id: number;
   empresa_nombre: string;
-  establecimiento: number;
+  establecimiento_id: number;
   establecimiento_nombre: string;
   terminal_id: number;
   terminal_nombre: string;
@@ -48,22 +48,11 @@ export default function Turnos() {
     estado: true,
   });
   const [searchTerm, setSearchTerm] = useState('');
+  const [turnoSeleccionado, setTurnoSeleccionado] = useState<Turno | null>(null);
   const [turnoAEliminar, setTurnoAEliminar] = useState<Turno | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(5);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  // Función para convertir fecha a formato datetime-local en CST
-  const formatToLocalDateTime = (dateString: string): string => {
-    const date = new Date(dateString + ' UTC');
-    date.setHours(date.getHours() - 6); // Ajustar a CST (UTC-6)
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
-  };
 
   const openAgregarPopup = () => {
     setIsAgregarPopupOpen(true);
@@ -82,14 +71,15 @@ export default function Turnos() {
 
   const openEditarPopup = (turno: Turno) => {
     setIsEditarPopupOpen(true);
+    setTurnoSeleccionado(turno);
     setErrorMessage(null);
     setFormData({
       id: turno.id,
-      fecha_inicio: formatToLocalDateTime(turno.fecha_inicio),
-      fecha_final: formatToLocalDateTime(turno.fecha_final),
+      fecha_inicio: turno.fecha_inicio.slice(0, 16),
+      fecha_final: turno.fecha_final ? turno.fecha_final.slice(0, 16) : '',
       miembro_id: turno.miembro_id,
       empresa_id: turno.empresa_id,
-      establecimiento: turno.establecimiento,
+      establecimiento: turno.establecimiento_id,
       terminal_id: turno.terminal_id,
       estado: turno.estado,
     });
@@ -102,6 +92,7 @@ export default function Turnos() {
 
   const closeEditarPopup = () => {
     setIsEditarPopupOpen(false);
+    setTurnoSeleccionado(null);
     setErrorMessage(null);
   };
 
@@ -156,9 +147,6 @@ export default function Turnos() {
     if (!formData.fecha_inicio) {
       errors.push('Fecha y hora de inicio');
     }
-    if (!formData.fecha_final) {
-      errors.push('Fecha y hora de final');
-    }
     if (!formData.miembro_id) {
       errors.push('Miembro');
     }
@@ -174,7 +162,7 @@ export default function Turnos() {
     if (isEdit && !formData.id) {
       errors.push('ID');
     }
-    if (formData.fecha_final && formData.fecha_inicio) {
+    if (formData.fecha_final) {
       const inicio = new Date(formData.fecha_inicio);
       const final = new Date(formData.fecha_final);
       if (isNaN(inicio.getTime()) || isNaN(final.getTime())) {
@@ -195,7 +183,7 @@ export default function Turnos() {
     }
     const formDataToSend = new FormData();
     formDataToSend.append('fecha_inicio', formData.fecha_inicio);
-    formDataToSend.append('fecha_final', formData.fecha_final);
+    formDataToSend.append('fecha_final', formData.fecha_final );
     formDataToSend.append('miembro_id', formData.miembro_id.toString());
     formDataToSend.append('empresa_id', formData.empresa_id.toString());
     formDataToSend.append('establecimiento', formData.establecimiento.toString());
@@ -232,7 +220,7 @@ export default function Turnos() {
     const formDataToSend = new FormData();
     formDataToSend.append('id', formData.id.toString());
     formDataToSend.append('fecha_inicio', formData.fecha_inicio);
-    formDataToSend.append('fecha_final', formData.fecha_final);
+    formDataToSend.append('fecha_final', formData.fecha_final );
     formDataToSend.append('miembro_id', formData.miembro_id.toString());
     formDataToSend.append('empresa_id', formData.empresa_id.toString());
     formDataToSend.append('establecimiento', formData.establecimiento.toString());
@@ -308,7 +296,7 @@ export default function Turnos() {
         console.log('Miembros obtenidos:', data); // Depuración
         setMiembros(data);
         if (data.length === 0) {
-          setErrorMessage('No se encontraron miembros disponibles.');
+     
         }
       } else {
         console.error('Error al obtener los miembros:', response.status, response.statusText);
@@ -338,7 +326,7 @@ export default function Turnos() {
       turno.establecimiento_nombre || '',
       turno.terminal_nombre || '',
       turno.fecha_inicio,
-      turno.fecha_final,
+      turno.fecha_final || '',
     ].some((field) => field.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
@@ -359,9 +347,9 @@ export default function Turnos() {
     }
   };
 
-  const formatDateTime = (dateTime: string) => {
-    const date = new Date(dateTime + ' UTC');
-    date.setHours(date.getHours() - 6); // Ajustar a CST
+  const formatDateTime = (dateTime: string | null) => {
+    if (!dateTime) return 'N/A';
+    const date = new Date(dateTime);
     return date.toLocaleString('es-ES', {
       day: '2-digit',
       month: '2-digit',
@@ -533,7 +521,6 @@ export default function Turnos() {
                       value={formData.fecha_final}
                       onChange={handleInputChange}
                       className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
-                      required
                     />
                     <label className="block text-center font-medium text-gray-700" htmlFor="miembro_id">
                       Miembro
@@ -573,10 +560,7 @@ export default function Turnos() {
                           type="text"
                           name="establecimiento"
                           value={
-                            formData.establecimiento
-                              ? miembros.find((m) => m.establecimiento === formData.establecimiento)?.establecimiento_nombre || ''
-                              : ''
-                          }
+                        formData.establecimiento ? miembros.find((m) => m.establecimiento === formData.establecimiento)?.establecimiento_nombre || '' : ''}
                           className="w-full p-2 mb-4 border border-gray-300 rounded-lg bg-gray-100 text-center"
                           disabled
                         />
@@ -669,7 +653,6 @@ export default function Turnos() {
                       value={formData.fecha_final}
                       onChange={handleInputChange}
                       className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
-                      required
                     />
                     <label className="block text-center font-medium text-gray-700" htmlFor="miembro_id">
                       Miembro
@@ -708,11 +691,7 @@ export default function Turnos() {
                         <input
                           type="text"
                           name="establecimiento"
-                          value={
-                            formData.establecimiento
-                              ? miembros.find((m) => m.establecimiento === formData.establecimiento)?.establecimiento_nombre || ''
-                              : ''
-                          }
+                          value={formData.establecimiento ? miembros.find((m) => m.establecimiento === formData.establecimiento)?.establecimiento_nombre || '': '' }
                           className="w-full p-2 mb-4 border border-gray-300 rounded-lg bg-gray-100 text-center"
                           disabled
                         />
