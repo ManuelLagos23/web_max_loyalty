@@ -369,6 +369,17 @@ export default function Navbar() {
                     </Link>
                   </li>
 
+                         <li>
+                    <Link
+                      href="/turnos"
+                      className={`block p-2 rounded hover:bg-gray-700 ${
+                        pathname === '/miembros' ? 'active-subitem' : ''
+                      }`}
+                    >
+                      Turnos
+                    </Link>
+                  </li>
+
                     <li>
                     <Link
                       href="/tipo_de_tarjetas"
