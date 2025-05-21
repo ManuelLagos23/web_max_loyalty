@@ -125,8 +125,7 @@ export default function Empresas() {
     if (!formData.telefono) errors.push('Teléfono');
     if (!formData.nfi) errors.push('NFI');
     if (!formData.prefijo_tarjetas) errors.push('Prefijo Tarjetas');
-    if (!isEdit && !formData.logo) errors.push('Logo');
-    if (!isEdit && !formData.logo_impreso) errors.push('Logo Impreso');
+   
     if (isEdit && !formData.id) errors.push('ID');
     return errors;
   };
@@ -878,7 +877,7 @@ distance: 10,                             <input
                             onChange={handleFileChange}
                             className="w-full p-2 mb-4 border border-gray-300 rounded-lg text-center"
                             accept="image/jpeg,image/png"
-                            required
+                        
                           />
                           {formData.logo && (
                             <div className="text-center text-sm text-gray-600 mt-1">
@@ -896,7 +895,7 @@ distance: 10,                             <input
                             onChange={handleFileChange}
                             className="w-full p-2 mb-4 border border-gray-300 rounded-lg text-center"
                             accept="image/jpeg,image/png"
-                            required
+                      
                           />
                           {formData.logo_impreso && (
                             <div className="text-center text-sm text-gray-600 mt-1">

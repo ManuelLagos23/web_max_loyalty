@@ -400,7 +400,7 @@ export default function Terminales() {
 
               <div className="flex justify-between mb-4">
                 <Link href="/terminales/crear">
-                  <button className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
+                  <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
                     Agregar terminal
                   </button>
                 </Link>

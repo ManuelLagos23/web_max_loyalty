@@ -23,13 +23,20 @@ export async function POST(request: Request) {
     const logo = formData.get('logo');
     const logo_impreso = formData.get('logo_impreso');
 
-    // Validar campos obligatorios
-    if (!nombre_empresa || !nombre_impreso || !pais || !moneda || !correo || !telefono || !nfi || !prefijo_tarjetas || !logo || !logo_impreso) {
-      return NextResponse.json({ message: 'Todos los campos son obligatorios' }, { status: 400 });
+    // Validar campos obligatorios (sin incluir logo y logo_impreso)
+    if (!nombre_empresa || !nombre_impreso || !pais || !moneda || !correo || !telefono || !nfi || !prefijo_tarjetas) {
+      return NextResponse.json({ message: 'Todos los campos excepto los logos son obligatorios' }, { status: 400 });
     }
 
-    const logoBuffer = Buffer.from(await (logo as File).arrayBuffer());
-    const logoImpBuffer = Buffer.from(await (logo_impreso as File).arrayBuffer());
+    let logoBuffer: Buffer | null = null;
+    let logoImpBuffer: Buffer | null = null;
+
+    if (logo && typeof logo !== 'string') {
+      logoBuffer = Buffer.from(await (logo as File).arrayBuffer());
+    }
+    if (logo_impreso && typeof logo_impreso !== 'string') {
+      logoImpBuffer = Buffer.from(await (logo_impreso as File).arrayBuffer());
+    }
 
     const client = await pool.connect();
 
@@ -51,8 +58,6 @@ export async function POST(request: Request) {
   }
 }
 
-
-
 // 🚀 Método GET para obtener todas las estaciones con nombres reales de país y moneda
 export async function GET() {
   try {
@@ -72,7 +77,7 @@ export async function GET() {
         encode(e.logo, 'base64') as logo,
         encode(e.logo_impreso, 'base64') as logo_impreso,
         e.pais as pais_id,
-        e.moneda moneda_id
+        e.moneda as moneda_id
       FROM empresas e
       JOIN paises p ON e.pais = p.id
       JOIN monedas m ON e.moneda = m.id
@@ -86,15 +91,6 @@ export async function GET() {
     return NextResponse.json({ message: 'Error al obtener las estaciones' }, { status: 500 });
   }
 }
-
-
-
-
-
-
-
-
-
 
 export async function PUT(request: Request) {
   try {
@@ -111,7 +107,7 @@ export async function PUT(request: Request) {
     const logo = formData.get('logo');
     const logo_impreso = formData.get('logo_impreso');
 
-    // Validar campos obligatorios (excepto logo y logo_impreso, que son opcionales al actualizar)
+    // Validar campos obligatorios (excepto logo y logo_impreso)
     if (!id || !nombre_empresa || !nombre_impreso || !pais || !moneda || !correo || !telefono || !nfi || !prefijo_tarjetas) {
       return NextResponse.json({ message: 'El ID y todos los campos (excepto logos) son obligatorios' }, { status: 400 });
     }
@@ -120,18 +116,22 @@ export async function PUT(request: Request) {
     let query = `
       UPDATE empresas 
       SET nombre_empresa = $1, nombre_impreso = $2, pais = $3, moneda = $4, correo = $5, telefono = $6, nfi = $7, prefijo_tarjetas = $8`;
-    const values: (string | Buffer)[] = [nombre_empresa, nombre_impreso, pais, moneda, correo, telefono, nfi, prefijo_tarjetas];
+    const values: (string | Buffer | null)[] = [nombre_empresa, nombre_impreso, pais, moneda, correo, telefono, nfi, prefijo_tarjetas];
 
     if (logo && typeof logo !== 'string') {
       const logoBuffer = Buffer.from(await (logo as File).arrayBuffer());
       query += `, logo = $${values.length + 1}`;
       values.push(logoBuffer);
+    } else if (logo === null || logo === 'null') {
+      query += `, logo = NULL`;
     }
 
     if (logo_impreso && typeof logo_impreso !== 'string') {
       const logoImpBuffer = Buffer.from(await (logo_impreso as File).arrayBuffer());
       query += `, logo_impreso = $${values.length + 1}`;
       values.push(logoImpBuffer);
+    } else if (logo_impreso === null || logo_impreso === 'null') {
+      query += `, logo_impreso = NULL`;
     }
 
     query += ` WHERE id = $${values.length + 1} 

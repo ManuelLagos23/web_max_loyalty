@@ -115,7 +115,7 @@ export default function CrearTerminal() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 py-4 px-3 sm:px-4 lg:px-6">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 py-4 px-3 sm:px-4 lg:px-6 text-gray-900 ">
         <Navbar />
       <div className="w-full max-w-2xl sm:max-w-5xl bg-white border p-6 sm:p-10 mx-auto">
         <h1 className="text-4xl font-bold text-gray-900 mb-4 

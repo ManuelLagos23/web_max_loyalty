@@ -125,7 +125,7 @@ export default function CrearCliente() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-100 text-gray-900 ">
       
       <div className="flex items-center justify-center py-4 px-3 sm:px-4 lg:px-6">
         <Navbar />
