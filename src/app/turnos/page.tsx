@@ -48,7 +48,6 @@ export default function Turnos() {
     estado: true,
   });
   const [searchTerm, setSearchTerm] = useState('');
-  const [turnoSeleccionado, setTurnoSeleccionado] = useState<Turno | null>(null);
   const [turnoAEliminar, setTurnoAEliminar] = useState<Turno | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(5);
@@ -71,7 +70,6 @@ export default function Turnos() {
 
   const openEditarPopup = (turno: Turno) => {
     setIsEditarPopupOpen(true);
-    setTurnoSeleccionado(turno);
     setErrorMessage(null);
     setFormData({
       id: turno.id,
@@ -92,7 +90,6 @@ export default function Turnos() {
 
   const closeEditarPopup = () => {
     setIsEditarPopupOpen(false);
-    setTurnoSeleccionado(null);
     setErrorMessage(null);
   };
 
@@ -183,7 +180,7 @@ export default function Turnos() {
     }
     const formDataToSend = new FormData();
     formDataToSend.append('fecha_inicio', formData.fecha_inicio);
-    formDataToSend.append('fecha_final', formData.fecha_final );
+    formDataToSend.append('fecha_final', formData.fecha_final);
     formDataToSend.append('miembro_id', formData.miembro_id.toString());
     formDataToSend.append('empresa_id', formData.empresa_id.toString());
     formDataToSend.append('establecimiento', formData.establecimiento.toString());
@@ -220,7 +217,7 @@ export default function Turnos() {
     const formDataToSend = new FormData();
     formDataToSend.append('id', formData.id.toString());
     formDataToSend.append('fecha_inicio', formData.fecha_inicio);
-    formDataToSend.append('fecha_final', formData.fecha_final );
+    formDataToSend.append('fecha_final', formData.fecha_final);
     formDataToSend.append('miembro_id', formData.miembro_id.toString());
     formDataToSend.append('empresa_id', formData.empresa_id.toString());
     formDataToSend.append('establecimiento', formData.establecimiento.toString());
@@ -296,7 +293,6 @@ export default function Turnos() {
         console.log('Miembros obtenidos:', data); // Depuración
         setMiembros(data);
         if (data.length === 0) {
-     
         }
       } else {
         console.error('Error al obtener los miembros:', response.status, response.statusText);
@@ -560,7 +556,8 @@ export default function Turnos() {
                           type="text"
                           name="establecimiento"
                           value={
-                        formData.establecimiento ? miembros.find((m) => m.establecimiento === formData.establecimiento)?.establecimiento_nombre || '' : ''}
+                            formData.establecimiento ? miembros.find((m) => m.establecimiento === formData.establecimiento)?.establecimiento_nombre || '' : ''
+                          }
                           className="w-full p-2 mb-4 border border-gray-300 rounded-lg bg-gray-100 text-center"
                           disabled
                         />
@@ -691,7 +688,9 @@ export default function Turnos() {
                         <input
                           type="text"
                           name="establecimiento"
-                          value={formData.establecimiento ? miembros.find((m) => m.establecimiento === formData.establecimiento)?.establecimiento_nombre || '': '' }
+                          value={
+                            formData.establecimiento ? miembros.find((m) => m.establecimiento === formData.establecimiento)?.establecimiento_nombre || '' : ''
+                          }
                           className="w-full p-2 mb-4 border border-gray-300 rounded-lg bg-gray-100 text-center"
                           disabled
                         />
