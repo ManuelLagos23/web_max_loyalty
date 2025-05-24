@@ -31,6 +31,18 @@ interface Miembro {
   establecimiento_nombre: string;
 }
 
+// Función para formatear fechas al formato requerido por datetime-local (YYYY-MM-DDThh:mm)
+const formatDateForInput = (dateString: string | null): string => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0'); // Meses son 0-based
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+};
+
 export default function Turnos() {
   const [isAgregarPopupOpen, setIsAgregarPopupOpen] = useState(false);
   const [isEditarPopupOpen, setIsEditarPopupOpen] = useState(false);
@@ -73,8 +85,8 @@ export default function Turnos() {
     setErrorMessage(null);
     setFormData({
       id: turno.id,
-      fecha_inicio: turno.fecha_inicio.slice(0, 16),
-      fecha_final: turno.fecha_final ? turno.fecha_final.slice(0, 16) : '',
+      fecha_inicio: formatDateForInput(turno.fecha_inicio), // Usar función de formato
+      fecha_final: formatDateForInput(turno.fecha_final), // Usar función de formato
       miembro_id: turno.miembro_id,
       empresa_id: turno.empresa_id,
       establecimiento: turno.establecimiento_id,

@@ -24,7 +24,7 @@ export async function POST(request: Request) {
 
     const result = await client.query(
       `
-      INSERT INTO usuarios (nombre, email, contraseña, img, num_telefono)
+      INSERT INTO usuarios (nombre, email, password, img, num_telefono)
       VALUES ($1, $2, $3, $4, $5)
       RETURNING id, nombre, email, num_telefono, encode(img, 'base64') as img
       `,
