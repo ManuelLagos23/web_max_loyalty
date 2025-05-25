@@ -83,6 +83,7 @@ export default function Navbar() {
       pathname.startsWith('/tipo_de_tarjetas') ||
       pathname.startsWith('/descuentos') ||
       pathname.startsWith('/precios_semana') ||
+      pathname.startsWith('/turnos') ||
       pathname.startsWith('/tipo_combustible') ||
       pathname.startsWith('/unidad_medida')
       
@@ -402,7 +403,7 @@ export default function Navbar() {
                       Tipo de combustible
                     </Link>
                   </li>
-                  <li>
+                  <li className={'hidden'}>
                     <Link
                       href="/unidad_medida"
                       className={`block p-2 rounded hover:bg-gray-700 ${

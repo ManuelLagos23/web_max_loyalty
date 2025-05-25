@@ -127,7 +127,7 @@ export default function CrearCliente() {
   return (
     <div className="min-h-screen bg-gray-100 text-gray-900 ">
       
-      <div className="flex items-center justify-center py-4 px-3 sm:px-4 lg:px-6">
+      <div className="min-h-screen flex items-center justify-center bg-gray-100 py-4 px-3 sm:px-4 lg:px-6 text-gray-900 ">
         <Navbar />
         <div className="w-full max-w-xl sm:max-w-4xl bg-white border p-5 sm:p-8 mx-auto">
           <h1 className="text-4xl font-bold text-gray-900 mb-4 

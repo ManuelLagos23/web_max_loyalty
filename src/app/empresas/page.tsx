@@ -935,7 +935,7 @@ distance: 10,                             <input
                   }
                 }}
               >
-                <div className="bg-white p-6 rounded-lg shadow-xl w-1/3 border border-gray-200">
+                <div className="bg-white p-6 rounded-lg shadow-xl w-1/3 border">
                   <h2
                     className="text-2xl font-bold text-gray-800 mb-4 tracking-tight 
                     bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent

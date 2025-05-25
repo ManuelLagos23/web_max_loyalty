@@ -35,6 +35,7 @@ export default function Puntos() {
   const [groupedCurrentPage, setGroupedCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const [isGrouped, setIsGrouped] = useState(false);
+  const [mostrarAcciones] = useState(false); //cambiar a true si se quiere mostrar
 
   const openPopup = (modo: 'agregar' | 'editar') => {
     setIsPopupOpen(true);
@@ -259,10 +260,10 @@ export default function Puntos() {
   };
 
   return (
-     <div className="font-sans bg-white text-gray-900 min-h-screen flex">
+    <div className="font-sans bg-white text-gray-900 min-h-screen flex">
       <Navbar />
       <div className="flex-1 flex flex-col">
- 
+
         <main className="flex-1 p-8 bg-white">
           <div className="space-y-4">
             <h1
@@ -283,7 +284,7 @@ export default function Puntos() {
             <button
               onClick={() => openPopup('agregar')}
               className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-        hidden
+              hidden
             >
               Agregar Punto
             </button>
@@ -558,6 +559,8 @@ export default function Puntos() {
             </>
           ) : (
             <>
+
+
               <table className="mt-6 w-full bg-gray-100 table-auto border-collapse border-gray-300">
                 <thead className="bg-gray-200">
                   <tr>
@@ -569,7 +572,9 @@ export default function Puntos() {
                     <th className="px-4 py-2 text-left">Fecha</th>
                     <th className="px-4 py-2 text-left">Debe</th>
                     <th className="px-4 py-2 text-left">Haber</th>
-                    <th className="px-4 py-2 text-left">Acciones</th>
+                    {mostrarAcciones && (
+                      <th className="px-4 py-2 text-left">Acciones</th>
+                    )}
                   </tr>
                 </thead>
                 <tbody>
@@ -585,31 +590,34 @@ export default function Puntos() {
                         <td className="px-4 py-2">{new Date(punto.created_at).toLocaleDateString()}</td>
                         <td className="px-4 py-2">{punto.debe}</td>
                         <td className="px-4 py-2">{punto.haber}</td>
-                        <td className="px-4 py-2">
-                          <button
-                            onClick={() => handleEditar(punto)}
-                            className="bg-yellow-500 text-white px-2 py-1 rounded-lg hover:bg-yellow-600 mr-2"
-                          >
-                            Editar
-                          </button>
-                          <button
-                            onClick={() => openDeletePopup(punto)}
-                            className="bg-red-500 text-white px-2 py-1 rounded-lg hover:bg-red-600"
-                          >
-                            Eliminar
-                          </button>
-                        </td>
+                        {mostrarAcciones && (
+                          <td className="px-4 py-2">
+                            <button
+                              onClick={() => handleEditar(punto)}
+                              className="bg-yellow-500 text-white px-2 py-1 rounded-lg hover:bg-yellow-600 mr-2"
+                            >
+                              Editar
+                            </button>
+                            <button
+                              onClick={() => openDeletePopup(punto)}
+                              className="bg-red-500 text-white px-2 py-1 rounded-lg hover:bg-red-600"
+                            >
+                              Eliminar
+                            </button>
+                          </td>
+                        )}
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={9} className="px-4 py-2 text-center text-gray-500">
+                      <td colSpan={mostrarAcciones ? 10 : 9} className="px-4 py-2 text-center text-gray-500">
                         No hay puntos disponibles.
                       </td>
                     </tr>
                   )}
                 </tbody>
               </table>
+
               <div className="mt-4 flex justify-between items-center">
                 <button
                   onClick={handlePrevPage}

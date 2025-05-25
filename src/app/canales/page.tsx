@@ -369,7 +369,7 @@ export default function Canales() {
                 }
               }}
             >
-              <div className="bg-white p-6 rounded-lg shadow-lg w-1/3">
+              <div className="bg-white p-6 rounded-lg shadow-lg w-1/3 border">
                 <h2 className="text-xl font-semibold mb-4 text-center">Eliminar Canal</h2>
                 <p className="text-center mb-4">¿Estás seguro de que deseas eliminar el canal {canalToDelete.canal}?</p>
                 <div className="flex justify-between">

@@ -33,6 +33,7 @@ export default function Canjeados() {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
+  const [mostrarAcciones] = useState(false);
 
   const openPopup = (modo: 'agregar' | 'editar') => {
     setIsPopupOpen(true);
@@ -236,58 +237,61 @@ export default function Canjeados() {
             />
           </div>
           <table className="mt-6 w-full bg-gray-100 table-auto border-collapse border-gray-300">
-            <thead className="bg-gray-200">
-              <tr>
-                <th className="px-4 py-2 text-left">#</th>
-                <th className="px-4 py-2 text-left" hidden>ID Cliente</th>
-                <th className="px-4 py-2 text-left">Cliente</th>
-                <th className="px-4 py-2 text-left">Establecimiento</th>
-                <th className="px-4 py-2 text-left">Fecha</th>
-                <th className="px-4 py-2 text-left">Puntos Canjeados</th>
-                <th className="px-4 py-2 text-left">Terminal</th>
-                <th className="px-4 py-2 text-left">Número de Tarjeta</th>
-                <th className="px-4 py-2 text-left">Estado</th>
-                <th className="px-4 py-2 text-left">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentCanjeados.length > 0 ? (
-                currentCanjeados.map((canjeado, index) => (
-                  <tr key={canjeado.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-2 text-center">{indexOfFirstItem + index + 1}</td>
-                    <td className="px-4 py-2" hidden>{canjeado.cliente_id}</td>
-                    <td className="px-4 py-2 text-center">{canjeado.cliente_nombre ?? 'Sin cliente'}</td>
-                    <td className="px-4 py-2 text-center">{canjeado.establecimiento_id}</td>
-                    <td className="px-4 py-2">{new Date(canjeado.created_at).toLocaleDateString()}</td>
-                    <td className="px-4 py-2 text-center">{canjeado.puntos_canjeados}</td>
-                    <td className="px-4 py-2 text-center">{canjeado.terminal_id}</td>
-                    <td className="px-4 py-2 text-center">{canjeado.numero_tarjeta ?? 'Sin tarjeta'}</td>
-                    <td className="px-4 py-2 text-center">{canjeado.estado ? 'Validada' : 'Cancelada'}</td>
-                    <td className="px-4 py-2 text-center">
-                      <button
-                        onClick={() => handleEditar(canjeado)}
-                        className="bg-yellow-500 text-white px-2 py-1 rounded-lg hover:bg-yellow-600 mr-2"
-                      >
-                        Editar
-                      </button>
-                      <button
-                        onClick={() => openDeletePopup(canjeado)}
-                        className="bg-red-500 text-white px-2 py-1 rounded-lg hover:bg-red-600"
-                      >
-                        Eliminar
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={10} className="px-4 py-2 text-center text-gray-500">
-                    No hay canjeados disponibles.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+  <thead className="bg-gray-200">
+    <tr>
+      <th className="px-4 py-2 text-left">#</th>
+      <th className="px-4 py-2 text-left" hidden>ID Cliente</th>
+      <th className="px-4 py-2 text-left">Cliente</th>
+      <th className="px-4 py-2 text-left">Establecimiento</th>
+      <th className="px-4 py-2 text-left">Fecha</th>
+      <th className="px-4 py-2 text-left">Puntos Canjeados</th>
+      <th className="px-4 py-2 text-left">Terminal</th>
+      <th className="px-4 py-2 text-left">Número de Tarjeta</th>
+      <th className="px-4 py-2 text-left">Estado</th>
+      {mostrarAcciones && <th className="px-4 py-2 text-left">Acciones</th>}
+    </tr>
+  </thead>
+  <tbody>
+    {currentCanjeados.length > 0 ? (
+      currentCanjeados.map((canjeado, index) => (
+        <tr key={canjeado.id} className="hover:bg-gray-50">
+          <td className="px-4 py-2 text-center">{indexOfFirstItem + index + 1}</td>
+          <td className="px-4 py-2" hidden>{canjeado.cliente_id}</td>
+          <td className="px-4 py-2 text-center">{canjeado.cliente_nombre ?? 'Sin cliente'}</td>
+          <td className="px-4 py-2 text-center">{canjeado.establecimiento_id}</td>
+          <td className="px-4 py-2">{new Date(canjeado.created_at).toLocaleDateString()}</td>
+          <td className="px-4 py-2 text-center">{canjeado.puntos_canjeados}</td>
+          <td className="px-4 py-2 text-center">{canjeado.terminal_id}</td>
+          <td className="px-4 py-2 text-center">{canjeado.numero_tarjeta ?? 'Sin tarjeta'}</td>
+          <td className="px-4 py-2 text-center">{canjeado.estado ? 'Validada' : 'Cancelada'}</td>
+          {mostrarAcciones && (
+            <td className="px-4 py-2 text-center">
+              <button
+                onClick={() => handleEditar(canjeado)}
+                className="bg-yellow-500 text-white px-2 py-1 rounded-lg hover:bg-yellow-600 mr-2"
+              >
+                Editar
+              </button>
+              <button
+                onClick={() => openDeletePopup(canjeado)}
+                className="bg-red-500 text-white px-2 py-1 rounded-lg hover:bg-red-600"
+              >
+                Eliminar
+              </button>
+            </td>
+          )}
+        </tr>
+      ))
+    ) : (
+      <tr>
+        <td colSpan={mostrarAcciones ? 10 : 9} className="px-4 py-2 text-center text-gray-500">
+          No hay canjeados disponibles.
+        </td>
+      </tr>
+    )}
+  </tbody>
+</table>
+
           <div className="mt-4 flex justify-between items-center">
             <button
               onClick={handlePrevPage}

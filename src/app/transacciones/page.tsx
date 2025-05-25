@@ -51,6 +51,8 @@ export default function Transacciones() {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const [mostrarAcciones] = useState(false);
+
 
   useEffect(() => {
     const fetchTransacciones = async () => {
@@ -119,13 +121,13 @@ export default function Transacciones() {
       ...prevData,
       [name]:
         name === 'cliente_id' ||
-        name === 'establecimiento_id' ||
-        name === 'monto' ||
-        name === 'terminal_id' ||
-        name === 'unidades' ||
-        name === 'descuento' ||
-        name === 'canal_id' ||
-        name === 'tipo_combustible_id'
+          name === 'establecimiento_id' ||
+          name === 'monto' ||
+          name === 'terminal_id' ||
+          name === 'unidades' ||
+          name === 'descuento' ||
+          name === 'canal_id' ||
+          name === 'tipo_combustible_id'
           ? Number(value)
           : value,
     }));
@@ -269,7 +271,7 @@ export default function Transacciones() {
   };
 
   return (
-      <div className="font-sans bg-white text-gray-900 min-h-screen flex">
+    <div className="font-sans bg-white text-gray-900 min-h-screen flex">
       <Navbar />
       <div className="flex-1 flex flex-col">
         <main className="flex-1 p-8 bg-white">
@@ -316,13 +318,14 @@ export default function Transacciones() {
                 <th className="px-4 py-2">Descuento</th>
                 <th className="px-4 py-2">Canal</th>
                 <th className="px-4 py-2">Tipo Combustible</th>
-                <th className="px-4 py-2">Acciones</th>
+                {mostrarAcciones && <th className="px-4 py-2">Acciones</th>}
               </tr>
             </thead>
+
             <tbody>
               {currentTransacciones.length === 0 ? (
                 <tr>
-                  <td colSpan={13} className="px-4 py-2 text-center">
+                  <td colSpan={mostrarAcciones ? 13 : 12} className="px-4 py-2 text-center">
                     No hay transacciones disponibles
                   </td>
                 </tr>
@@ -336,8 +339,7 @@ export default function Transacciones() {
                     <td className="px-4 py-2 text-center">{transaccion.monto.toFixed(2)}</td>
                     <td className="px-4 py-2 text-center">{transaccion.terminal_nombre}</td>
                     <td className="px-4 py-2 text-center">{transaccion.numero_tarjeta ?? 'Sin tarjeta'}</td>
-                 
-                       <td className="px-4 py-2 text-center">{transaccion.estado  ? 'Validada' : 'Cancelada'}</td>
+                    <td className="px-4 py-2 text-center">{transaccion.estado ? 'Validada' : 'Cancelada'}</td>
                     <td className="px-4 py-2 text-center">
                       {transaccion.unidades != null ? transaccion.unidades.toFixed(2) : 'N/A'}
                     </td>
@@ -346,41 +348,44 @@ export default function Transacciones() {
                     </td>
                     <td className="px-4 py-2 text-center">{transaccion.canal_nombre}</td>
                     <td className="px-4 py-2 text-center">{transaccion.tipo_combustible_nombre}</td>
-                    <td className="px-4 py-2 text-center">
-                      <button
-                        onClick={() => {
-                          setTransaccionToUpdate(transaccion);
-                          setTransaccionData({
-                            cliente_id: 0,
-                            establecimiento_id: 0,
-                            fecha: transaccion.fecha.split('T')[0],
-                            monto: transaccion.monto,
-                            terminal_id: 0,
-                            unidades: transaccion.unidades,
-                            descuento: transaccion.descuento,
-                            canal_id: 0,
-                            tipo_combustible_id: 0,
-                          });
-                          setIsUpdateModalOpen(true);
-                        }}
-                        className="bg-yellow-500 text-white px-2 py-1 rounded-lg mr-2"
-                      >
-                        Editar
-                      </button>
-                      <button
-                        onClick={() => {
-                          setTransaccionToDelete(transaccion);
-                          setIsDeleteModalOpen(true);
-                        }}
-                        className="bg-red-500 text-white px-2 py-1 rounded-lg"
-                      >
-                        Eliminar
-                      </button>
-                    </td>
+                    {mostrarAcciones && (
+                      <td className="px-4 py-2 text-center">
+                        <button
+                          onClick={() => {
+                            setTransaccionToUpdate(transaccion);
+                            setTransaccionData({
+                              cliente_id: 0,
+                              establecimiento_id: 0,
+                              fecha: transaccion.fecha.split('T')[0],
+                              monto: transaccion.monto,
+                              terminal_id: 0,
+                              unidades: transaccion.unidades,
+                              descuento: transaccion.descuento,
+                              canal_id: 0,
+                              tipo_combustible_id: 0,
+                            });
+                            setIsUpdateModalOpen(true);
+                          }}
+                          className="bg-yellow-500 text-white px-2 py-1 rounded-lg mr-2"
+                        >
+                          Editar
+                        </button>
+                        <button
+                          onClick={() => {
+                            setTransaccionToDelete(transaccion);
+                            setIsDeleteModalOpen(true);
+                          }}
+                          className="bg-red-500 text-white px-2 py-1 rounded-lg"
+                        >
+                          Eliminar
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 ))
               )}
             </tbody>
+
           </table>
           <div className="mt-4 flex justify-between items-center">
             <button
