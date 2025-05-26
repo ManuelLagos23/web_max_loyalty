@@ -55,7 +55,7 @@ export default function PrecioVentaCombustible() {
     notas: '',
     precio_sucursal_ids: 0,
     semana_year: 0,
-    precio: 0,
+    precio: '', // Cambiado de 0 a '' para evitar el 0 por defecto
     tipo_combustible_id: 0,
   });
   const [precioVentaToUpdate, setPrecioVentaToUpdate] = useState<PrecioVentaCombustible | null>(null);
@@ -146,19 +146,38 @@ export default function PrecioVentaCombustible() {
   }, [fetchMonedasList, fetchCostosList, fetchTiposCombustible]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value, type } = e.target as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+    const { name, value } = e.target;
     setPrecioVentaData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? (value === 'on') : (name === 'monedas_id' || name === 'precio_sucursal_ids' || name === 'semana_year' || name === 'precio' || name === 'tipo_combustible_id' ? parseInt(value) || 0 : value),
+      [name]:
+        name === 'precio'
+          ? value // Almacena como cadena para permitir decimales incompletos
+          : name === 'monedas_id' || name === 'precio_sucursal_ids' || name === 'semana_year' || name === 'tipo_combustible_id'
+          ? parseInt(value) || 0
+          : value,
     }));
   };
 
   const handleSubmitAdd = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!precioVentaData.monedas_id || !precioVentaData.fecha_inicio || !precioVentaData.fecha_final || !precioVentaData.notas || !precioVentaData.precio_sucursal_ids || !precioVentaData.semana_year || !precioVentaData.precio || !precioVentaData.tipo_combustible_id) {
-      alert('Por favor, complete todos los campos obligatorios.');
+    if (
+      !precioVentaData.monedas_id ||
+      !precioVentaData.fecha_inicio ||
+      !precioVentaData.fecha_final ||
+      !precioVentaData.notas ||
+      !precioVentaData.precio_sucursal_ids ||
+      !precioVentaData.semana_year ||
+      !precioVentaData.precio ||
+      isNaN(parseFloat(precioVentaData.precio)) || // Validar que precio sea un número válido
+      !precioVentaData.tipo_combustible_id
+    ) {
+      alert('Por favor, complete todos los campos obligatorios con valores válidos.');
       return;
     }
+
+    // Convertir precio a número con 2 decimales
+    const precioNumerico = parseFloat(precioVentaData.precio).toFixed(2);
+
     const formData = new FormData();
     formData.append('monedas_id', precioVentaData.monedas_id.toString());
     formData.append('fecha_final', precioVentaData.fecha_final);
@@ -166,7 +185,7 @@ export default function PrecioVentaCombustible() {
     formData.append('notas', precioVentaData.notas);
     formData.append('precio_sucursal_ids', precioVentaData.precio_sucursal_ids.toString());
     formData.append('semana_year', precioVentaData.semana_year.toString());
-    formData.append('precio', precioVentaData.precio.toString());
+    formData.append('precio', precioNumerico);
     formData.append('tipo_combustible_id', precioVentaData.tipo_combustible_id.toString());
 
     const response = await fetch('/api/precio_venta_combustible', {
@@ -185,7 +204,7 @@ export default function PrecioVentaCombustible() {
         notas: '',
         precio_sucursal_ids: 0,
         semana_year: 0,
-        precio: 0,
+        precio: '',
         tipo_combustible_id: 0,
       });
       setIsAddModalOpen(false);
@@ -197,50 +216,63 @@ export default function PrecioVentaCombustible() {
 
   const handleSubmitUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (precioVentaToUpdate) {
-      if (!precioVentaData.monedas_id || !precioVentaData.fecha_inicio || !precioVentaData.fecha_final || !precioVentaData.notas || !precioVentaData.precio_sucursal_ids || !precioVentaData.semana_year || !precioVentaData.precio || !precioVentaData.tipo_combustible_id) {
-        alert('Por favor, complete todos los campos obligatorios.');
-        return;
-      }
-      const formData = new FormData();
-      formData.append('id', String(precioVentaToUpdate.id));
-      formData.append('monedas_id', precioVentaData.monedas_id.toString());
-      formData.append('fecha_final', precioVentaData.fecha_final);
-      formData.append('fecha_inicio', precioVentaData.fecha_inicio);
-      formData.append('notas', precioVentaData.notas);
-      formData.append('precio_sucursal_ids', precioVentaData.precio_sucursal_ids.toString());
-      formData.append('semana_year', precioVentaData.semana_year.toString());
-      formData.append('precio', precioVentaData.precio.toString());
-      formData.append('tipo_combustible_id', precioVentaData.tipo_combustible_id.toString());
+    if (
+      precioVentaToUpdate &&
+      (!precioVentaData.monedas_id ||
+        !precioVentaData.fecha_inicio ||
+        !precioVentaData.fecha_final ||
+        !precioVentaData.notas ||
+        !precioVentaData.precio_sucursal_ids ||
+        !precioVentaData.semana_year ||
+        !precioVentaData.precio ||
+        isNaN(parseFloat(precioVentaData.precio)) ||
+        !precioVentaData.tipo_combustible_id)
+    ) {
+      alert('Por favor, complete todos los campos obligatorios con valores válidos.');
+      return;
+    }
 
-      const response = await fetch('/api/precio_venta_combustible', {
-        method: 'PUT',
-        body: formData,
+    // Convertir precio a número con 2 decimales
+    const precioNumerico = parseFloat(precioVentaData.precio).toFixed(2);
+
+    const formData = new FormData();
+    formData.append('id', String(precioVentaToUpdate!.id));
+    formData.append('monedas_id', precioVentaData.monedas_id.toString());
+    formData.append('fecha_final', precioVentaData.fecha_final);
+    formData.append('fecha_inicio', precioVentaData.fecha_inicio);
+    formData.append('notas', precioVentaData.notas);
+    formData.append('precio_sucursal_ids', precioVentaData.precio_sucursal_ids.toString());
+    formData.append('semana_year', precioVentaData.semana_year.toString());
+    formData.append('precio', precioNumerico);
+    formData.append('tipo_combustible_id', precioVentaData.tipo_combustible_id.toString());
+
+    const response = await fetch('/api/precio_venta_combustible', {
+      method: 'PUT',
+      body: formData,
+    });
+
+    if (response.ok) {
+      const updatedPrecioVenta = await response.json();
+      alert('Precio de venta actualizado exitosamente');
+      setPreciosVenta((prev) =>
+        prev.map((precio) =>
+          precio.id === updatedPrecioVenta.data.id ? updatedPrecioVenta.data : precio
+        )
+      );
+      setPrecioVentaData({
+        monedas_id: 0,
+        fecha_final: '',
+        fecha_inicio: '',
+        notas: '',
+        precio_sucursal_ids: 0,
+        semana_year: 0,
+        precio: '',
+        tipo_combustible_id: 0,
       });
-
-      if (response.ok) {
-        const updatedPrecioVenta = await response.json();
-        alert('Precio de venta actualizado exitosamente');
-        setPreciosVenta((prev) =>
-          prev.map((precio) =>
-            precio.id === updatedPrecioVenta.data.id ? updatedPrecioVenta.data : precio
-          )
-        );
-        setPrecioVentaData({
-          monedas_id: 0,
-          fecha_final: '',
-          fecha_inicio: '',
-          notas: '',
-          precio_sucursal_ids: 0,
-          semana_year: 0,
-          precio: 0,
-          tipo_combustible_id: 0,
-        });
-        setIsUpdateModalOpen(false);
-        fetchPreciosVenta();
-      } else {
-        alert('Error al actualizar el precio de venta');
-      }
+      setIsUpdateModalOpen(false);
+      fetchPreciosVenta();
+    } else {
+      alert('Error al actualizar el precio de venta');
     }
   };
 
@@ -270,7 +302,7 @@ export default function PrecioVentaCombustible() {
       alert('La fecha de inicio no puede ser mayor que la fecha final.');
       return;
     }
-    setCurrentPage(1); // Resetear a la primera página al aplicar el filtro
+    setCurrentPage(1);
     fetchPreciosVenta();
   };
 
@@ -300,7 +332,7 @@ export default function PrecioVentaCombustible() {
   };
 
   return (
-       <div className="font-sans bg-white text-gray-900 min-h-screen flex">
+    <div className="font-sans bg-white text-gray-900 min-h-screen flex">
       <Navbar />
       <div className="flex-1 flex flex-col">
         <main className="flex-1 p-8 bg-white">
@@ -426,7 +458,7 @@ export default function PrecioVentaCombustible() {
                               notas: precio.notas,
                               precio_sucursal_ids: precio.precio_sucursal_ids,
                               semana_year: precio.semana_year,
-                              precio: precio.precio,
+                              precio: precio.precio.toString(), // Convertir a cadena para el input
                               tipo_combustible_id: precio.tipo_combustible_id,
                             });
                             setIsUpdateModalOpen(true);
@@ -588,8 +620,10 @@ export default function PrecioVentaCombustible() {
                         type="number"
                         id="precio"
                         name="precio"
-                        placeholder="Ejemplo: 50"
-                        value={precioVentaData.precio}
+                        placeholder="Ejemplo: 50.00"
+                        step="0.01"
+                        min="0"
+                        value={precioVentaData.precio || ''}
                         onChange={handleInputChange}
                         className="w-full px-4 py-2 border border-gray-300 rounded-md text-center"
                       />
@@ -749,8 +783,10 @@ export default function PrecioVentaCombustible() {
                         type="number"
                         id="precio"
                         name="precio"
-                        placeholder="Ejemplo: 50"
-                        value={precioVentaData.precio}
+                        placeholder="Ejemplo: 50.00"
+                        step="0.01"
+                        min="0"
+                        value={precioVentaData.precio || ''}
                         onChange={handleInputChange}
                         className="w-full px-4 py-2 border border-gray-300 rounded-md text-center"
                       />
