@@ -61,19 +61,18 @@ export default function Home() {
         fetch('/api/canjeados'),
       ]);
 
-      const results = await Promise.all([
-        clientesRes.ok ? clientesRes.json().catch(() => Promise.reject('Error al parsear clientes')) : Promise.reject(`Error al obtener clientes: ${clientesRes.status}`),
-        empresasRes.ok ? empresasRes.json().catch(() => Promise.reject('Error al parsear empresas')) : Promise.reject(`Error al obtener empresas: ${empresasRes.status}`),
-        centrosCostosRes.ok ? centrosCostosRes.json().catch(() => Promise.reject('Error al parsear centros de costos')) : Promise.reject(`Error al obtener centros de costos: ${centrosCostosRes.status}`),
-        canalesRes.ok ? canalesRes.json().catch(() => Promise.reject('Error al parsear canales')) : Promise.reject(`Error al obtener canales: ${canalesRes.status}`),
-        subcanalesRes.ok ? subcanalesRes.json().catch(() => Promise.reject('Error al parsear subcanales')) : Promise.reject(`Error al obtener subcanales: ${subcanalesRes.status}`),
-        terminalesRes.ok ? terminalesRes.json().catch(() => Promise.reject('Error al parsear terminales')) : Promise.reject(`Error al obtener terminales: ${terminalesRes.status}`),
-        miembrosRes.ok ? miembrosRes.json().catch(() => Promise.reject('Error al parsear miembros')) : Promise.reject(`Error al obtener miembros: ${miembrosRes.status}`),
-        tarjetasRes.ok ? tarjetasRes.json().catch(() => Promise.reject('Error al parsear tarjetas')) : Promise.reject(`Error al obtener tarjetas: ${tarjetasRes.status}`),
-        transaccionesRes.ok ? transaccionesRes.json().catch(() => Promise.reject('Error al parsear transacciones')) : Promise.reject(`Error al obtener transacciones: ${transaccionesRes.status}`),
-        canjeadosRes.ok ? canjeadosRes.json().catch(() => Promise.reject('Error al parsear canjeados')) : Promise.reject(`Error al obtener canjeados: ${canjeadosRes.status}`),
-      ]);
-
+const results = await Promise.all([
+  clientesRes.ok ? clientesRes.json().catch(() => []) : [], // Devuelve array vacío si falla
+  empresasRes.ok ? empresasRes.json().catch(() => []) : [],
+  centrosCostosRes.ok ? centrosCostosRes.json().catch(() => []) : [],
+  canalesRes.ok ? canalesRes.json().catch(() => []) : [],
+  subcanalesRes.ok ? subcanalesRes.json().catch(() => []) : [],
+  terminalesRes.ok ? terminalesRes.json().catch(() => []) : [],
+  miembrosRes.ok ? miembrosRes.json().catch(() => []) : [],
+  tarjetasRes.ok ? tarjetasRes.json().catch(() => []) : [],
+  transaccionesRes.ok ? transaccionesRes.json().catch(() => []) : [],
+  canjeadosRes.ok ? canjeadosRes.json().catch(() => []) : [],
+]);
       setDashboardData({
         clientes: results[0].total || (Array.isArray(results[0].clientes) ? results[0].clientes.length : Array.isArray(results[0]) ? results[0].length : results[0].count || results[0].data?.length || 0),
         empresas: Array.isArray(results[1]) ? results[1].length : results[1].count || results[1].data?.length || 0,
