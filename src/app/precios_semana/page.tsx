@@ -54,7 +54,7 @@ export default function PrecioVentaCombustible() {
     fecha_inicio: '',
     notas: '',
     precio_sucursal_ids: 0,
-    semana_year: 0,
+    semana_year: '',
     precio: '', // Cambiado de 0 a '' para evitar el 0 por defecto
     tipo_combustible_id: 0,
   });
@@ -203,7 +203,7 @@ export default function PrecioVentaCombustible() {
         fecha_inicio: '',
         notas: '',
         precio_sucursal_ids: 0,
-        semana_year: 0,
+        semana_year: '',
         precio: '',
         tipo_combustible_id: 0,
       });
@@ -265,7 +265,7 @@ export default function PrecioVentaCombustible() {
         fecha_inicio: '',
         notas: '',
         precio_sucursal_ids: 0,
-        semana_year: 0,
+        semana_year: '',
         precio: '',
         tipo_combustible_id: 0,
       });
@@ -457,7 +457,7 @@ export default function PrecioVentaCombustible() {
                               fecha_inicio: precio.fecha_inicio,
                               notas: precio.notas,
                               precio_sucursal_ids: precio.precio_sucursal_ids,
-                              semana_year: precio.semana_year,
+                              semana_year: precio.semana_year.toString(),
                               precio: precio.precio.toString(), // Convertir a cadena para el input
                               tipo_combustible_id: precio.tipo_combustible_id,
                             });

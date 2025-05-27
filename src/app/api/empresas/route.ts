@@ -92,6 +92,7 @@ export async function GET() {
   }
 }
 
+
 export async function PUT(request: Request) {
   try {
     const formData = await request.formData();
@@ -104,8 +105,6 @@ export async function PUT(request: Request) {
     const telefono = formData.get('telefono')?.toString();
     const nfi = formData.get('nfi')?.toString();
     const prefijo_tarjetas = formData.get('prefijo_tarjetas')?.toString();
-    const logo = formData.get('logo');
-    const logo_impreso = formData.get('logo_impreso');
 
     // Validar campos obligatorios (excepto logo y logo_impreso)
     if (!id || !nombre_empresa || !nombre_impreso || !pais || !moneda || !correo || !telefono || !nfi || !prefijo_tarjetas) {
@@ -117,24 +116,35 @@ export async function PUT(request: Request) {
       UPDATE empresas 
       SET nombre_empresa = $1, nombre_impreso = $2, pais = $3, moneda = $4, correo = $5, telefono = $6, nfi = $7, prefijo_tarjetas = $8`;
     const values: (string | Buffer | null)[] = [nombre_empresa, nombre_impreso, pais, moneda, correo, telefono, nfi, prefijo_tarjetas];
+    let paramIndex = values.length + 1;
 
-    if (logo && typeof logo !== 'string') {
-      const logoBuffer = Buffer.from(await (logo as File).arrayBuffer());
-      query += `, logo = $${values.length + 1}`;
-      values.push(logoBuffer);
-    } else if (logo === null || logo === 'null') {
-      query += `, logo = NULL`;
+    // Handle logo only if present in formData
+    if (formData.has('logo')) {
+      const logo = formData.get('logo');
+      if (logo && typeof logo !== 'string') {
+        const logoBuffer = Buffer.from(await (logo as File).arrayBuffer());
+        query += `, logo = $${paramIndex}`;
+        values.push(logoBuffer);
+        paramIndex++;
+      } else if (logo === 'null') {
+        query += `, logo = NULL`;
+      }
     }
 
-    if (logo_impreso && typeof logo_impreso !== 'string') {
-      const logoImpBuffer = Buffer.from(await (logo_impreso as File).arrayBuffer());
-      query += `, logo_impreso = $${values.length + 1}`;
-      values.push(logoImpBuffer);
-    } else if (logo_impreso === null || logo_impreso === 'null') {
-      query += `, logo_impreso = NULL`;
+    // Handle logo_impreso only if present in formData
+    if (formData.has('logo_impreso')) {
+      const logo_impreso = formData.get('logo_impreso');
+      if (logo_impreso && typeof logo_impreso !== 'string') {
+        const logoImpBuffer = Buffer.from(await (logo_impreso as File).arrayBuffer());
+        query += `, logo_impreso = $${paramIndex}`;
+        values.push(logoImpBuffer);
+        paramIndex++;
+      } else if (logo_impreso === 'null') {
+        query += `, logo_impreso = NULL`;
+      }
     }
 
-    query += ` WHERE id = $${values.length + 1} 
+    query += ` WHERE id = $${paramIndex} 
               RETURNING id, nombre_empresa, nombre_impreso, pais, moneda, correo, telefono, nfi, prefijo_tarjetas, 
                         encode(logo, 'base64') as logo, encode(logo_impreso, 'base64') as logo_impreso`;
     values.push(id);
@@ -144,12 +154,12 @@ export async function PUT(request: Request) {
     client.release();
 
     if (result.rowCount === 0) {
-      return NextResponse.json({ message: 'Estación no encontrada' }, { status: 404 });
+      return NextResponse.json({ message: 'Empresa no encontrada' }, { status: 404 });
     }
 
     return NextResponse.json(result.rows[0], { status: 200 });
   } catch (error) {
-    console.error('Error al actualizar la estación:', error);
-    return NextResponse.json({ message: 'Error al actualizar la estación' }, { status: 500 });
+    console.error('Error al actualizar la empresa:', error);
+    return NextResponse.json({ message: 'Error al actualizar la empresa' }, { status: 500 });
   }
 }
