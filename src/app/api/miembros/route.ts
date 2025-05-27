@@ -73,6 +73,7 @@ export async function PUT(request: Request) {
     const establecimiento = formData.get('establecimiento');
     const empresa_id = formData.get('empresa_id');
     const terminal_id = formData.get('terminal_id');
+    const password = formData.get('password');
 
     if (!id) {
       return NextResponse.json({ message: 'El ID del miembro es obligatorio' }, { status: 400 });
@@ -80,13 +81,22 @@ export async function PUT(request: Request) {
 
     const client = await pool.connect();
 
-    const result = await client.query(
-      `UPDATE miembros 
-       SET nombre = $1, "user" = $2, email = $3, establecimiento = $4, empresa_id = $5, terminal_id = $6
-       WHERE id = $7
-       RETURNING *`,
-      [nombre, user, email, establecimiento, empresa_id, terminal_id, id]
-    );
+    let query = `
+      UPDATE miembros 
+      SET nombre = $1, "user" = $2, email = $3, establecimiento = $4, empresa_id = $5, terminal_id = $6
+    `;
+    const values = [nombre, user, email, establecimiento, empresa_id, terminal_id];
+
+    // Add password to the query only if it is provided
+    if (password) {
+      query += `, password = $${values.length + 1}`;
+      values.push(password);
+    }
+
+    query += ` WHERE id = $${values.length + 1} RETURNING *`;
+    values.push(id);
+
+    const result = await client.query(query, values);
 
     client.release();
 

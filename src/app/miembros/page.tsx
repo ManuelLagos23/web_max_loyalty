@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import Navbar from '../components/Navbar';
 
-
 interface Miembro {
   id: number;
   nombre: string;
@@ -167,8 +166,8 @@ export default function Miembros() {
     if (!formData.establecimiento) errors.push('Establecimiento');
     if (!formData.empresa_id) errors.push('Empresa');
     if (!formData.terminal_id) errors.push('Terminal');
-    if (!isEdit && !formData.password) errors.push('Contraseña');
     if (isEdit && !formData.id) errors.push('ID');
+    if (!isEdit && !formData.password) errors.push('Contraseña');
     return errors;
   };
 
@@ -223,7 +222,9 @@ export default function Miembros() {
     formDataToSend.append('establecimiento', formData.establecimiento.toString());
     formDataToSend.append('empresa_id', formData.empresa_id.toString());
     formDataToSend.append('terminal_id', formData.terminal_id.toString());
-    formDataToSend.append('password', formData.password);
+    if (formData.password) {
+      formDataToSend.append('password', formData.password);
+    }
 
     try {
       setErrorMessage(null);
@@ -274,7 +275,6 @@ export default function Miembros() {
       );
       if (response.ok) {
         const data: Miembro[] = await response.json();
-
         setMiembros(data);
       } else {
         console.error('Error al obtener los miembros:', response.status, response.statusText);
@@ -292,7 +292,6 @@ export default function Miembros() {
       const response = await fetch('/api/costos');
       if (response.ok) {
         const data: CentroCosto[] = await response.json();
-     
         setCentrosCostos(data);
       } else {
         console.error('Error al obtener los centros de costos:', response.status, response.statusText);
@@ -310,7 +309,6 @@ export default function Miembros() {
       const response = await fetch('/api/empresas');
       if (response.ok) {
         const data: Empresa[] = await response.json();
-
         setEmpresas(data);
       } else {
         console.error('Error al obtener las empresas:', response.status, response.statusText);
@@ -328,7 +326,6 @@ export default function Miembros() {
       const response = await fetch('/api/terminales');
       if (response.ok) {
         const data: Terminal[] = await response.json();
-  
         setTerminales(data);
       } else {
         console.error('Error al obtener los terminales:', response.status, response.statusText);
@@ -341,7 +338,6 @@ export default function Miembros() {
   }, []);
 
   const handleEditar = (miembro: Miembro) => {
-
     setMiembroSeleccionado(miembro);
     setFormData({
       id: miembro.id,
@@ -396,7 +392,6 @@ export default function Miembros() {
       <div className="flex">
         <Navbar />
         <div className="flex-1 flex flex-col">
-    
           <main className="flex-1 p-8">
             <div className="space-y-6">
               <h1
@@ -582,21 +577,21 @@ export default function Miembros() {
                           <label className="block text-center font-medium text-gray-700" htmlFor="empresa_id">
                             Empresa
                           </label>
-                        <select
-  name="empresa_id"
-  value={formData.empresa_id != null ? formData.empresa_id.toString() : "0"}
-  onChange={handleInputChange}
-  className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center bg-gray-100"
-  required
-  disabled
->
-  <option value="0">Seleccione una empresa</option>
-  {empresas.map((empresa) => (
-    <option key={empresa.id} value={empresa.id.toString()}>
-      {empresa.nombre_empresa}
-    </option>
-  ))}
-</select>
+                          <select
+                            name="empresa_id"
+                            value={formData.empresa_id != null ? formData.empresa_id.toString() : "0"}
+                            onChange={handleInputChange}
+                            className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center bg-gray-100"
+                            required
+                            disabled
+                          >
+                            <option value="0">Seleccione una empresa</option>
+                            {empresas.map((empresa) => (
+                              <option key={empresa.id} value={empresa.id.toString()}>
+                                {empresa.nombre_empresa}
+                              </option>
+                            ))}
+                          </select>
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-4">
@@ -641,7 +636,7 @@ export default function Miembros() {
                       <input
                         type="password"
                         name="password"
-                        placeholder="Dejar en blanco para no cambiar"
+                        placeholder="Establezca una nueva contraseña si olvidó la anterior."
                         value={formData.password}
                         onChange={handleInputChange}
                         className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
@@ -712,21 +707,21 @@ export default function Miembros() {
                           <label className="block text-center font-medium text-gray-700" htmlFor="empresa_id">
                             Empresa
                           </label>
-                        <select
-  name="empresa_id"
-  value={formData.empresa_id != null ? formData.empresa_id.toString() : "0"}
-  onChange={handleInputChange}
-  className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center bg-gray-100"
-  required
-  disabled
->
-  <option value="0">Seleccione una empresa</option>
-  {empresas.map((empresa) => (
-    <option key={empresa.id} value={empresa.id.toString()}>
-      {empresa.nombre_empresa}
-    </option>
-  ))}
-</select>
+                          <select
+                            name="empresa_id"
+                            value={formData.empresa_id != null ? formData.empresa_id.toString() : "0"}
+                            onChange={handleInputChange}
+                            className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center bg-gray-100"
+                            required
+                            disabled
+                          >
+                            <option value="0">Seleccione una empresa</option>
+                            {empresas.map((empresa) => (
+                              <option key={empresa.id} value={empresa.id.toString()}>
+                                {empresa.nombre_empresa}
+                              </option>
+                            ))}
+                          </select>
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-4">
