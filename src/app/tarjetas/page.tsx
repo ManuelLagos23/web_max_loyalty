@@ -1,8 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Navbar from '../components/Navbar';
-
 import { jsPDF } from 'jspdf';
 
 interface Tarjeta {
@@ -40,11 +39,15 @@ export default function Tarjetas() {
     tipo_tarjeta_id: 0,
   });
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchTermCliente, setSearchTermCliente] = useState('');
+  const [filteredClientes, setFilteredClientes] = useState<Cliente[]>([]);
   const [tarjetaSeleccionada, setTarjetaSeleccionada] = useState<Tarjeta | null>(null);
   const [tarjetaAEliminar, setTarjetaAEliminar] = useState<Tarjeta | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const generateCardNumber = async () => {
     try {
@@ -69,6 +72,7 @@ export default function Tarjetas() {
   const openPopup = async (modo: 'agregar' | 'editar') => {
     try {
       setIsPopupOpen(true);
+      setIsDropdownOpen(true); // Mostrar el dropdown por defecto
       if (modo === 'agregar') {
         setTarjetaSeleccionada(null);
         const newCardNumber = await generateCardNumber();
@@ -78,6 +82,18 @@ export default function Tarjetas() {
           cliente_id: 0,
           tipo_tarjeta_id: 0,
         });
+        setSearchTermCliente('');
+        setFilteredClientes(clientes); // Mostrar todos los clientes al abrir
+      } else if (modo === 'editar' && tarjetaSeleccionada) {
+        setFormData({
+          id: tarjetaSeleccionada.id,
+          numero_tarjeta: tarjetaSeleccionada.numero_tarjeta,
+          cliente_id: tarjetaSeleccionada.cliente_id,
+          tipo_tarjeta_id: tarjetaSeleccionada.tipo_tarjeta_id,
+        });
+        const selectedCliente = clientes.find(c => c.id === tarjetaSeleccionada.cliente_id);
+        setSearchTermCliente(selectedCliente ? selectedCliente.nombre : '');
+        setFilteredClientes(clientes); // Mostrar todos los clientes al abrir
       }
     } catch (error) {
       console.error('Error al abrir popup:', error);
@@ -88,6 +104,8 @@ export default function Tarjetas() {
 
   const closePopup = () => {
     setIsPopupOpen(false);
+    setSearchTermCliente('');
+    setIsDropdownOpen(false);
   };
 
   const openDeletePopup = (tarjeta: Tarjeta) => {
@@ -111,6 +129,25 @@ export default function Tarjetas() {
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
     setCurrentPage(1);
+  };
+
+  const handleSearchClienteChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const term = e.target.value.toLowerCase();
+    setSearchTermCliente(term);
+    setIsDropdownOpen(true); // Mantener el dropdown abierto mientras se escribe
+
+    if (clientes) {
+      const filtered = term.length > 0
+        ? clientes.filter((cliente) => cliente.nombre.toLowerCase().includes(term))
+        : clientes; // Mostrar todos si no hay término
+      setFilteredClientes(filtered);
+    }
+  };
+
+  const handleSelectCliente = (cliente: Cliente) => {
+    setFormData((prev) => ({ ...prev, cliente_id: cliente.id }));
+    setSearchTermCliente(cliente.nombre);
+    setIsDropdownOpen(false);
   };
 
   const handleSubmitAgregar = async (e: React.FormEvent) => {
@@ -325,6 +362,16 @@ export default function Tarjetas() {
     fetchTiposTarjeta();
   }, [fetchTarjetas, fetchClientes, fetchTiposTarjeta]);
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
   const handleNextPage = () => {
@@ -512,24 +559,45 @@ export default function Tarjetas() {
                         ))}
                       </select>
                     </div>
-                    <div className="mb-4">
+
+                    <div className="mb-4 relative" ref={dropdownRef}>
                       <label htmlFor="cliente_id" className="block text-center font-medium text-gray-700 mb-2">
                         Cliente
                       </label>
-                      <select
+                      <input
+                        type="text"
+                        id="cliente_id"
                         name="cliente_id"
-                        value={formData.cliente_id}
-                        onChange={handleInputChange}
+                        value={searchTermCliente}
+                        onChange={handleSearchClienteChange}
+                        onFocus={() => {
+                          setSearchTermCliente('');
+                          setFormData((prev) => ({ ...prev, cliente_id: 0 }));
+                          setFilteredClientes(clientes); // Mostrar todos al enfocar
+                          setIsDropdownOpen(true);
+                        }}
+                        placeholder="Busca o selecciona un cliente..."
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
-                      >
-                        <option value="0">Seleccionar cliente</option>
-                        {clientes.map((cliente) => (
-                          <option key={cliente.id} value={cliente.id}>
-                            {cliente.nombre}
-                          </option>
-                        ))}
-                      </select>
+                      />
+                      {isDropdownOpen && (
+                        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                          {filteredClientes.length > 0 ? (
+                            filteredClientes.map((cliente) => (
+                              <div
+                                key={cliente.id}
+                                onClick={() => handleSelectCliente(cliente)}
+                                className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer text-center"
+                              >
+                                {cliente.nombre}
+                              </div>
+                            ))
+                          ) : (
+                            <div className="px-4 py-2 text-gray-500 text-center">No se encontraron clientes.</div>
+                          )}
+                        </div>
+                      )}
                     </div>
+
                     <div className="flex justify-between">
                       <button
                         type="button"
@@ -578,24 +646,45 @@ export default function Tarjetas() {
                         ))}
                       </select>
                     </div>
-                    <div className="mb-4">
+
+                    <div className="mb-4 relative" ref={dropdownRef}>
                       <label htmlFor="cliente_id" className="block text-center font-medium text-gray-700 mb-2">
                         Cliente
                       </label>
-                      <select
+                      <input
+                        type="text"
+                        id="cliente_id"
                         name="cliente_id"
-                        value={formData.cliente_id}
-                        onChange={handleInputChange}
+                        value={searchTermCliente}
+                        onChange={handleSearchClienteChange}
+                        onFocus={() => {
+                          setSearchTermCliente('');
+                          setFormData((prev) => ({ ...prev, cliente_id: 0 }));
+                          setFilteredClientes(clientes); // Mostrar todos al enfocar
+                          setIsDropdownOpen(true);
+                        }}
+                        placeholder="Busca o selecciona un cliente..."
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
-                      >
-                        <option value="0">Seleccionar cliente</option>
-                        {clientes.map((cliente) => (
-                          <option key={cliente.id} value={cliente.id}>
-                            {cliente.nombre}
-                          </option>
-                        ))}
-                      </select>
+                      />
+                      {isDropdownOpen && (
+                        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                          {filteredClientes.length > 0 ? (
+                            filteredClientes.map((cliente) => (
+                              <div
+                                key={cliente.id}
+                                onClick={() => handleSelectCliente(cliente)}
+                                className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer text-center"
+                              >
+                                {cliente.nombre}
+                              </div>
+                            ))
+                          ) : (
+                            <div className="px-4 py-2 text-gray-500 text-center">No se encontraron clientes.</div>
+                          )}
+                        </div>
+                      )}
                     </div>
+
                     <div className="flex justify-between">
                       <button
                         type="button"
