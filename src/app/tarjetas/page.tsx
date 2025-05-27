@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Navbar from '../components/Navbar';
 import { jsPDF } from 'jspdf';
+import Head from 'next/head';
+
 
 interface Tarjeta {
   id: number;
@@ -393,6 +395,10 @@ export default function Tarjetas() {
 
   return (
     <div className="font-sans bg-white text-gray-900 min-h-screen flex">
+         <Head>
+        <meta charSet="UTF-8" />
+     
+      </Head>
       <Navbar />
       <div className="flex-1 flex flex-col">
         <main className="flex-1 p-8">

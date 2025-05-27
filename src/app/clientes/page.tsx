@@ -6,6 +6,7 @@ import CustomAlert from '@/app/components/CustomAlert';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Head from 'next/head';
 
 interface Cliente {
   id: number;
@@ -155,7 +156,14 @@ export default function Clientes() {
   };
 
   return (
+   
+    
        <div className="font-sans bg-white text-gray-900 min-h-screen flex">
+      
+        <Head>
+        <meta charSet="UTF-8" />
+     
+      </Head>
       <Navbar />
       <div className="flex-1 flex flex-col">
         <main className="flex-1 p-8 bg-white">
