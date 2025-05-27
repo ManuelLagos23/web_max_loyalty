@@ -236,71 +236,73 @@ export default function Tarjetas() {
     }
   };
 
+
+
   const handlePrintCard = async (tarjeta: Tarjeta) => {
-    const mmToPt = (mm: number) => mm * 2.83465;
-    const width = mmToPt(102.72);
-    const height = mmToPt(64.776);
+  const mmToPt = (mm: number) => mm * 2.83465;
+  const width = mmToPt(102.72);
+  const height = mmToPt(64.776);
 
-    const doc = new jsPDF({
-      orientation: 'landscape',
-      unit: 'pt',
-      format: [width, height],
-    });
+  const doc = new jsPDF({
+    orientation: 'landscape',
+    unit: 'pt',
+    format: [width, height],
+  });
 
-    const frontImage = new Image();
-    frontImage.src = '/images/logo-max-card.png';
+  const frontImage = new Image();
+  frontImage.src = '/images/logo-max-card.png';
 
-    frontImage.onload = () => {
-      doc.addImage(frontImage, 'PNG', 0, 0, width, height);
+  frontImage.onload = () => {
+    doc.addImage(frontImage, 'PNG', 0, 0, width, height);
 
-      const marginLeft = 10;
-      const marginRight = 170;
-      const bottomMargin = 10;
-      const numberY = height - bottomMargin - 16;
-      const nameY = height - bottomMargin;
+    const marginLeft = 10;
+      const marginLeftcanal = 30;
+    const marginRight = 170;
+    const bottomMargin = 10;
+    const numberY = height - bottomMargin - 16;
+    const nameY = height - bottomMargin;
+    const canalY = 30; // Esquina superior izquierda para código del canal
+
+    doc.setFont('Helvetica', 'normal');
+    doc.setFontSize(12);
+    doc.setTextColor('#000000');
+
+    doc.text(tarjeta.codigo_canal, marginLeftcanal, canalY); // Código canal en frontal
+    doc.text(tarjeta.numero_tarjeta, marginLeft, numberY);
+
+    doc.setFont('Helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.text(tarjeta.cliente_nombre, marginLeft, nameY);
+
+    doc.addPage([width, height], 'landscape');
+
+    const backImage = new Image();
+    backImage.src = '/images/logo-max-back.png';
+
+    backImage.onload = () => {
+      doc.addImage(backImage, 'PNG', 0, 0, width, height);
+
+      const issuanceY = 150;
+      const issuanceText = `Emitida: ${formatDate(tarjeta.created_at)}`;
+      const textWidth = doc.getTextWidth(issuanceText);
+      const issuanceX = width - marginRight - textWidth;
 
       doc.setFont('Helvetica', 'normal');
-      doc.setFontSize(12);
-      doc.setTextColor('#000000');
+      doc.setFontSize(10);
+      doc.text(issuanceText, issuanceX, issuanceY); // Solo fecha en trasera
 
-      doc.text(tarjeta.numero_tarjeta, marginLeft, numberY);
-
-      doc.setFont('Helvetica', 'bold');
-      doc.setFontSize(12);
-      doc.text(tarjeta.cliente_nombre, marginLeft, nameY);
-
-      doc.addPage([width, height], 'landscape');
-
-      const backImage = new Image();
-      backImage.src = '/images/logo-max-back.png';
-
-      backImage.onload = () => {
-        doc.addImage(backImage, 'PNG', 0, 0, width, height);
-
-        const canalY = 40;
-        const issuanceY = 150;
-        const canalX = 30;
-        const issuanceText = `Emitida: ${formatDate(tarjeta.created_at)}`;
-        const textWidth = doc.getTextWidth(issuanceText);
-        const issuanceX = width - marginRight - textWidth;
-
-        doc.setFont('Helvetica', 'normal');
-        doc.setFontSize(10);
-        doc.text(tarjeta.codigo_canal, canalX, canalY);
-        doc.text(issuanceText, issuanceX, issuanceY);
-
-        doc.save(`tarjeta_${tarjeta.numero_tarjeta}.pdf`);
-      };
-
-      backImage.onerror = () => {
-        console.error('Error al cargar la imagen trasera. Verifica la ruta: /images/logo-max-back.png');
-      };
+      doc.save(`tarjeta_${tarjeta.numero_tarjeta}.pdf`);
     };
 
-    frontImage.onerror = () => {
-      console.error('Error al cargar la imagen frontal. Verifica la ruta: /images/logo-max-card.png');
+    backImage.onerror = () => {
+      console.error('Error al cargar la imagen trasera. Verifica la ruta: /images/logo-max-back.png');
     };
   };
+
+  frontImage.onerror = () => {
+    console.error('Error al cargar la imagen frontal. Verifica la ruta: /images/logo-max-card.png');
+  };
+};
 
   const fetchTarjetas = useCallback(async () => {
     try {
