@@ -201,36 +201,3 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ message: 'Error al actualizar el descuento' }, { status: 500 });
   }
 }
-
-// Método DELETE para eliminar un descuento
-export async function DELETE(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id');
-
-    if (!id || isNaN(Number(id))) {
-      return NextResponse.json({ message: 'El ID es obligatorio y debe ser un número válido' }, { status: 400 });
-    }
-
-    const client = await pool.connect();
-    const result = await client.query(
-      `DELETE FROM descuentos 
-       WHERE id = $1 
-       RETURNING id, active, create_date, create_uid, descuento, display_name, canal_id, tipo_combustible_id, write_date, write_uid`,
-      [Number(id)]
-    );
-    client.release();
-
-    if (result.rowCount === 0) {
-      return NextResponse.json({ message: 'No se encontró el descuento con el ID proporcionado' }, { status: 404 });
-    }
-
-    return NextResponse.json({
-      message: 'Descuento eliminado con éxito',
-      data: result.rows[0],
-    });
-  } catch (error) {
-    console.error('Error al eliminar el descuento:', error);
-    return NextResponse.json({ message: 'Error al eliminar el descuento' }, { status: 500 });
-  }
-}

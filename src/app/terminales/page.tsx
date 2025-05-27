@@ -250,29 +250,26 @@ export default function Terminales() {
     setIsDeletePopupOpen(false);
   };
 
-  const handleDelete = async () => {
-    if (!terminalAEliminar) return;
-    try {
-      const response = await fetch(`/api/terminales/${terminalAEliminar.id}`, {
-        method: 'PUT',
-        body: JSON.stringify({ deleted: true }),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      if (response.ok) {
-        alert('Terminal eliminado exitosamente');
-        closeDeletePopup();
-        fetchTerminales();
-      } else {
-        alert('Error al eliminar el terminal');
-      }
-    } catch (error) {
-      console.error('Error en la solicitud:', error);
-      alert('Error al conectar con el servidor');
-    }
-  };
+const handleDelete = async () => {
+  if (!terminalAEliminar) return;
+  try {
+    const response = await fetch(`/api/terminales/${terminalAEliminar.id}`, {
+      method: 'DELETE',
+    });
 
+    if (response.ok) {
+      alert('Terminal eliminado exitosamente');
+      closeDeletePopup();
+      fetchTerminales();
+    } else {
+      const errorData = await response.json();
+      alert(`Error al eliminar el terminal: ${errorData.message || 'Error desconocido'}`);
+    }
+  } catch (error) {
+    console.error('Error en la solicitud:', error);
+    alert('Error al conectar con el servidor');
+  }
+};
   const fetchTerminales = useCallback(async () => {
     try {
       const response = await fetch(`/api/terminales?page=${currentPage}&limit=${itemsPerPage}`);

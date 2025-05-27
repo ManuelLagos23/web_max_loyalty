@@ -231,9 +231,10 @@ export default function Descuentos() {
 
   const handleDelete = async () => {
     if (descuentoToDelete) {
-      const response = await fetch(`/api/descuentos?id=${descuentoToDelete.id}`, {
+      const response = await fetch(`/api/descuentos/${descuentoToDelete.id}`, {
         method: 'DELETE',
       });
+
 
       if (response.ok) {
         alert('Descuento eliminado exitosamente');

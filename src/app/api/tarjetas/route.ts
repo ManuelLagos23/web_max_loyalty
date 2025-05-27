@@ -42,12 +42,11 @@ export async function GET(request: Request) {
         }
       }
 
-      const randomPart = Math.floor(1000 + Math.random() * 9000).toString();
-
+   
       while (!isUnique && attempts < maxAttempts && correlative <= 9999) {
         attempts++;
         const correlativePart = correlative.toString().padStart(4, '0');
-        newCardNumber = `${randomPart}${correlativePart}`;
+       newCardNumber = correlativePart;
 
         const checkResult = await client.query(
           'SELECT id FROM tarjetas WHERE numero_tarjeta = $1',
@@ -159,7 +158,7 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!/^\d{8}$/.test(numero_tarjeta)) {
+    if (!/^\d{4}$/.test(numero_tarjeta)) {
       return NextResponse.json(
         { message: 'El número de tarjeta debe tener 8 dígitos' },
         { status: 400 }
