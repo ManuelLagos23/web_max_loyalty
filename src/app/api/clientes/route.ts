@@ -77,6 +77,8 @@ export async function POST(request: Request) {
   }
 }
 
+
+
 export async function GET() {
   try {
     const client = await pool.connect();
@@ -106,21 +108,23 @@ export async function GET() {
 
     client.release();
 
-    const response = NextResponse.json(result.rows, { status: 200 });
-    response.headers.set('Content-Type', 'application/json; charset=utf-8'); // 👈 Agregado
-
-    return response;
+    return new NextResponse(JSON.stringify(result.rows), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8',
+      },
+    });
   } catch (error) {
     console.error('Error al obtener los clientes:', error);
-    const errorResponse = NextResponse.json(
-      { message: 'Error al obtener los clientes' },
-      { status: 500 }
-    );
-    errorResponse.headers.set('Content-Type', 'application/json; charset=utf-8'); // 👈 También aquí
-    return errorResponse;
+
+    return new NextResponse(JSON.stringify({ message: 'Error al obtener los clientes' }), {
+      status: 500,
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8',
+      },
+    });
   }
 }
-
 
 export async function PUT(request: Request) {
   try {
