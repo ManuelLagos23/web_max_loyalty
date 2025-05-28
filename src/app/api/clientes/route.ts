@@ -109,6 +109,10 @@ export async function GET() {
       LEFT JOIN subcanales sub ON c.subcanal_id = sub.id
     `);
 
+    console.log('RAW:', result.rows.map(r => r.nombre));
+console.log('AS BUFFER:', result.rows.map(r => Buffer.from(r.nombre, 'utf8')));
+console.log('TO STRING:', result.rows.map(r => Buffer.from(r.nombre, 'utf8').toString('utf8')));
+
 
     console.log(result.rows.map(row => row.nombre));
     client.release();
