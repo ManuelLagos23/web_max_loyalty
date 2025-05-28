@@ -80,8 +80,7 @@ export async function POST(request: Request) {
 export async function GET() {
   try {
     const client = await pool.connect();
-    const result = await client.query(
-      `
+    const result = await client.query(`
       SELECT 
         c.id, 
         c.nombre, 
@@ -103,15 +102,25 @@ export async function GET() {
       LEFT JOIN estados e ON c.estado = e.id
       LEFT JOIN canales can ON c.canal_id = can.id
       LEFT JOIN subcanales sub ON c.subcanal_id = sub.id
-      `
-    );
+    `);
+
     client.release();
-    return NextResponse.json(result.rows, { status: 200 });
+
+    const response = NextResponse.json(result.rows, { status: 200 });
+    response.headers.set('Content-Type', 'application/json; charset=utf-8'); // 👈 Agregado
+
+    return response;
   } catch (error) {
     console.error('Error al obtener los clientes:', error);
-    return NextResponse.json({ message: 'Error al obtener los clientes' }, { status: 500 });
+    const errorResponse = NextResponse.json(
+      { message: 'Error al obtener los clientes' },
+      { status: 500 }
+    );
+    errorResponse.headers.set('Content-Type', 'application/json; charset=utf-8'); // 👈 También aquí
+    return errorResponse;
   }
 }
+
 
 export async function PUT(request: Request) {
   try {
