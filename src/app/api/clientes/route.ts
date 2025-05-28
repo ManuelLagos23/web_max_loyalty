@@ -79,6 +79,11 @@ export async function POST(request: Request) {
 
 
 
+function fixEncoding(str: string | null | undefined): string | null | undefined {
+  if (!str) return str;
+  return Buffer.from(str, 'binary').toString('utf8');
+}
+
 export async function GET() {
   try {
     const client = await pool.connect();
@@ -106,11 +111,23 @@ export async function GET() {
       LEFT JOIN subcanales sub ON c.subcanal_id = sub.id
     `);
 
+    const fixedRows = result.rows.map(row => ({
+      ...row,
+      nombre: fixEncoding(row.nombre),
+      ciudad: fixEncoding(row.ciudad),
+      estado: fixEncoding(row.estado),
+      pais: fixEncoding(row.pais),
+      canal_nombre: fixEncoding(row.canal_nombre),
+      subcanal_nombre: fixEncoding(row.subcanal_nombre),
+    }));
 
-    console.log(result.rows.map(row => row.nombre));
+
+
+console.log(result.rows.map(row => row.nombre));
+
     client.release();
 
-    return new NextResponse(JSON.stringify(result.rows), {
+    return new NextResponse(JSON.stringify(fixedRows), {
       status: 200,
       headers: {
         'Content-Type': 'application/json; charset=utf-8',
@@ -119,14 +136,33 @@ export async function GET() {
   } catch (error) {
     console.error('Error al obtener los clientes:', error);
 
-    return new NextResponse(JSON.stringify({ message: 'Error al obtener los clientes' }), {
-      status: 500,
-      headers: {
-        'Content-Type': 'application/json; charset=utf-8',
-      },
-    });
+    return new NextResponse(
+      JSON.stringify({ message: 'Error al obtener los clientes' }),
+      {
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+        },
+      }
+    );
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 export async function PUT(request: Request) {
   try {
