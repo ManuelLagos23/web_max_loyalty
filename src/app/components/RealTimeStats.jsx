@@ -1,9 +1,7 @@
-"use client";
+'use client';
 
 import { useEffect, useState } from "react";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
-
-const COLORS = ["#8884d8", "#82ca9d"]; // Purple for transactions, Green for points
+import { FaExchangeAlt, FaStar } from "react-icons/fa";
 
 export default function RealTimeStats() {
   const [stats, setStats] = useState({ transactions: 0, points: 0 });
@@ -25,7 +23,6 @@ export default function RealTimeStats() {
       const transactions = await transResponse.json();
       const pointsData = await pointsResponse.json();
 
- 
       // Filter for current day
       const todayTransactions = transactions.filter((t) => t.fecha && t.fecha.split("T")[0] === currentDate);
       const todayPoints = pointsData.filter((p) => p.fecha && p.fecha.split("T")[0] === currentDate);
@@ -85,52 +82,34 @@ export default function RealTimeStats() {
     }
   }, []);
 
-  if (isLoading) return <p className="text-gray-800">Cargando estadísticas...</p>;
-  if (error) return <p className="text-red-500">Error: {error}</p>;
-
-  const chartData = [
-    { name: "Transacciones", value: stats.transactions },
-    { name: "Puntos Canjeados", value: stats.points },
-  ];
+  if (isLoading) return <p className="text-gray-800 text-center">Cargando estadísticas...</p>;
+  if (error) return <p className="text-red-500 text-center">Error: {error}</p>;
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-5xl h-72 real-time-stats">
-      <h2 className="text-xl font-bold mb-4 text-gray-800">
+    <div className="bg-gradient-to-r from-indigo-50 to-green-50 rounded-lg shadow-lg p-8 w-full max-w-5xl real-time-stats">
+      <h2 className="text-2xl font-bold mb-8 text-gray-800 text-center">
         Estadísticas en Tiempo Real de Hoy
       </h2>
-      <div className="flex flex-col md:flex-row gap-8 items-center">
-        {/* Contadores */}
-        <div className="flex-1 min-w-0">
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold text-gray-700">Transacciones</h3>
-            <p className="text-4xl font-bold text-[#8884d8]">{stats.transactions}</p>
+      <div className="flex flex-col md:flex-row gap-6 items-center justify-between h-full">
+        {/* Contador de Transacciones */}
+        <div className="flex-1 flex flex-col items-center justify-center p-4 bg-white bg-opacity-80 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 min-h-[200px] w-full">
+          <div className="flex items-center space-x-3 mb-4">
+            <FaExchangeAlt className="text-3xl text-blue-600" />
+            <h3 className="text-xl font-semibold text-black text-center w-full">Transacciones</h3>
           </div>
-          <div>
-            <h3 className="text-lg font-semibold text-gray-700">Puntos Canjeados</h3>
-            <p className="text-4xl font-bold text-[#82ca9d]">{stats.points}</p>
-          </div>
+          <p className="text-5xl font-bold text-blue-600 animate-fadeIn text-center w-full">
+            {stats.transactions}
+          </p>
         </div>
-        {/* Gráfico de barras */}
-        <div className="flex-1 h-52 w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={chartData}
-              layout="vertical"
-              margin={{ top: 10, right: 40, left: 20, bottom: 10 }}
-            >
-              <XAxis type="number" stroke="#333" tick={{ fontSize: 12 }} />
-              <YAxis dataKey="name" type="category" stroke="#333" tick={{ fontSize: 12 }} width={120} />
-              <Tooltip
-                contentStyle={{ backgroundColor: "#fff", border: "1px solid #ccc" }}
-                labelStyle={{ color: "#333" }}
-              />
-              <Bar dataKey="value" radius={[4, 4, 0, 0]} barSize={30}>
-                {chartData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+        {/* Contador de Puntos Canjeados */}
+        <div className="flex-1 flex flex-col items-center justify-center p-4 bg-white bg-opacity-80 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 min-h-[200px] w-full">
+          <div className="flex items-center space-x-3 mb-4">
+            <FaStar className="text-3xl text-blue-600" />
+            <h3 className="text-xl font-semibold text-black text-center w-full">Puntos Canjeados</h3>
+          </div>
+          <p className="text-5xl font-bold text-blue-600 animate-fadeIn text-center w-full">
+            {stats.points}
+          </p>
         </div>
       </div>
     </div>

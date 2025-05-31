@@ -529,40 +529,52 @@ export default function Navbar() {
       )}
 
       <style jsx>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 0px;
-          background: transparent;
-        }
+  .custom-scrollbar {
+    overflow-y: auto;
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: #4B5EAA transparent; /* thumb color and track color */
+  }
 
-        .custom-scrollbar {
-          scrollbar-width: none; /* Firefox */
-          -ms-overflow-style: none; /* IE 10+ */
-        }
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
 
-        /* Default style for submenu items */
-        .block {
-          color: white;
-          transition: background-color 0.2s ease, color 0.2s ease;
-        }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
 
-        /* Style for active submenu item */
-        .active-subitem {
-          background-color: #4B5EAA; /* A distinct blue shade */
-          color: white;
-          font-weight: 500;
-        }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: #4B5EAA; /* Thumb color */
+    border-radius: 4px;
+  }
 
-        /* Hover effect for active submenu item */
-        .active-subitem:hover {
-          background-color: #6B7280; /* Slightly lighter gray on hover */
-          color: white;
-        }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: #6B7280; /* Slightly lighter on hover */
+  }
 
-        /* Ensure non-active items keep their hover effect */
-        .block:hover {
-          background-color: #4B5563; /* Same as hover:bg-gray-700 */
-        }
-      `}</style>
+  /* Default style for submenu items */
+  .block {
+    color: white;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  /* Style for active submenu item */
+  .active-subitem {
+    background-color: #4B5EAA;
+    color: white;
+    font-weight: 500;
+  }
+
+  .active-subitem:hover {
+    background-color: #6B7280;
+    color: white;
+  }
+
+  .block:hover {
+    background-color: #4B5563;
+  }
+`}</style>
+
     </div>
   );
 }

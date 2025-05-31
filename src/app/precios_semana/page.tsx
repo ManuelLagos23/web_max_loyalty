@@ -55,7 +55,7 @@ export default function PrecioVentaCombustible() {
     notas: '',
     precio_sucursal_ids: 0,
     semana_year: '',
-    precio: '', // Cambiado de 0 a '' para evitar el 0 por defecto
+    precio: '',
     tipo_combustible_id: 0,
   });
   const [precioVentaToUpdate, setPrecioVentaToUpdate] = useState<PrecioVentaCombustible | null>(null);
@@ -67,22 +67,25 @@ export default function PrecioVentaCombustible() {
   const [filterFechaFinal, setFilterFechaFinal] = useState<string>('');
   const [isDataFetched, setIsDataFetched] = useState<boolean>(false);
 
-  const fetchPreciosVenta = useCallback(async () => {
-    if (!filterFechaInicio || !filterFechaFinal) {
-      setPreciosVenta([]);
-      setIsDataFetched(false);
-      return;
-    }
+  const fetchPreciosVenta = useCallback(async (useDateFilter: boolean = false) => {
+    try {
+      let url = `/api/precio_venta_combustible?page=${currentPage}&limit=${itemsPerPage}`;
+      if (useDateFilter && filterFechaInicio && filterFechaFinal) {
+        url += `&fechaInicio=${filterFechaInicio}&fechaFinal=${filterFechaFinal}`;
+      }
 
-    const response = await fetch(
-      `/api/precio_venta_combustible?page=${currentPage}&limit=${itemsPerPage}&fechaInicio=${filterFechaInicio}&fechaFinal=${filterFechaFinal}`
-    );
-    if (response.ok) {
-      const data = await response.json();
-      setPreciosVenta(data.data || []);
-      setIsDataFetched(true);
-    } else {
-      console.error('Error fetching precios de venta:', response.status, await response.text());
+      const response = await fetch(url);
+      if (response.ok) {
+        const data = await response.json();
+        setPreciosVenta(data.data || []);
+        setIsDataFetched(true);
+      } else {
+        console.error('Error fetching precios de venta:', response.status, await response.text());
+        setPreciosVenta([]);
+        setIsDataFetched(true);
+      }
+    } catch (error) {
+      console.error('Error in fetchPreciosVenta:', error);
       setPreciosVenta([]);
       setIsDataFetched(true);
     }
@@ -103,7 +106,6 @@ export default function PrecioVentaCombustible() {
         const result = await response.json();
         if (Array.isArray(result)) {
           setCostosList(result);
-          console.log("Costos:", result);
         } else {
           console.error('Costos data is not an array:', result);
           setCostosList([]);
@@ -143,7 +145,8 @@ export default function PrecioVentaCombustible() {
     fetchMonedasList();
     fetchCostosList();
     fetchTiposCombustible();
-  }, [fetchMonedasList, fetchCostosList, fetchTiposCombustible]);
+    fetchPreciosVenta(); // Fetch all prices on initial load
+  }, [fetchMonedasList, fetchCostosList, fetchTiposCombustible, fetchPreciosVenta]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -151,7 +154,7 @@ export default function PrecioVentaCombustible() {
       ...prev,
       [name]:
         name === 'precio'
-          ? value // Almacena como cadena para permitir decimales incompletos
+          ? value
           : name === 'monedas_id' || name === 'precio_sucursal_ids' || name === 'semana_year' || name === 'tipo_combustible_id'
           ? parseInt(value) || 0
           : value,
@@ -168,14 +171,13 @@ export default function PrecioVentaCombustible() {
       !precioVentaData.precio_sucursal_ids ||
       !precioVentaData.semana_year ||
       !precioVentaData.precio ||
-      isNaN(parseFloat(precioVentaData.precio)) || // Validar que precio sea un número válido
+      isNaN(parseFloat(precioVentaData.precio)) ||
       !precioVentaData.tipo_combustible_id
     ) {
       alert('Por favor, complete todos los campos obligatorios con valores válidos.');
       return;
     }
 
-    // Convertir precio a número con 2 decimales
     const precioNumerico = parseFloat(precioVentaData.precio).toFixed(2);
 
     const formData = new FormData();
@@ -232,7 +234,6 @@ export default function PrecioVentaCombustible() {
       return;
     }
 
-    // Convertir precio a número con 2 decimales
     const precioNumerico = parseFloat(precioVentaData.precio).toFixed(2);
 
     const formData = new FormData();
@@ -303,7 +304,7 @@ export default function PrecioVentaCombustible() {
       return;
     }
     setCurrentPage(1);
-    fetchPreciosVenta();
+    fetchPreciosVenta(true); // Apply date filter
   };
 
   const filteredPreciosVenta = preciosVenta.filter((precio) =>
@@ -388,7 +389,7 @@ export default function PrecioVentaCombustible() {
               onClick={handleFilterSubmit}
               className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 mt-6"
             >
-              Buscar
+              Filtrar por Fechas
             </button>
           </div>
           <div className="mb-4">
@@ -408,8 +409,8 @@ export default function PrecioVentaCombustible() {
               <tr>
                 <th className="px-4 py-2 text-center">#</th>
                 <th className="px-4 py-2 text-center" hidden>Monedas</th>
-                <th className="px-4 py-2 text-center" hidden>Fecha Inicio</th>
-                <th className="px-4 py-2 text-center" hidden>Fecha Final</th>
+                <th className="px-4 py-2 text-center" >Fecha Inicio</th>
+                <th className="px-4 py-2 text-center" >Fecha Final</th>
                 <th className="px-4 py-2 text-center" hidden>Notas</th>
                 <th className="px-4 py-2 text-center">Estación</th>
                 <th className="px-4 py-2 text-center" hidden>Semana Año</th>
@@ -422,13 +423,13 @@ export default function PrecioVentaCombustible() {
               {!isDataFetched ? (
                 <tr>
                   <td colSpan={10} className="px-4 py-2 text-center">
-                    Seleccione un rango de fechas y presione Buscar para ver los registros.
+                    Cargando precios de venta...
                   </td>
                 </tr>
               ) : currentPreciosVenta.length === 0 ? (
                 <tr>
                   <td colSpan={10} className="px-4 py-2 text-center">
-                    No hay precios de venta disponibles para el rango de fechas seleccionado.
+                    No hay precios de venta disponibles.
                   </td>
                 </tr>
               ) : (
@@ -438,8 +439,8 @@ export default function PrecioVentaCombustible() {
                     <tr key={precio.id}>
                       <td className="px-4 py-2 text-center">{indexOfFirstItem + index + 1}</td>
                       <td className="px-4 py-2 text-center" hidden>{precio.monedas_nombre}</td>
-                      <td className="px-4 py-2 text-center" hidden>{new Date(precio.fecha_inicio).toLocaleDateString()}</td>
-                      <td className="px-4 py-2 text-center" hidden>{new Date(precio.fecha_final).toLocaleDateString()}</td>
+                      <td className="px-4 py-2 text-center">{new Date(precio.fecha_inicio).toLocaleDateString()}</td>
+                      <td className="px-4 py-2 text-center" >{new Date(precio.fecha_final).toLocaleDateString()}</td>
                       <td className="px-4 py-2 text-center" hidden>{precio.notas}</td>
                       <td className="px-4 py-2 text-center">
                         {costo ? `${costo.nombre_centro_costos}` : precio.precio_sucursal_ids}
@@ -458,7 +459,7 @@ export default function PrecioVentaCombustible() {
                               notas: precio.notas,
                               precio_sucursal_ids: precio.precio_sucursal_ids,
                               semana_year: precio.semana_year.toString(),
-                              precio: precio.precio.toString(), // Convertir a cadena para el input
+                              precio: precio.precio.toString(),
                               tipo_combustible_id: precio.tipo_combustible_id,
                             });
                             setIsUpdateModalOpen(true);
@@ -614,7 +615,7 @@ export default function PrecioVentaCombustible() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="mb-4">
                       <label className="block text-sm font-medium mb-2 text-center" htmlFor="precio">
-                        Precio
+                        Precio LPS Litros
                       </label>
                       <input
                         type="number"
@@ -777,7 +778,7 @@ export default function PrecioVentaCombustible() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="mb-4">
                       <label className="block text-sm font-medium mb-2 text-center" htmlFor="precio">
-                        Precio
+                         Precio LPS Litros
                       </label>
                       <input
                         type="number"

@@ -49,8 +49,6 @@ export default function TransactionChart() {
 
     fetchTransactions();
   }, []);
-
-  if (isLoading) return <p className="text-white">Cargando...</p>;
   if (error) return <p className="text-red-500">Error: {error}</p>;
 
   return (

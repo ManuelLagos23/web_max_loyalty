@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { FaUsers, FaBuilding, FaMoneyCheckAlt, FaNetworkWired, FaSitemap, FaDesktop, FaUserFriends, FaCreditCard, FaMoneyBillWave } from 'react-icons/fa';
 import Navbar from '../components/Navbar';
-import PageWrapper from '../components/PageWrapper'; // Importamos PageWrapper
+import PageWrapper from '../components/PageWrapper';
+import RealTimeStats from '../components/RealTimeStats';
 
 interface DashboardData {
   clientes: number;
@@ -61,18 +62,19 @@ export default function Home() {
         fetch('/api/canjeados'),
       ]);
 
-const results = await Promise.all([
-  clientesRes.ok ? clientesRes.json().catch(() => []) : [], // Devuelve array vacío si falla
-  empresasRes.ok ? empresasRes.json().catch(() => []) : [],
-  centrosCostosRes.ok ? centrosCostosRes.json().catch(() => []) : [],
-  canalesRes.ok ? canalesRes.json().catch(() => []) : [],
-  subcanalesRes.ok ? subcanalesRes.json().catch(() => []) : [],
-  terminalesRes.ok ? terminalesRes.json().catch(() => []) : [],
-  miembrosRes.ok ? miembrosRes.json().catch(() => []) : [],
-  tarjetasRes.ok ? tarjetasRes.json().catch(() => []) : [],
-  transaccionesRes.ok ? transaccionesRes.json().catch(() => []) : [],
-  canjeadosRes.ok ? canjeadosRes.json().catch(() => []) : [],
-]);
+      const results = await Promise.all([
+        clientesRes.ok ? clientesRes.json().catch(() => []) : [],
+        empresasRes.ok ? empresasRes.json().catch(() => []) : [],
+        centrosCostosRes.ok ? centrosCostosRes.json().catch(() => []) : [],
+        canalesRes.ok ? canalesRes.json().catch(() => []) : [],
+        subcanalesRes.ok ? subcanalesRes.json().catch(() => []) : [],
+        terminalesRes.ok ? terminalesRes.json().catch(() => []) : [],
+        miembrosRes.ok ? miembrosRes.json().catch(() => []) : [],
+        tarjetasRes.ok ? tarjetasRes.json().catch(() => []) : [],
+        transaccionesRes.ok ? transaccionesRes.json().catch(() => []) : [],
+        canjeadosRes.ok ? canjeadosRes.json().catch(() => []) : [],
+      ]);
+
       setDashboardData({
         clientes: results[0].total || (Array.isArray(results[0].clientes) ? results[0].clientes.length : Array.isArray(results[0]) ? results[0].length : results[0].count || results[0].data?.length || 0),
         empresas: Array.isArray(results[1]) ? results[1].length : results[1].count || results[1].data?.length || 0,
@@ -125,18 +127,13 @@ const results = await Promise.all([
 
   return (
     <div className="font-sans min-h-screen flex bg-gray-100 text-gray-900">
-      {/* Navbar lateral */}
       <PageWrapper>
         <Navbar />
       </PageWrapper>
-      {/* Área principal */}
-      <div className="flex-1 flex flex-col">
-        {/* Menú horizontal */}
-      
-        {/* Contenido principal */}
-        <main className="flex-1 p-8">
+      <div className="flex-1 flex flex-col overflow-x-auto">
+        <main className="flex-1 p-4 md:p-8">
           <h1
-            className="text-4xl font-bold text-gray-900 mb-6
+            className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 md:mb-6
             bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
             transition-all duration-300 text-center"
           >
@@ -144,7 +141,7 @@ const results = await Promise.all([
           </h1>
           <p
             className="text-center text-gray-700 leading-relaxed max-w-2xl
-            p-4 rounded-lg transition-all duration-300 hover:shadow-md mx-auto mb-8"
+            p-4 rounded-lg transition-all duration-300 hover:shadow-md mx-auto mb-6 md:mb-8"
           >
             Visualiza los indicadores clave de tu plataforma de fidelidad en tiempo real.
           </p>
@@ -167,17 +164,17 @@ const results = await Promise.all([
             </div>
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
             {indicators.map((indicator, index) => (
               <div
                 key={index}
-                className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg 
-                transition-all duration-300 flex items-center space-x-4"
+                className="bg-white p-4 md:p-6 rounded-lg shadow-md hover:shadow-lg 
+                transition-all duration-300 flex items-center space-x-4 min-w-[200px]"
               >
                 <div>{indicator.icon}</div>
                 <div>
-                  <h2 className="text-lg font-semibold text-gray-800">{indicator.title}</h2>
-                  <p className="text-2xl font-bold text-blue-600">
+                  <h2 className="text-base md:text-lg font-semibold text-gray-800">{indicator.title}</h2>
+                  <p className="text-xl md:text-2xl font-bold text-blue-600">
                     {loading ? '...' : indicator.value}
                   </p>
                 </div>
@@ -185,19 +182,25 @@ const results = await Promise.all([
             ))}
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+            {/* Total Indicator (Izquierda) */}
             <div
-              className="bg-gradient-to-r from-green-100 to-blue-100 p-8 rounded-lg shadow-lg 
-              hover:shadow-xl transition-all duration-300 flex items-center space-x-6 max-w-2xl mx-auto col-span-2"
+              className="bg-gradient-to-r from-green-100 to-blue-100 p-4 md:p-8 rounded-lg shadow-lg 
+              hover:shadow-xl transition-all duration-300 flex items-center space-x-4 md:space-x-6 w-full max-w-full"
             >
               <div>{totalIndicator.icon}</div>
               <div>
-                <h2 className="text-xl font-semibold text-gray-800">{totalIndicator.title}</h2>
-                <p className="text-lg text-gray-700 mb-2">{totalIndicator.text}</p>
-                <p className="text-3xl font-bold text-green-600">
+                <h2 className="text-lg md:text-xl font-semibold text-gray-800">{totalIndicator.title}</h2>
+                <p className="text-base md:text-lg text-gray-700 mb-2">{totalIndicator.text}</p>
+                <p className="text-2xl md:text-3xl font-bold text-green-600">
                   {loading ? '...' : totalIndicator.value}
                 </p>
               </div>
+            </div>
+
+            {/* RealTimeStats (Derecha) */}
+            <div className="w-full max-w-full">
+              <RealTimeStats />
             </div>
           </div>
         </main>

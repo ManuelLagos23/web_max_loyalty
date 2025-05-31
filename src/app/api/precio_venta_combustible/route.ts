@@ -62,18 +62,10 @@ export async function GET(request: Request) {
     const fechaInicio = searchParams.get('fechaInicio') || '';
     const fechaFinal = searchParams.get('fechaFinal') || '';
 
-    if (!fechaInicio || !fechaFinal) {
-      return NextResponse.json({
-        data: [],
-        total: 0,
-      }, { status: 400 });
-    }
-
     const client = await pool.connect();
     const offset = (page - 1) * limit;
 
-    const result = await client.query(
-      `
+    let query = `
       SELECT 
         p.id, p.monedas_id, p.fecha_final, p.fecha_inicio, p.notas, p.precio_sucursal_ids, 
         p.semana_year, p.precio, p.tipo_combustible_id,
@@ -83,26 +75,29 @@ export async function GET(request: Request) {
       JOIN monedas m ON p.monedas_id = m.id
       JOIN tipo_combustible tc ON p.tipo_combustible_id = tc.id
       WHERE (p.notas ILIKE $1 OR p.semana_year::text ILIKE $1)
-        AND p.fecha_inicio >= $4
-        AND p.fecha_final <= $5
-      ORDER BY p.id
-      LIMIT $2 OFFSET $3
-      `,
-      [`%${search}%`, limit, offset, fechaInicio, fechaFinal]
-    );
-
-    const totalResult = await client.query(
-      `
+    `;
+    let totalQuery = `
       SELECT COUNT(*) AS total
       FROM precio_venta_combustible p
       JOIN monedas m ON p.monedas_id = m.id
       JOIN tipo_combustible tc ON p.tipo_combustible_id = tc.id
       WHERE (p.notas ILIKE $1 OR p.semana_year::text ILIKE $1)
-        AND p.fecha_inicio >= $2
-        AND p.fecha_final <= $3
-      `,
-      [`%${search}%`, fechaInicio, fechaFinal]
-    );
+    `;
+    const queryParams: (string | number)[] = [`%${search}%`];
+    const totalParams: (string | number)[] = [`%${search}%`];
+
+    if (fechaInicio && fechaFinal) {
+      query += ` AND p.fecha_inicio >= $2 AND p.fecha_final <= $3`;
+      totalQuery += ` AND p.fecha_inicio >= $2 AND p.fecha_final <= $3`;
+      queryParams.push(fechaInicio, fechaFinal);
+      totalParams.push(fechaInicio, fechaFinal);
+    }
+
+    query += ` ORDER BY p.id DESC LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}`;
+    queryParams.push(limit, offset);
+
+    const result = await client.query(query, queryParams);
+    const totalResult = await client.query(totalQuery, totalParams);
 
     const total = parseInt(totalResult.rows[0].total, 10);
     client.release();
