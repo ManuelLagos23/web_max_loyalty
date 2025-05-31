@@ -531,6 +531,7 @@ export default function Descuentos() {
               <div className="bg-white p-6 rounded-lg shadow-lg w-1/3 border">
                 <h2 className="text-xl font-semibold mb-4 text-center">Actualizar Descuento</h2>
                 <form onSubmit={handleSubmitUpdate}>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                   <div className="mb-4">
                     <label className="block text-sm font-medium mb-2 text-center" htmlFor="descuento">
                       Descuento por galón
@@ -559,6 +560,8 @@ export default function Descuentos() {
                       className="w-full px-4 py-2 border border-gray-300 rounded-md text-center"
                     />
                   </div>
+                   </div>
+                   
                   <div className="mb-4">
                     <label className="block text-sm font-medium mb-2 text-center" htmlFor="active">
                       Descuento Activo
@@ -572,6 +575,7 @@ export default function Descuentos() {
                       className="w-6 h-6 mx-auto block"
                     />
                   </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                   <div className="mb-4">
                     <label className="block text-sm font-medium mb-2 text-center" htmlFor="canal_id">
                       Canal
@@ -610,6 +614,7 @@ export default function Descuentos() {
                       ))}
                     </select>
                   </div>
+                   </div>
                   <div className="flex justify-between">
                     <button
                       type="button"
