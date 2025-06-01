@@ -109,6 +109,8 @@ export async function GET() {
         t.estado,
         t.unidades,
         t.descuento,
+        t.turno_id,
+        t.turno_estado,
         ca.canal AS canal_nombre,
         tc.name AS tipo_combustible_nombre
       FROM transacciones t

@@ -16,6 +16,8 @@ type Transaccion = {
   descuento: number;
   canal_nombre: string;
   tipo_combustible_nombre: string;
+  turno_id: number | null; // Added turno_id
+  turno_estado: string | null; // Added turno_estado
 };
 
 type Canal = {
@@ -45,6 +47,8 @@ export default function Transacciones() {
     descuento: 0,
     canal_id: 0,
     tipo_combustible_id: 0,
+    turno_id: 0, // Added turno_id
+    turno_estado: '', // Added turno_estado
   });
   const [transaccionToUpdate, setTransaccionToUpdate] = useState<Transaccion | null>(null);
   const [transaccionToDelete, setTransaccionToDelete] = useState<Transaccion | null>(null);
@@ -52,7 +56,6 @@ export default function Transacciones() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const [mostrarAcciones] = useState(false);
-
 
   useEffect(() => {
     const fetchTransacciones = async () => {
@@ -92,8 +95,7 @@ export default function Transacciones() {
         const response = await fetch('/api/tipos_combustible');
         if (response.ok) {
           const data = await response.json();
-          console.log('TiposCombustible data:', data);
-          const tiposArray = data.data || data; // Adjust based on API response structure
+          const tiposArray = data.data || data;
           if (Array.isArray(tiposArray)) {
             setTiposCombustible(tiposArray);
           } else {
@@ -121,13 +123,14 @@ export default function Transacciones() {
       ...prevData,
       [name]:
         name === 'cliente_id' ||
-          name === 'establecimiento_id' ||
-          name === 'monto' ||
-          name === 'terminal_id' ||
-          name === 'unidades' ||
-          name === 'descuento' ||
-          name === 'canal_id' ||
-          name === 'tipo_combustible_id'
+        name === 'establecimiento_id' ||
+        name === 'monto' ||
+        name === 'terminal_id' ||
+        name === 'unidades' ||
+        name === 'descuento' ||
+        name === 'canal_id' ||
+        name === 'tipo_combustible_id' ||
+        name === 'turno_id' // Added turno_id
           ? Number(value)
           : value,
     }));
@@ -145,6 +148,8 @@ export default function Transacciones() {
     formData.append('descuento', String(transaccionData.descuento));
     formData.append('canal_id', String(transaccionData.canal_id));
     formData.append('tipo_combustible_id', String(transaccionData.tipo_combustible_id));
+    formData.append('turno_id', String(transaccionData.turno_id)); // Added turno_id
+    formData.append('turno_estado', transaccionData.turno_estado); // Added turno_estado
 
     try {
       const response = await fetch('/api/transacciones', {
@@ -166,6 +171,8 @@ export default function Transacciones() {
           descuento: 0,
           canal_id: 0,
           tipo_combustible_id: 0,
+          turno_id: 0, // Reset turno_id
+          turno_estado: '', // Reset turno_estado
         });
         setIsAddModalOpen(false);
       } else {
@@ -191,6 +198,8 @@ export default function Transacciones() {
       formData.append('descuento', String(transaccionData.descuento));
       formData.append('canal_id', String(transaccionData.canal_id));
       formData.append('tipo_combustible_id', String(transaccionData.tipo_combustible_id));
+      formData.append('turno_id', String(transaccionData.turno_id)); // Added turno_id
+      formData.append('turno_estado', transaccionData.turno_estado); // Added turno_estado
 
       try {
         const response = await fetch('/api/transacciones', {
@@ -216,6 +225,8 @@ export default function Transacciones() {
             descuento: 0,
             canal_id: 0,
             tipo_combustible_id: 0,
+            turno_id: 0, // Reset turno_id
+            turno_estado: '', // Reset turno_estado
           });
           setIsUpdateModalOpen(false);
         } else {
@@ -318,14 +329,15 @@ export default function Transacciones() {
                 <th className="px-4 py-2">Descuento</th>
                 <th className="px-4 py-2">Canal</th>
                 <th className="px-4 py-2">Tipo Combustible</th>
+                <th className="px-4 py-2">Turno ID</th> {/* Added Turno ID column */}
+                <th className="px-4 py-2">Turno Estado</th> {/* Added Turno Estado column */}
                 {mostrarAcciones && <th className="px-4 py-2">Acciones</th>}
               </tr>
             </thead>
-
             <tbody>
               {currentTransacciones.length === 0 ? (
                 <tr>
-                  <td colSpan={mostrarAcciones ? 13 : 12} className="px-4 py-2 text-center">
+                  <td colSpan={mostrarAcciones ? 15 : 14} className="px-4 py-2 text-center">
                     No hay transacciones disponibles
                   </td>
                 </tr>
@@ -348,6 +360,8 @@ export default function Transacciones() {
                     </td>
                     <td className="px-4 py-2 text-center">{transaccion.canal_nombre}</td>
                     <td className="px-4 py-2 text-center">{transaccion.tipo_combustible_nombre}</td>
+                    <td className="px-4 py-2 text-center">{transaccion.turno_id ?? 'N/A'}</td> {/* Display turno_id */}
+                    <td className="px-4 py-2 text-center">{transaccion.turno_estado ?? 'N/A'}</td> {/* Display turno_estado */}
                     {mostrarAcciones && (
                       <td className="px-4 py-2 text-center">
                         <button
@@ -363,6 +377,8 @@ export default function Transacciones() {
                               descuento: transaccion.descuento,
                               canal_id: 0,
                               tipo_combustible_id: 0,
+                              turno_id: transaccion.turno_id ?? 0, // Set turno_id
+                              turno_estado: transaccion.turno_estado ?? '', // Set turno_estado
                             });
                             setIsUpdateModalOpen(true);
                           }}
@@ -385,7 +401,6 @@ export default function Transacciones() {
                 ))
               )}
             </tbody>
-
           </table>
           <div className="mt-4 flex justify-between items-center">
             <button
@@ -555,6 +570,32 @@ export default function Transacciones() {
                         <option disabled>No hay tipos de combustible disponibles</option>
                       )}
                     </select>
+                  </div>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium mb-2" htmlFor="turno_id">
+                      Turno ID
+                    </label>
+                    <input
+                      type="number"
+                      id="turno_id"
+                      name="turno_id"
+                      value={transaccionData.turno_id}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium mb-2" htmlFor="turno_estado">
+                      Turno Estado
+                    </label>
+                    <input
+                      type="text"
+                      id="turno_estado"
+                      name="turno_estado"
+                      value={transaccionData.turno_estado}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                    />
                   </div>
                   <div className="flex justify-between">
                     <button
@@ -726,6 +767,32 @@ export default function Transacciones() {
                         <option disabled>No hay tipos de combustible disponibles</option>
                       )}
                     </select>
+                  </div>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium mb-2" htmlFor="turno_id">
+                      Turno ID
+                    </label>
+                    <input
+                      type="number"
+                      id="turno_id"
+                      name="turno_id"
+                      value={transaccionData.turno_id}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium mb-2" htmlFor="turno_estado">
+                      Turno Estado
+                    </label>
+                    <input
+                      type="text"
+                      id="turno_estado"
+                      name="turno_estado"
+                      value={transaccionData.turno_estado}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                    />
                   </div>
                   <div className="flex justify-between">
                     <button
