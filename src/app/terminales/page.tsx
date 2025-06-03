@@ -363,7 +363,7 @@ export default function Terminales() {
 
 
   const terminalesRoutes = [
-    { name: 'Terminales', href: '/terminale' },
+    { name: 'Terminales', href: '/terminales' },
     { name: 'Usuarios de terminales', href: '/miembros' },
 
 
