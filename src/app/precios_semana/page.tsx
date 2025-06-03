@@ -2,6 +2,10 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Navbar from '../components/Navbar';
+import { usePathname } from 'next/navigation';
+import Link from 'next/link';
+
+
 
 type PrecioVentaCombustible = {
   monedas_id: number;
@@ -48,6 +52,7 @@ export default function PrecioVentaCombustible() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const pathname = usePathname();
   const [precioVentaData, setPrecioVentaData] = useState({
     monedas_id: 0,
     fecha_final: '',
@@ -156,8 +161,8 @@ export default function PrecioVentaCombustible() {
         name === 'precio'
           ? value
           : name === 'monedas_id' || name === 'precio_sucursal_ids' || name === 'semana_year' || name === 'tipo_combustible_id'
-          ? parseInt(value) || 0
-          : value,
+            ? parseInt(value) || 0
+            : value,
     }));
   };
 
@@ -331,6 +336,11 @@ export default function PrecioVentaCombustible() {
       setCurrentPage(currentPage - 1);
     }
   };
+  const priceRoutes = [
+    { name: 'Precios de la semana', href: '/precios_semana' },
+    { name: 'Descuentos', href: '/descuentos' },
+
+  ];
 
   return (
     <div className="font-sans bg-white text-gray-900 min-h-screen flex">
@@ -345,12 +355,24 @@ export default function PrecioVentaCombustible() {
             >
               Gestión de Precios de Venta de Combustible
             </h1>
-            <p
-              className="text-center text-black leading-relaxed max-w-2xl p-2 rounded-lg 
-              transition-all duration-300 hover:shadow-md mx-auto"
-            >
-              Configura los precios de venta de combustible disponibles.
-            </p>
+            <nav className="flex justify-center space-x-4">
+              {priceRoutes.map((price) => {
+                const isActive = pathname === price.href;
+                return (
+                  <Link key={price.name} href={price.href}>
+                    <button
+                      className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-300 ${isActive
+                          ? 'bg-blue-600 text-white'
+                          : 'text-gray-700 bg-gray-200 hover:bg-blue-600 hover:text-white'
+                        }`}
+                    >
+                      {price.name}
+                    </button>
+                  </Link>
+                );
+              })}
+            </nav>
+
           </div>
           <div className="flex justify-between mb-2">
             <button
@@ -362,7 +384,7 @@ export default function PrecioVentaCombustible() {
           </div>
           <div className="mb-4 flex gap-4 items-center">
             <div>
-              <label className="block text-sm font-medium mb-2 text-center" htmlFor="filterFechaInicio">
+              <label className="block text-sm font-bold mb-2 text-center" htmlFor="filterFechaInicio">
                 Fecha Inicio
               </label>
               <input
@@ -374,7 +396,7 @@ export default function PrecioVentaCombustible() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2 text-center" htmlFor="filterFechaFinal">
+              <label className="block text-sm font-bold mb-2 text-center" htmlFor="filterFechaFinal">
                 Fecha Final
               </label>
               <input
@@ -518,7 +540,7 @@ export default function PrecioVentaCombustible() {
                 <h2 className="text-xl font-semibold mb-4 text-center">Agregar Precio de Venta</h2>
                 <form onSubmit={handleSubmitAdd}>
                   <div className="mb-4">
-                    <label className="block text-sm font-medium mb-2 text-center" htmlFor="monedas_id">
+                    <label className="block text-sm font-bold mb-2 text-center" htmlFor="monedas_id">
                       Monedas
                     </label>
                     <select
@@ -538,7 +560,7 @@ export default function PrecioVentaCombustible() {
                   </div>
                   <div className="grid grid-cols-2 gap-4 mb-4">
                     <div className="mb-4">
-                      <label className="block text-sm font-medium mb-2 text-center" htmlFor="fecha_inicio">
+                      <label className="block text-sm font-bold mb-2 text-center" htmlFor="fecha_inicio">
                         Fecha Inicio
                       </label>
                       <input
@@ -551,7 +573,7 @@ export default function PrecioVentaCombustible() {
                       />
                     </div>
                     <div className="mb-4">
-                      <label className="block text-sm font-medium mb-2 text-center" htmlFor="fecha_final">
+                      <label className="block text-sm font-bold mb-2 text-center" htmlFor="fecha_final">
                         Fecha Final
                       </label>
                       <input
@@ -565,7 +587,7 @@ export default function PrecioVentaCombustible() {
                     </div>
                   </div>
                   <div className="mb-4">
-                    <label className="block text-sm font-medium mb-2 text-center" htmlFor="notas">
+                    <label className="block text-sm font-bold mb-2 text-center" htmlFor="notas">
                       Notas
                     </label>
                     <textarea
@@ -579,7 +601,7 @@ export default function PrecioVentaCombustible() {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="mb-4">
-                      <label className="block text-sm font-medium mb-2 text-center" htmlFor="precio_sucursal_ids">
+                      <label className="block text-sm font-bold mb-2 text-center" htmlFor="precio_sucursal_ids">
                         Establecimiento
                       </label>
                       <select
@@ -598,7 +620,7 @@ export default function PrecioVentaCombustible() {
                       </select>
                     </div>
                     <div className="mb-4">
-                      <label className="block text-sm font-medium mb-2 text-center" htmlFor="semana_year">
+                      <label className="block text-sm font-bold mb-2 text-center" htmlFor="semana_year">
                         Semana
                       </label>
                       <input
@@ -614,7 +636,7 @@ export default function PrecioVentaCombustible() {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="mb-4">
-                      <label className="block text-sm font-medium mb-2 text-center" htmlFor="precio">
+                      <label className="block text-sm font-bold mb-2 text-center" htmlFor="precio">
                         Precio LPS Litros
                       </label>
                       <input
@@ -630,7 +652,7 @@ export default function PrecioVentaCombustible() {
                       />
                     </div>
                     <div className="mb-4">
-                      <label className="block text-sm font-medium mb-2 text-center" htmlFor="tipo_combustible_id">
+                      <label className="block text-sm font-bold mb-2 text-center" htmlFor="tipo_combustible_id">
                         Tipo de Combustible
                       </label>
                       <select
@@ -681,7 +703,7 @@ export default function PrecioVentaCombustible() {
                 <h2 className="text-xl font-semibold mb-4 text-center">Actualizar Precio de Venta</h2>
                 <form onSubmit={handleSubmitUpdate}>
                   <div className="mb-4">
-                    <label className="block text-sm font-medium mb-2 text-center" htmlFor="monedas_id">
+                    <label className="block text-sm font-bold mb-2 text-center" htmlFor="monedas_id">
                       Monedas
                     </label>
                     <select
@@ -701,7 +723,7 @@ export default function PrecioVentaCombustible() {
                   </div>
                   <div className="grid grid-cols-2 gap-4 mb-4">
                     <div className="mb-4">
-                      <label className="block text-sm font-medium mb-2 text-center" htmlFor="fecha_inicio">
+                      <label className="block text-sm font-bold mb-2 text-center" htmlFor="fecha_inicio">
                         Fecha Inicio
                       </label>
                       <input
@@ -714,7 +736,7 @@ export default function PrecioVentaCombustible() {
                       />
                     </div>
                     <div className="mb-4">
-                      <label className="block text-sm font-medium mb-2 text-center" htmlFor="fecha_final">
+                      <label className="block text-sm font-bold mb-2 text-center" htmlFor="fecha_final">
                         Fecha Final
                       </label>
                       <input
@@ -728,7 +750,7 @@ export default function PrecioVentaCombustible() {
                     </div>
                   </div>
                   <div className="mb-4">
-                    <label className="block text-sm font-medium mb-2 text-center" htmlFor="notas">
+                    <label className="block text-sm font-bold mb-2 text-center" htmlFor="notas">
                       Notas
                     </label>
                     <textarea
@@ -742,7 +764,7 @@ export default function PrecioVentaCombustible() {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="mb-4">
-                      <label className="block text-sm font-medium mb-2 text-center" htmlFor="precio_sucursal_ids">
+                      <label className="block text-sm font-bold mb-2 text-center" htmlFor="precio_sucursal_ids">
                         Establecimiento
                       </label>
                       <select
@@ -761,7 +783,7 @@ export default function PrecioVentaCombustible() {
                       </select>
                     </div>
                     <div className="mb-4">
-                      <label className="block text-sm font-medium mb-2 text-center" htmlFor="semana_year">
+                      <label className="block text-sm font-bold mb-2 text-center" htmlFor="semana_year">
                         Semana
                       </label>
                       <input
@@ -777,8 +799,8 @@ export default function PrecioVentaCombustible() {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="mb-4">
-                      <label className="block text-sm font-medium mb-2 text-center" htmlFor="precio">
-                         Precio LPS Litros
+                      <label className="block text-sm font-bold mb-2 text-center" htmlFor="precio">
+                        Precio LPS Litros
                       </label>
                       <input
                         type="number"
@@ -793,7 +815,7 @@ export default function PrecioVentaCombustible() {
                       />
                     </div>
                     <div className="mb-4">
-                      <label className="block text-sm font-medium mb-2 text-center" htmlFor="tipo_combustible_id">
+                      <label className="block text-sm font-bold mb-2 text-center" htmlFor="tipo_combustible_id">
                         Tipo de Combustible
                       </label>
                       <select

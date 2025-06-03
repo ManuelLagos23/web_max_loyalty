@@ -4,6 +4,9 @@ import { useState, useEffect, useCallback } from 'react';
 
 
 import Navbar from '../components/Navbar';
+import { usePathname } from 'next/navigation';
+import Link from 'next/link';
+
 
 type TipoTarjeta = {
   id: number;
@@ -17,6 +20,7 @@ export default function TiposTarjeta() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const pathname = usePathname();
   const [tipoTarjetaData, setTipoTarjetaData] = useState({
     tipo_tarjeta: '',
     codigo_tipo_tarjeta: '',
@@ -142,6 +146,14 @@ export default function TiposTarjeta() {
     }
   };
 
+      const cardsRoutes = [
+    { name: 'Tarjetas', href: '/tarjetas' },
+    { name: 'Tipos de tarjetas', href: '/tipo_de_tarjetas' },
+ 
+  ];
+
+
+
   return (
     <div className="font-sans bg-white text-gray-900 min-h-screen">
       <div className="flex">
@@ -157,12 +169,25 @@ export default function TiposTarjeta() {
               >
                 Gestión de Tipos de Tarjeta
               </h1>
-              <p
-                className="text-center text-gray-700 leading-relaxed max-w-2xl
-                p-4 rounded-lg transition-all duration-300 hover:shadow-md mx-auto"
-              >
-                Administra los tipos de tarjeta registrados en la plataforma con facilidad y seguridad.
-              </p>
+                       <nav className="flex justify-center space-x-4">
+                                                                     {cardsRoutes.map((card) => {
+                                                                       const isActive = pathname === card.href;
+                                                                       return (
+                                                                         <Link key={card.name} href={card.href}>
+                                                                           <button
+                                                                             className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-300 ${
+                                                                               isActive
+                                                                                 ? 'bg-blue-600 text-white'
+                                                                                 : 'text-gray-700 bg-gray-200 hover:bg-blue-600 hover:text-white'
+                                                                             }`}
+                                                                           >
+                                                                             {card.name}
+                                                                           </button>
+                                                                         </Link>
+                                                                       );
+                                                                     })}
+                                                                   </nav>
+                    
             </div>
 
             <div className="flex justify-between mb-4">

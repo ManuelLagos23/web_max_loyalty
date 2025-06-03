@@ -2,6 +2,10 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Navbar from '../components/Navbar';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+
+
 
 interface Miembro {
   id: number;
@@ -41,6 +45,7 @@ export default function Miembros() {
   const [centrosCostos, setCentrosCostos] = useState<CentroCosto[]>([]);
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [terminales, setTerminales] = useState<Terminal[]>([]);
+  const pathname = usePathname();
   const [formData, setFormData] = useState({
     id: 0,
     nombre: '',
@@ -387,6 +392,15 @@ export default function Miembros() {
     }
   };
 
+  const terminalesRoutes = [
+    { name: 'Terminales', href: '/terminale' },
+    { name: 'Usuarios de terminales', href: '/miembros' },
+
+
+  ];
+
+
+
   return (
     <div className="font-sans bg-white text-gray-900 min-h-screen">
       <div className="flex">
@@ -401,12 +415,25 @@ export default function Miembros() {
               >
                 Gestión de Miembros
               </h1>
-              <p
-                className="text-center text-gray-700 leading-relaxed max-w-2xl
-                p-4 rounded-lg transition-all duration-300 hover:shadow-md mx-auto"
-              >
-                Administra los miembros registrados en el APK de Max Loyalty Mobile.
-              </p>
+
+
+              <nav className="flex justify-center space-x-4">
+                {terminalesRoutes.map((terminal) => {
+                  const isActive = pathname === terminal.href;
+                  return (
+                    <Link key={terminal.name} href={terminal.href}>
+                      <button
+                        className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-300 ${isActive
+                            ? 'bg-blue-600 text-white'
+                            : 'text-gray-700 bg-gray-200 hover:bg-blue-600 hover:text-white'
+                          }`}
+                      >
+                        {terminal.name}
+                      </button>
+                    </Link>
+                  );
+                })}
+              </nav>
             </div>
 
             <div className="flex justify-between mb-4">
@@ -484,9 +511,8 @@ export default function Miembros() {
               <button
                 onClick={handlePrevPage}
                 disabled={currentPage === 1}
-                className={`px-4 py-2 rounded-lg transition-all duration-300 ${
-                  currentPage === 1 ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'
-                }`}
+                className={`px-4 py-2 rounded-lg transition-all duration-300 ${currentPage === 1 ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'
+                  }`}
               >
                 Anterior
               </button>
@@ -496,9 +522,8 @@ export default function Miembros() {
               <button
                 onClick={handleNextPage}
                 disabled={currentPage === totalPages}
-                className={`px-4 py-2 rounded-lg transition-all duration-300 ${
-                  currentPage === totalPages ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'
-                }`}
+                className={`px-4 py-2 rounded-lg transition-all duration-300 ${currentPage === totalPages ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'
+                  }`}
               >
                 Siguiente
               </button>
@@ -529,7 +554,7 @@ export default function Miembros() {
                   {miembroSeleccionado ? (
                     <form onSubmit={handleSubmitEditar}>
                       <input type="hidden" name="id" value={formData.id} />
-                      <label className="block text-center font-medium text-gray-700" htmlFor="nombre">
+                      <label className="block text-center font-bold text-gray-700" htmlFor="nombre">
                         Nombre
                       </label>
                       <input
@@ -541,7 +566,7 @@ export default function Miembros() {
                         className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
                         required
                       />
-                      <label className="block text-center font-medium text-gray-700" htmlFor="user">
+                      <label className="block text-center font-bold text-gray-700" htmlFor="user">
                         User
                       </label>
                       <input
@@ -555,7 +580,7 @@ export default function Miembros() {
                       />
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-center font-medium text-gray-700" htmlFor="terminal_id">
+                          <label className="block text-center font-bold text-gray-700" htmlFor="terminal_id">
                             Terminal
                           </label>
                           <select
@@ -574,7 +599,7 @@ export default function Miembros() {
                           </select>
                         </div>
                         <div>
-                          <label className="block text-center font-medium text-gray-700" htmlFor="empresa_id">
+                          <label className="block text-center font-bold text-gray-700" htmlFor="empresa_id">
                             Empresa
                           </label>
                           <select
@@ -596,7 +621,7 @@ export default function Miembros() {
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-center font-medium text-gray-700" htmlFor="establecimiento">
+                          <label className="block text-center font-bold text-gray-700" htmlFor="establecimiento">
                             Establecimiento
                           </label>
                           <select
@@ -616,7 +641,7 @@ export default function Miembros() {
                           </select>
                         </div>
                         <div>
-                          <label className="block text-center font-medium text-gray-700" htmlFor="email">
+                          <label className="block text-center font-bold text-gray-700" htmlFor="email">
                             Email
                           </label>
                           <input
@@ -630,7 +655,7 @@ export default function Miembros() {
                           />
                         </div>
                       </div>
-                      <label className="block text-center font-medium text-gray-700" htmlFor="password">
+                      <label className="block text-center font-bold text-gray-700" htmlFor="password">
                         Password
                       </label>
                       <input
@@ -659,7 +684,7 @@ export default function Miembros() {
                     </form>
                   ) : (
                     <form onSubmit={handleSubmitAgregar}>
-                      <label className="block text-center font-medium text-gray-700" htmlFor="nombre">
+                      <label className="block text-center font-bold text-gray-700" htmlFor="nombre">
                         Nombre
                       </label>
                       <input
@@ -671,7 +696,7 @@ export default function Miembros() {
                         className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
                         required
                       />
-                      <label className="block text-center font-medium text-gray-700" htmlFor="user">
+                      <label className="block text-center font-bold text-gray-700" htmlFor="user">
                         User
                       </label>
                       <input
@@ -685,7 +710,7 @@ export default function Miembros() {
                       />
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-center font-medium text-gray-700" htmlFor="terminal_id">
+                          <label className="block text-center font-bold text-gray-700" htmlFor="terminal_id">
                             Terminal
                           </label>
                           <select
@@ -704,7 +729,7 @@ export default function Miembros() {
                           </select>
                         </div>
                         <div>
-                          <label className="block text-center font-medium text-gray-700" htmlFor="empresa_id">
+                          <label className="block text-center font-bold text-gray-700" htmlFor="empresa_id">
                             Empresa
                           </label>
                           <select
@@ -726,7 +751,7 @@ export default function Miembros() {
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-center font-medium text-gray-700" htmlFor="establecimiento">
+                          <label className="block text-center font-bold text-gray-700" htmlFor="establecimiento">
                             Establecimiento
                           </label>
                           <select
@@ -746,7 +771,7 @@ export default function Miembros() {
                           </select>
                         </div>
                         <div>
-                          <label className="block text-center font-medium text-gray-700" htmlFor="email">
+                          <label className="block text-center font-bold text-gray-700" htmlFor="email">
                             Email
                           </label>
                           <input
@@ -760,7 +785,7 @@ export default function Miembros() {
                           />
                         </div>
                       </div>
-                      <label className="block text-center font-medium text-gray-700" htmlFor="password">
+                      <label className="block text-center font-bold text-gray-700" htmlFor="password">
                         Password
                       </label>
                       <input

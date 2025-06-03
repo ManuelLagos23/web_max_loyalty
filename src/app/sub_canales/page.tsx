@@ -2,6 +2,11 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Navbar from '../components/Navbar';
+import { usePathname } from 'next/navigation';
+import Link from 'next/link';
+
+
+
 
 type Subcanal = {
   id: number;
@@ -27,6 +32,7 @@ export default function Subcanales() {
   const [subcanalToDelete, setSubcanalToDelete] = useState<Subcanal | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const pathname = usePathname();
   const itemsPerPage = 10;
 
   const fetchSubcanales = useCallback(async () => {
@@ -152,11 +158,19 @@ export default function Subcanales() {
     }
   };
 
+
+  const canalesRoutes = [
+    { name: 'Canal', href: '/canales' },
+    { name: 'Subcanales', href: '/sub_canales' },
+
+
+  ];
+
   return (
     <div className="font-sans bg-white text-gray-900 min-h-screen flex">
       <Navbar />
       <div className="flex-1 flex flex-col">
-   
+
         <main className="flex-1 p-8 bg-white">
           <div className="space-y-4">
             <h1
@@ -166,12 +180,24 @@ export default function Subcanales() {
             >
               Gestión de Subcanales
             </h1>
-            <p
-              className="text-center text-black leading-relaxed max-w-2xl p-2 rounded-lg 
-              transition-all duration-300 hover:shadow-md mx-auto"
-            >
-              Configura los subcanales disponibles en la aplicación.
-            </p>
+
+            <nav className="flex justify-center space-x-4">
+              {canalesRoutes.map((canal) => {
+                const isActive = pathname === canal.href;
+                return (
+                  <Link key={canal.name} href={canal.href}>
+                    <button
+                      className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-300 ${isActive
+                          ? 'bg-blue-600 text-white'
+                          : 'text-gray-700 bg-gray-200 hover:bg-blue-600 hover:text-white'
+                        }`}
+                    >
+                      {canal.name}
+                    </button>
+                  </Link>
+                );
+              })}
+            </nav>
           </div>
           <div className="flex justify-between mb-2">
             <button
@@ -251,9 +277,8 @@ export default function Subcanales() {
             <button
               onClick={handlePrevPage}
               disabled={currentPage === 1}
-              className={`px-4 py-2 rounded-lg ${
-                currentPage === 1 ? 'bg-gray-300' : 'bg-blue-600 text-white hover:bg-blue-700'
-              }`}
+              className={`px-4 py-2 rounded-lg ${currentPage === 1 ? 'bg-gray-300' : 'bg-blue-600 text-white hover:bg-blue-700'
+                }`}
             >
               Anterior
             </button>
@@ -263,9 +288,8 @@ export default function Subcanales() {
             <button
               onClick={handleNextPage}
               disabled={currentPage === totalPages}
-              className={`px-4 py-2 rounded-lg ${
-                currentPage === totalPages ? 'bg-gray-300' : 'bg-blue-600 text-white hover:bg-blue-700'
-              }`}
+              className={`px-4 py-2 rounded-lg ${currentPage === totalPages ? 'bg-gray-300' : 'bg-blue-600 text-white hover:bg-blue-700'
+                }`}
             >
               Siguiente
             </button>
@@ -283,7 +307,7 @@ export default function Subcanales() {
                 <h2 className="text-xl font-semibold mb-4 text-center">Agregar Subcanal</h2>
                 <form onSubmit={handleSubmitAdd}>
                   <div className="mb-4">
-                    <label className="block text-sm font-medium mb-2 text-center" htmlFor="subcanal">
+                    <label className="block text-sm font-bold mb-2 text-center" htmlFor="subcanal">
                       Nombre del Subcanal
                     </label>
                     <input
@@ -297,7 +321,7 @@ export default function Subcanales() {
                     />
                   </div>
                   <div className="mb-4">
-                    <label className="block text-sm font-medium mb-2 text-center" htmlFor="subcanal_codigo">
+                    <label className="block text-sm font-bold mb-2 text-center" htmlFor="subcanal_codigo">
                       Código del Subcanal
                     </label>
                     <input
@@ -311,7 +335,7 @@ export default function Subcanales() {
                     />
                   </div>
                   <div className="mb-4">
-                    <label className="block text-sm font-medium mb-2 text-center" htmlFor="canal_id">
+                    <label className="block text-sm font-bold mb-2 text-center" htmlFor="canal_id">
                       Canal
                     </label>
                     <select
@@ -361,7 +385,7 @@ export default function Subcanales() {
                 <h2 className="text-xl font-semibold mb-4 text-center">Actualizar Subcanal</h2>
                 <form onSubmit={handleSubmitUpdate}>
                   <div className="mb-4">
-                    <label className="block text-sm font-medium mb-2 text-center" htmlFor="subcanal">
+                    <label className="block text-sm font-bold mb-2 text-center" htmlFor="subcanal">
                       Nombre del Subcanal
                     </label>
                     <input
@@ -375,7 +399,7 @@ export default function Subcanales() {
                     />
                   </div>
                   <div className="mb-4">
-                    <label className="block text-sm font-medium mb-2 text-center" htmlFor="subcanal_codigo">
+                    <label className="block text-sm font-bold mb-2 text-center" htmlFor="subcanal_codigo">
                       Código del Subcanal
                     </label>
                     <input
@@ -389,7 +413,7 @@ export default function Subcanales() {
                     />
                   </div>
                   <div className="mb-4">
-                    <label className="block text-sm font-medium mb-2 text-center" htmlFor="canal_id">
+                    <label className="block text-sm font-bold mb-2 text-center" htmlFor="canal_id">
                       Canal
                     </label>
                     <select

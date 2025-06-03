@@ -178,7 +178,7 @@ export default function EditarCliente() {
         <form onSubmit={handleSubmitEditar} className="space-y-4 sm:space-y-5">
           <input type="hidden" name="id" value={formData.id} />
           <div>
-            <label htmlFor="nombre" className="block text-center text-sm sm:text-base font-medium">
+            <label htmlFor="nombre" className="block text-center text-sm sm:text-base font-bold">
               Nombre
             </label>
             <input
@@ -192,7 +192,7 @@ export default function EditarCliente() {
             />
           </div>
           <div>
-            <label htmlFor="pais_id" className="block text-center text-sm sm:text-base font-medium">
+            <label htmlFor="pais_id" className="block text-center text-sm sm:text-base font-bold">
               País
             </label>
             <select
@@ -211,7 +211,7 @@ export default function EditarCliente() {
             </select>
           </div>
           <div>
-            <label htmlFor="estado_id" className="block text-center text-sm sm:text-base font-medium">
+            <label htmlFor="estado_id" className="block text-center text-sm sm:text-base font-bold">
               Estado
             </label>
             <select
@@ -231,7 +231,7 @@ export default function EditarCliente() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
             <div>
-              <label htmlFor="canal_id" className="block text-center text-sm sm:text-base font-medium">
+              <label htmlFor="canal_id" className="block text-center text-sm sm:text-base font-bold">
                 Canal
               </label>
               <select
@@ -250,7 +250,7 @@ export default function EditarCliente() {
               </select>
             </div>
             <div>
-              <label htmlFor="subcanal_id" className="block text-center text-sm sm:text-base font-medium">
+              <label htmlFor="subcanal_id" className="block text-center text-sm sm:text-base font-bold">
                 Subcanal
               </label>
               <select
@@ -274,7 +274,7 @@ export default function EditarCliente() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
             <div>
-              <label htmlFor="ciudad" className="block text-center text-sm sm:text-base font-medium">
+              <label htmlFor="ciudad" className="block text-center text-sm sm:text-base font-bold">
                 Ciudad
               </label>
               <input
@@ -288,7 +288,7 @@ export default function EditarCliente() {
               />
             </div>
             <div>
-              <label htmlFor="email" className="block text-center text-sm sm:text-base font-medium">
+              <label htmlFor="email" className="block text-center text-sm sm:text-base font-bold">
                 Correo electrónico
               </label>
               <input
@@ -304,7 +304,7 @@ export default function EditarCliente() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
             <div>
-              <label htmlFor="telefono" className="block text-center text-sm sm:text-base font-medium">
+              <label htmlFor="telefono" className="block text-center text-sm sm:text-base font-bold">
                 Teléfono
               </label>
               <input
@@ -318,7 +318,7 @@ export default function EditarCliente() {
               />
             </div>
             <div>
-              <label htmlFor="nfi" className="block text-center text-sm sm:text-base font-medium">
+              <label htmlFor="nfi" className="block text-center text-sm sm:text-base font-bold">
                 NFI
               </label>
               <input
@@ -333,7 +333,7 @@ export default function EditarCliente() {
             </div>
           </div>
           <div>
-            <label htmlFor="logo" className="block text-center text-sm sm:text-base font-medium">
+            <label htmlFor="logo" className="block text-center text-sm sm:text-base font-bold">
               Logo
             </label>
             {clienteActual?.logo && getLogoSrc(clienteActual.logo) ? (

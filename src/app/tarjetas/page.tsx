@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import Navbar from '../components/Navbar';
 import { jsPDF } from 'jspdf';
 import Head from 'next/head';
+import { usePathname } from 'next/navigation';
+import Link from 'next/link';
 
 
 interface Tarjeta {
@@ -34,6 +36,7 @@ export default function Tarjetas() {
   const [tarjetas, setTarjetas] = useState<Tarjeta[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [tiposTarjeta, setTiposTarjeta] = useState<TipoTarjeta[]>([]);
+  const pathname = usePathname();
   const [formData, setFormData] = useState({
     id: 0,
     numero_tarjeta: '',
@@ -49,6 +52,7 @@ export default function Tarjetas() {
   const [itemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const generateCardNumber = async () => {
@@ -239,70 +243,70 @@ export default function Tarjetas() {
 
 
   const handlePrintCard = async (tarjeta: Tarjeta) => {
-  const mmToPt = (mm: number) => mm * 2.83465;
-  const width = mmToPt(102.72);
-  const height = mmToPt(64.776);
+    const mmToPt = (mm: number) => mm * 2.83465;
+    const width = mmToPt(102.72);
+    const height = mmToPt(64.776);
 
-  const doc = new jsPDF({
-    orientation: 'landscape',
-    unit: 'pt',
-    format: [width, height],
-  });
+    const doc = new jsPDF({
+      orientation: 'landscape',
+      unit: 'pt',
+      format: [width, height],
+    });
 
-  const frontImage = new Image();
-  frontImage.src = '/images/logo-max-card.png';
+    const frontImage = new Image();
+    frontImage.src = '/images/logo-max-card.png';
 
-  frontImage.onload = () => {
-    doc.addImage(frontImage, 'PNG', 0, 0, width, height);
+    frontImage.onload = () => {
+      doc.addImage(frontImage, 'PNG', 0, 0, width, height);
 
-    const marginLeft = 10;
+      const marginLeft = 10;
       const marginLeftcanal = 30;
-    const marginRight = 170;
-    const bottomMargin = 10;
-    const numberY = height - bottomMargin - 16;
-    const nameY = height - bottomMargin;
-    const canalY = 30; // Esquina superior izquierda para código del canal
-
-    doc.setFont('Helvetica', 'normal');
-    doc.setFontSize(12);
-    doc.setTextColor('#000000');
-
-    doc.text(tarjeta.codigo_canal, marginLeftcanal, canalY); // Código canal en frontal
-    doc.text(tarjeta.numero_tarjeta, marginLeft, numberY);
-
-    doc.setFont('Helvetica', 'bold');
-    doc.setFontSize(12);
-    doc.text(tarjeta.cliente_nombre, marginLeft, nameY);
-
-    doc.addPage([width, height], 'landscape');
-
-    const backImage = new Image();
-    backImage.src = '/images/logo-max-back.png';
-
-    backImage.onload = () => {
-      doc.addImage(backImage, 'PNG', 0, 0, width, height);
-
-      const issuanceY = 150;
-      const issuanceText = `Emitida: ${formatDate(tarjeta.created_at)}`;
-      const textWidth = doc.getTextWidth(issuanceText);
-      const issuanceX = width - marginRight - textWidth;
+      const marginRight = 170;
+      const bottomMargin = 10;
+      const numberY = height - bottomMargin - 16;
+      const nameY = height - bottomMargin;
+      const canalY = 30; // Esquina superior izquierda para código del canal
 
       doc.setFont('Helvetica', 'normal');
-      doc.setFontSize(10);
-      doc.text(issuanceText, issuanceX, issuanceY); // Solo fecha en trasera
+      doc.setFontSize(12);
+      doc.setTextColor('#000000');
 
-      doc.save(`tarjeta_${tarjeta.numero_tarjeta}.pdf`);
+      doc.text(tarjeta.codigo_canal, marginLeftcanal, canalY); // Código canal en frontal
+      doc.text(tarjeta.numero_tarjeta, marginLeft, numberY);
+
+      doc.setFont('Helvetica', 'bold');
+      doc.setFontSize(12);
+      doc.text(tarjeta.cliente_nombre, marginLeft, nameY);
+
+      doc.addPage([width, height], 'landscape');
+
+      const backImage = new Image();
+      backImage.src = '/images/logo-max-back.png';
+
+      backImage.onload = () => {
+        doc.addImage(backImage, 'PNG', 0, 0, width, height);
+
+        const issuanceY = 150;
+        const issuanceText = `Emitida: ${formatDate(tarjeta.created_at)}`;
+        const textWidth = doc.getTextWidth(issuanceText);
+        const issuanceX = width - marginRight - textWidth;
+
+        doc.setFont('Helvetica', 'normal');
+        doc.setFontSize(10);
+        doc.text(issuanceText, issuanceX, issuanceY); // Solo fecha en trasera
+
+        doc.save(`tarjeta_${tarjeta.numero_tarjeta}.pdf`);
+      };
+
+      backImage.onerror = () => {
+        console.error('Error al cargar la imagen trasera. Verifica la ruta: /images/logo-max-back.png');
+      };
     };
 
-    backImage.onerror = () => {
-      console.error('Error al cargar la imagen trasera. Verifica la ruta: /images/logo-max-back.png');
+    frontImage.onerror = () => {
+      console.error('Error al cargar la imagen frontal. Verifica la ruta: /images/logo-max-card.png');
     };
   };
-
-  frontImage.onerror = () => {
-    console.error('Error al cargar la imagen frontal. Verifica la ruta: /images/logo-max-card.png');
-  };
-};
 
   const fetchTarjetas = useCallback(async () => {
     try {
@@ -395,11 +399,19 @@ export default function Tarjetas() {
     return date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
   };
 
+
+
+  const cardsRoutes = [
+    { name: 'Tarjetas', href: '/tarjetas' },
+    { name: 'Tipos de tarjetas', href: '/tipo_de_tarjetas' },
+
+  ];
+
   return (
     <div className="font-sans bg-white text-gray-900 min-h-screen flex">
-         <Head>
+      <Head>
         <meta charSet="UTF-8" />
-     
+
       </Head>
       <Navbar />
       <div className="flex-1 flex flex-col">
@@ -412,12 +424,26 @@ export default function Tarjetas() {
             >
               Gestión de Tarjetas
             </h1>
-            <p
-              className="text-center text-gray-700 leading-relaxed max-w-2xl
-              p-4 rounded-lg transition-all duration-300 hover:shadow-md mx-auto"
-            >
-              Administra las tarjetas registradas en la plataforma con facilidad y seguridad.
-            </p>
+
+
+
+            <nav className="flex justify-center space-x-4">
+              {cardsRoutes.map((card) => {
+                const isActive = pathname === card.href;
+                return (
+                  <Link key={card.name} href={card.href}>
+                    <button
+                      className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-300 ${isActive
+                          ? 'bg-blue-600 text-white'
+                          : 'text-gray-700 bg-gray-200 hover:bg-blue-600 hover:text-white'
+                        }`}
+                    >
+                      {card.name}
+                    </button>
+                  </Link>
+                );
+              })}
+            </nav>
           </div>
 
           <div className="flex justify-between mb-4">
@@ -495,9 +521,8 @@ export default function Tarjetas() {
             <button
               onClick={handlePrevPage}
               disabled={currentPage === 1}
-              className={`px-4 py-2 rounded-lg transition-all duration-300 ${
-                currentPage === 1 ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'
-              }`}
+              className={`px-4 py-2 rounded-lg transition-all duration-300 ${currentPage === 1 ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'
+                }`}
             >
               Anterior
             </button>
@@ -507,9 +532,8 @@ export default function Tarjetas() {
             <button
               onClick={handleNextPage}
               disabled={currentPage === totalPages}
-              className={`px-4 py-2 rounded-lg transition-all duration-300 ${
-                currentPage === totalPages ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'
-              }`}
+              className={`px-4 py-2 rounded-lg transition-all duration-300 ${currentPage === totalPages ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'
+                }`}
             >
               Siguiente
             </button>
@@ -538,7 +562,7 @@ export default function Tarjetas() {
                   <form onSubmit={handleSubmitEditar}>
                     <input type="hidden" name="id" value={formData.id} />
                     <div className="mb-4">
-                      <label htmlFor="numero_tarjeta" className="block text-center font-medium text-gray-700 mb-2">
+                      <label htmlFor="numero_tarjeta" className="block text-center font-bold text-gray-700 mb-2">
                         Número de Tarjeta
                       </label>
                       <input
@@ -550,7 +574,7 @@ export default function Tarjetas() {
                       />
                     </div>
                     <div className="mb-4">
-                      <label htmlFor="tipo_tarjeta_id" className="block text-center font-medium text-gray-700 mb-2">
+                      <label htmlFor="tipo_tarjeta_id" className="block text-center font-bold text-gray-700 mb-2">
                         Tipo de Tarjeta
                       </label>
                       <select
@@ -569,7 +593,7 @@ export default function Tarjetas() {
                     </div>
 
                     <div className="mb-4 relative" ref={dropdownRef}>
-                      <label htmlFor="cliente_id" className="block text-center font-medium text-gray-700 mb-2">
+                      <label htmlFor="cliente_id" className="block text-center font-bold text-gray-700 mb-2">
                         Cliente
                       </label>
                       <input
@@ -625,7 +649,7 @@ export default function Tarjetas() {
                 ) : (
                   <form onSubmit={handleSubmitAgregar}>
                     <div className="mb-4">
-                      <label htmlFor="numero_tarjeta" className="block text-center font-medium text-gray-700 mb-2">
+                      <label htmlFor="numero_tarjeta" className="block text-center font-bold text-gray-700 mb-2">
                         Número de Tarjeta
                       </label>
                       <input
@@ -637,7 +661,7 @@ export default function Tarjetas() {
                       />
                     </div>
                     <div className="mb-4">
-                      <label htmlFor="tipo_tarjeta_id" className="block text-center font-medium text-gray-700 mb-2">
+                      <label htmlFor="tipo_tarjeta_id" className="block text-center font-bold text-gray-700 mb-2">
                         Tipo de Tarjeta
                       </label>
                       <select
@@ -656,7 +680,7 @@ export default function Tarjetas() {
                     </div>
 
                     <div className="mb-4 relative" ref={dropdownRef}>
-                      <label htmlFor="cliente_id" className="block text-center font-medium text-gray-700 mb-2">
+                      <label htmlFor="cliente_id" className="block text-center font-bold text-gray-700 mb-2">
                         Cliente
                       </label>
                       <input

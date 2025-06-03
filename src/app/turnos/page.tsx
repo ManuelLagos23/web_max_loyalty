@@ -509,7 +509,7 @@ export default function Turnos() {
                   {errorMessage && <p className="text-center text-red-500 mb-4">{errorMessage}</p>}
 
                   <form onSubmit={handleSubmitAgregar}>
-                    <label className="block text-center font-medium text-gray-700" htmlFor="fecha_inicio">
+                    <label className="block text-center font-bold text-gray-700" htmlFor="fecha_inicio">
                       Fecha y Hora de Inicio
                     </label>
                     <input
@@ -520,7 +520,7 @@ export default function Turnos() {
                       className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
                       required
                     />
-                    <label className="block text-center font-medium text-gray-700" htmlFor="fecha_final">
+                    <label className="block text-center font-bold text-gray-700" htmlFor="fecha_final">
                       Fecha y Hora Final
                     </label>
                     <input
@@ -530,7 +530,7 @@ export default function Turnos() {
                       onChange={handleInputChange}
                       className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
                     />
-                    <label className="block text-center font-medium text-gray-700" htmlFor="miembro_id">
+                    <label className="block text-center font-bold text-gray-700" htmlFor="miembro_id">
                       Miembro
                     </label>
                     <select
@@ -549,7 +549,7 @@ export default function Turnos() {
                     </select>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-center font-medium text-gray-700" htmlFor="empresa_id">
+                        <label className="block text-center font-bold text-gray-700" htmlFor="empresa_id">
                           Empresa
                         </label>
                         <input
@@ -561,7 +561,7 @@ export default function Turnos() {
                         />
                       </div>
                       <div>
-                        <label className="block text-center font-medium text-gray-700" htmlFor="establecimiento">
+                        <label className="block text-center font-bold text-gray-700" htmlFor="establecimiento">
                           Establecimiento
                         </label>
                         <input
@@ -575,7 +575,7 @@ export default function Turnos() {
                         />
                       </div>
                     </div>
-                    <label className="block text-center font-medium text-gray-700" htmlFor="terminal_id">
+                    <label className="block text-center font-bold text-gray-700" htmlFor="terminal_id">
                       Terminal
                     </label>
                     <input
@@ -585,7 +585,7 @@ export default function Turnos() {
                       className="w-full p-2 mb-4 border border-gray-300 rounded-lg bg-gray-100 text-center"
                       disabled
                     />
-                    <label className="block text-center font-medium text-gray-700" htmlFor="estado">
+                    <label className="block text-center font-bold text-gray-700" htmlFor="estado">
                       Estado
                     </label>
                     <div className="flex justify-center mb-4">
@@ -642,7 +642,7 @@ export default function Turnos() {
 
                   <form onSubmit={handleSubmitEditar}>
                     <input type="hidden" name="id" value={formData.id} />
-                    <label className="block text-center font-medium text-gray-700" htmlFor="fecha_inicio">
+                    <label className="block text-center font-bold text-gray-700" htmlFor="fecha_inicio">
                       Fecha y Hora de Inicio
                     </label>
                     <input
@@ -653,7 +653,7 @@ export default function Turnos() {
                       className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
                       required
                     />
-                    <label className="block text-center font-medium text-gray-700" htmlFor="fecha_final">
+                    <label className="block text-center font-bold text-gray-700" htmlFor="fecha_final">
                       Fecha y Hora Final
                     </label>
                     <input
@@ -663,7 +663,7 @@ export default function Turnos() {
                       onChange={handleInputChange}
                       className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
                     />
-                    <label className="block text-center font-medium text-gray-700" htmlFor="miembro_id">
+                    <label className="block text-center font-bold text-gray-700" htmlFor="miembro_id">
                       Miembro
                     </label>
                     <select
@@ -682,7 +682,7 @@ export default function Turnos() {
                     </select>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-center font-medium text-gray-700" htmlFor="empresa_id">
+                        <label className="block text-center font-bold text-gray-700" htmlFor="empresa_id">
                           Empresa
                         </label>
                         <input
@@ -694,7 +694,7 @@ export default function Turnos() {
                         />
                       </div>
                       <div>
-                        <label className="block text-center font-medium text-gray-700" htmlFor="establecimiento">
+                        <label className="block text-center font-bold text-gray-700" htmlFor="establecimiento">
                           Establecimiento
                         </label>
                         <input
@@ -708,7 +708,7 @@ export default function Turnos() {
                         />
                       </div>
                     </div>
-                    <label className="block text-center font-medium text-gray-700" htmlFor="terminal_id">
+                    <label className="block text-center font-bold text-gray-700" htmlFor="terminal_id">
                       Terminal
                     </label>
                     <input
@@ -718,7 +718,7 @@ export default function Turnos() {
                       className="w-full p-2 mb-4 border border-gray-300 rounded-lg bg-gray-100 text-center"
                       disabled
                     />
-                    <label className="block text-center font-medium text-gray-700" htmlFor="estado">
+                    <label className="block text-center font-bold text-gray-700" htmlFor="estado">
                       Estado
                     </label>
                     <div className="flex justify-center mb-4">

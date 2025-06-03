@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Navbar from '../components/Navbar';
+import { usePathname } from 'next/navigation';
+import Link from 'next/link';
 
 type Descuento = {
   active: boolean;
@@ -37,6 +39,7 @@ export default function Descuentos() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const pathname = usePathname();
   const [descuentoData, setDescuentoData] = useState({
     active: true,
     create_date: '',
@@ -137,8 +140,8 @@ export default function Descuentos() {
             name === 'canal_id' ||
             name === 'tipo_combustible_id' ||
             name === 'write_uid'
-          ? parseInt(value) || 0
-          : value,
+            ? parseInt(value) || 0
+            : value,
     }));
   };
 
@@ -272,8 +275,16 @@ export default function Descuentos() {
     }
   };
 
+
+  const priceRoutes = [
+    { name: 'Precios de la semana', href: '/precios_semana' },
+    { name: 'Descuentos', href: '/descuentos' },
+
+  ];
+
+
   return (
-        <div className="font-sans bg-white text-gray-900 min-h-screen flex">
+    <div className="font-sans bg-white text-gray-900 min-h-screen flex">
       <Navbar />
       <div className="flex-1 flex flex-col">
         <main className="flex-1 p-8 bg-white">
@@ -285,12 +296,26 @@ export default function Descuentos() {
             >
               Gestión de Descuentos
             </h1>
-            <p
-              className="text-center text-black leading-relaxed max-w-2xl p-2 rounded-lg 
-              transition-all duration-300 hover:shadow-md mx-auto"
-            >
-              Configura los descuentos disponibles.
-            </p>
+
+
+            <nav className="flex justify-center space-x-4">
+              {priceRoutes.map((price) => {
+                const isActive = pathname === price.href;
+                return (
+                  <Link key={price.name} href={price.href}>
+                    <button
+                      className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-300 ${isActive
+                          ? 'bg-blue-600 text-white'
+                          : 'text-gray-700 bg-gray-200 hover:bg-blue-600 hover:text-white'
+                        }`}
+                    >
+                      {price.name}
+                    </button>
+                  </Link>
+                );
+              })}
+            </nav>
+
           </div>
           <div className="flex justify-between mb-2">
             <button
@@ -345,10 +370,10 @@ export default function Descuentos() {
                     <td className="px-4 py-2 text-center">{descuento.canal_nombre}</td>
                     <td className="px-4 py-2 text-center">{descuento.tipo_combustible_nombre}</td>
 
-                                            <td className="px-4 py-2 text-center" >{new Date(descuento.create_date).toLocaleDateString()}</td>
+                    <td className="px-4 py-2 text-center" >{new Date(descuento.create_date).toLocaleDateString()}</td>
                     <td className="px-4 py-2 text-center">{descuento.create_uid_name || descuento.create_uid}</td>
-                    
-                        <td className="px-4 py-2 text-center" >{new Date(descuento.write_date).toLocaleDateString()}</td>
+
+                    <td className="px-4 py-2 text-center" >{new Date(descuento.write_date).toLocaleDateString()}</td>
                     <td className="px-4 py-2 text-center">{descuento.write_uid_name || descuento.write_uid}</td>
                     <td className="px-4 py-2 text-center">
                       <button
@@ -417,38 +442,38 @@ export default function Descuentos() {
               <div className="bg-white p-6 rounded-lg shadow-lg w-1/3 border">
                 <h2 className="text-xl font-semibold mb-4 text-center">Agregar Descuento</h2>
                 <form onSubmit={handleSubmitAdd}>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium mb-2 text-center" htmlFor="descuento">
-                      Descuento por galón
-                    </label>
-                    <input
-                      type="number"
-                      id="descuento"
-                      name="descuento"
-                      placeholder="Ejemplo: 10"
-                      value={descuentoData.descuento}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md text-center"
-                    />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                    <div className="mb-4">
+                      <label className="block text-sm font-bold mb-2 text-center" htmlFor="descuento">
+                        Descuento por galón
+                      </label>
+                      <input
+                        type="number"
+                        id="descuento"
+                        name="descuento"
+                        placeholder="Ejemplo: 10"
+                        value={descuentoData.descuento}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md text-center"
+                      />
+                    </div>
+                    <div className="mb-4">
+                      <label className="block text-sm font-bold mb-2 text-center" htmlFor="display_name">
+                        Display Name
+                      </label>
+                      <input
+                        type="text"
+                        id="display_name"
+                        name="display_name"
+                        placeholder="Ejemplo: Descuento 10%"
+                        value={descuentoData.display_name}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md text-center"
+                      />
+                    </div>
                   </div>
                   <div className="mb-4">
-                    <label className="block text-sm font-medium mb-2 text-center" htmlFor="display_name">
-                      Display Name
-                    </label>
-                    <input
-                      type="text"
-                      id="display_name"
-                      name="display_name"
-                      placeholder="Ejemplo: Descuento 10%"
-                      value={descuentoData.display_name}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md text-center"
-                    />
-                  </div>
-                  </div>
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium mb-2 text-center" htmlFor="active">
+                    <label className="block text-sm font-bold mb-2 text-center" htmlFor="active">
                       Descuento Activo
                     </label>
                     <input
@@ -460,45 +485,45 @@ export default function Descuentos() {
                       className="w-6 h-6 mx-auto block"
                     />
                   </div>
-                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium mb-2 text-center" htmlFor="canal_id">
-                      Canal
-                    </label>
-                    <select
-                      id="canal_id"
-                      name="canal_id"
-                      value={descuentoData.canal_id}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md text-center"
-                    >
-                      <option value={0}>Seleccionar Canal</option>
-                      {canales.map((canal) => (
-                        <option key={canal.id} value={canal.id}>
-                          {canal.canal}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium mb-2 text-center" htmlFor="tipo_combustible_id">
-                      Tipo de Combustible
-                    </label>
-                    <select
-                      id="tipo_combustible_id"
-                      name="tipo_combustible_id"
-                      value={descuentoData.tipo_combustible_id}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md text-center"
-                    >
-                      <option value={0}>Seleccionar Tipo de Combustible</option>
-                      {tipoCombustibles.map((tipo) => (
-                        <option key={tipo.id} value={tipo.id}>
-                          {tipo.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                    <div className="mb-4">
+                      <label className="block text-sm font-bold mb-2 text-center" htmlFor="canal_id">
+                        Canal
+                      </label>
+                      <select
+                        id="canal_id"
+                        name="canal_id"
+                        value={descuentoData.canal_id}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md text-center"
+                      >
+                        <option value={0}>Seleccionar Canal</option>
+                        {canales.map((canal) => (
+                          <option key={canal.id} value={canal.id}>
+                            {canal.canal}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="mb-4">
+                      <label className="block text-sm font-bold mb-2 text-center" htmlFor="tipo_combustible_id">
+                        Tipo de Combustible
+                      </label>
+                      <select
+                        id="tipo_combustible_id"
+                        name="tipo_combustible_id"
+                        value={descuentoData.tipo_combustible_id}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md text-center"
+                      >
+                        <option value={0}>Seleccionar Tipo de Combustible</option>
+                        {tipoCombustibles.map((tipo) => (
+                          <option key={tipo.id} value={tipo.id}>
+                            {tipo.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
                   <div className="flex justify-between">
                     <button
@@ -531,39 +556,39 @@ export default function Descuentos() {
               <div className="bg-white p-6 rounded-lg shadow-lg w-1/3 border">
                 <h2 className="text-xl font-semibold mb-4 text-center">Actualizar Descuento</h2>
                 <form onSubmit={handleSubmitUpdate}>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium mb-2 text-center" htmlFor="descuento">
-                      Descuento por galón
-                    </label>
-                    <input
-                      type="number"
-                      id="descuento"
-                      name="descuento"
-                      placeholder="Ejemplo: 10"
-                      value={descuentoData.descuento}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md text-center"
-                    />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                    <div className="mb-4">
+                      <label className="block text-sm font-bold mb-2 text-center" htmlFor="descuento">
+                        Descuento por galón
+                      </label>
+                      <input
+                        type="number"
+                        id="descuento"
+                        name="descuento"
+                        placeholder="Ejemplo: 10"
+                        value={descuentoData.descuento}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md text-center"
+                      />
+                    </div>
+                    <div className="mb-4">
+                      <label className="block text-sm font-bold mb-2 text-center" htmlFor="display_name">
+                        Display Name
+                      </label>
+                      <input
+                        type="text"
+                        id="display_name"
+                        name="display_name"
+                        placeholder="Ejemplo: Descuento 10%"
+                        value={descuentoData.display_name}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md text-center"
+                      />
+                    </div>
                   </div>
+
                   <div className="mb-4">
-                    <label className="block text-sm font-medium mb-2 text-center" htmlFor="display_name">
-                      Display Name
-                    </label>
-                    <input
-                      type="text"
-                      id="display_name"
-                      name="display_name"
-                      placeholder="Ejemplo: Descuento 10%"
-                      value={descuentoData.display_name}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md text-center"
-                    />
-                  </div>
-                   </div>
-                   
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium mb-2 text-center" htmlFor="active">
+                    <label className="block text-sm font-bold mb-2 text-center" htmlFor="active">
                       Descuento Activo
                     </label>
                     <input
@@ -575,46 +600,46 @@ export default function Descuentos() {
                       className="w-6 h-6 mx-auto block"
                     />
                   </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium mb-2 text-center" htmlFor="canal_id">
-                      Canal
-                    </label>
-                    <select
-                      id="canal_id"
-                      name="canal_id"
-                      value={descuentoData.canal_id}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md text-center"
-                    >
-                      <option value={0}>Seleccionar Canal</option>
-                      {canales.map((canal) => (
-                        <option key={canal.id} value={canal.id}>
-                          {canal.canal}
-                        </option>
-                      ))}
-                    </select>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                    <div className="mb-4">
+                      <label className="block text-sm font-bold mb-2 text-center" htmlFor="canal_id">
+                        Canal
+                      </label>
+                      <select
+                        id="canal_id"
+                        name="canal_id"
+                        value={descuentoData.canal_id}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md text-center"
+                      >
+                        <option value={0}>Seleccionar Canal</option>
+                        {canales.map((canal) => (
+                          <option key={canal.id} value={canal.id}>
+                            {canal.canal}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="mb-4">
+                      <label className="block text-sm font-bold mb-2 text-center" htmlFor="tipo_combustible_id">
+                        Tipo de Combustible
+                      </label>
+                      <select
+                        id="tipo_combustible_id"
+                        name="tipo_combustible_id"
+                        value={descuentoData.tipo_combustible_id}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md text-center"
+                      >
+                        <option value={0}>Seleccionar Tipo de Combustible</option>
+                        {tipoCombustibles.map((tipo) => (
+                          <option key={tipo.id} value={tipo.id}>
+                            {tipo.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium mb-2 text-center" htmlFor="tipo_combustible_id">
-                      Tipo de Combustible
-                    </label>
-                    <select
-                      id="tipo_combustible_id"
-                      name="tipo_combustible_id"
-                      value={descuentoData.tipo_combustible_id}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md text-center"
-                    >
-                      <option value={0}>Seleccionar Tipo de Combustible</option>
-                      {tipoCombustibles.map((tipo) => (
-                        <option key={tipo.id} value={tipo.id}>
-                          {tipo.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                   </div>
                   <div className="flex justify-between">
                     <button
                       type="button"

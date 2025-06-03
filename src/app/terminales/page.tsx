@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import Navbar from '../components/Navbar';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+
 
 interface Terminal {
   id: number;
@@ -45,6 +47,7 @@ export default function Terminales() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const pathname = usePathname();
   const itemsPerPage = 10;
 
   const generateActivationCode = () => {
@@ -250,26 +253,26 @@ export default function Terminales() {
     setIsDeletePopupOpen(false);
   };
 
-const handleDelete = async () => {
-  if (!terminalAEliminar) return;
-  try {
-    const response = await fetch(`/api/terminales/${terminalAEliminar.id}`, {
-      method: 'DELETE',
-    });
+  const handleDelete = async () => {
+    if (!terminalAEliminar) return;
+    try {
+      const response = await fetch(`/api/terminales/${terminalAEliminar.id}`, {
+        method: 'DELETE',
+      });
 
-    if (response.ok) {
-      alert('Terminal eliminado exitosamente');
-      closeDeletePopup();
-      fetchTerminales();
-    } else {
-      const errorData = await response.json();
-      alert(`Error al eliminar el terminal: ${errorData.message || 'Error desconocido'}`);
+      if (response.ok) {
+        alert('Terminal eliminado exitosamente');
+        closeDeletePopup();
+        fetchTerminales();
+      } else {
+        const errorData = await response.json();
+        alert(`Error al eliminar el terminal: ${errorData.message || 'Error desconocido'}`);
+      }
+    } catch (error) {
+      console.error('Error en la solicitud:', error);
+      alert('Error al conectar con el servidor');
     }
-  } catch (error) {
-    console.error('Error en la solicitud:', error);
-    alert('Error al conectar con el servidor');
-  }
-};
+  };
   const fetchTerminales = useCallback(async () => {
     try {
       const response = await fetch(`/api/terminales?page=${currentPage}&limit=${itemsPerPage}`);
@@ -358,13 +361,21 @@ const handleDelete = async () => {
     }
   };
 
+
+  const terminalesRoutes = [
+    { name: 'Terminales', href: '/terminale' },
+    { name: 'Usuarios de terminales', href: '/miembros' },
+
+
+  ];
+
+
   return (
     <div className="font-sans bg-white text-gray-900 min-h-screen">
       {isLoading ? (
         <div className="flex min-h-screen">
           <Navbar />
           <div className="flex-1 p-8">
-            <p className="text-center text-gray-500">Cargando terminales...</p>
           </div>
         </div>
       ) : error ? (
@@ -387,12 +398,23 @@ const handleDelete = async () => {
                 >
                   Gestión de Terminales
                 </h1>
-                <p
-                  className="text-center text-gray-700 leading-relaxed max-w-2xl
-                  p-4 rounded-lg transition-all duration-300 hover:shadow-md mx-auto"
-                >
-                  Administra los terminales registrados en la plataforma.
-                </p>
+                <nav className="flex justify-center space-x-4">
+                  {terminalesRoutes.map((terminal) => {
+                    const isActive = pathname === terminal.href;
+                    return (
+                      <Link key={terminal.name} href={terminal.href}>
+                        <button
+                          className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-300 ${isActive
+                              ? 'bg-blue-600 text-white'
+                              : 'text-gray-700 bg-gray-200 hover:bg-blue-600 hover:text-white'
+                            }`}
+                        >
+                          {terminal.name}
+                        </button>
+                      </Link>
+                    );
+                  })}
+                </nav>
               </div>
 
               <div className="flex justify-between mb-4">
@@ -458,9 +480,8 @@ const handleDelete = async () => {
                             </Link>
                             <button
                               onClick={() => handleActivationClick(terminal)}
-                              className={`px-3 py-1 rounded-lg text-white transition-all duration-300 ${
-                                isActive ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'
-                              }`}
+                              className={`px-3 py-1 rounded-lg text-white transition-all duration-300 ${isActive ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'
+                                }`}
                             >
                               {isActive ? 'Desactivar' : 'Activar'}
                             </button>
@@ -488,9 +509,8 @@ const handleDelete = async () => {
                 <button
                   onClick={handlePrevPage}
                   disabled={currentPage === 1}
-                  className={`px-4 py-2 rounded-lg transition-all duration-300 ${
-                    currentPage === 1 ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'
-                  }`}
+                  className={`px-4 py-2 rounded-lg transition-all duration-300 ${currentPage === 1 ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'
+                    }`}
                 >
                   Anterior
                 </button>
@@ -500,9 +520,8 @@ const handleDelete = async () => {
                 <button
                   onClick={handleNextPage}
                   disabled={currentPage === totalPages}
-                  className={`px-4 py-2 rounded-lg transition-all duration-300 ${
-                    currentPage === totalPages ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'
-                  }`}
+                  className={`px-4 py-2 rounded-lg transition-all duration-300 ${currentPage === totalPages ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'
+                    }`}
                 >
                   Siguiente
                 </button>

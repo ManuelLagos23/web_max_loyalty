@@ -172,7 +172,7 @@ export default function EditarTerminal() {
         <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
           <input type="hidden" name="id" value={formData.id} />
           <div>
-            <label htmlFor="empresa" className="block text-center text-base sm:text-lg font-medium">
+            <label htmlFor="empresa" className="block text-center text-base sm:text-lg font-bold">
               Empresa
             </label>
             <select
@@ -191,7 +191,7 @@ export default function EditarTerminal() {
             </select>
           </div>
           <div>
-            <label htmlFor="estacion_servicio" className="block text-center text-base sm:text-lg font-medium">
+            <label htmlFor="estacion_servicio" className="block text-center text-base sm:text-lg font-bold">
               Estación de servicio
             </label>
             <select
@@ -212,7 +212,7 @@ export default function EditarTerminal() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-8">
             <div>
-              <label htmlFor="codigo_terminal" className="block text-center text-base sm:text-lg font-medium">
+              <label htmlFor="codigo_terminal" className="block text-center text-base sm:text-lg font-bold">
                 Código terminal
               </label>
               <input
@@ -226,7 +226,7 @@ export default function EditarTerminal() {
               />
             </div>
             <div>
-              <label htmlFor="nombre_terminal" className="block text-center text-base sm:text-lg font-medium">
+              <label htmlFor="nombre_terminal" className="block text-center text-base sm:text-lg font-bold">
                 Nombre terminal
               </label>
               <input
@@ -242,7 +242,7 @@ export default function EditarTerminal() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-8">
             <div>
-              <label htmlFor="numero_serie" className="block text-center text-base sm:text-lg font-medium">
+              <label htmlFor="numero_serie" className="block text-center text-base sm:text-lg font-bold">
                 Número de serie
               </label>
               <input
@@ -256,7 +256,7 @@ export default function EditarTerminal() {
               />
             </div>
             <div>
-              <label htmlFor="mac" className="block text-center text-base sm:text-lg font-medium">
+              <label htmlFor="mac" className="block text-center text-base sm:text-lg font-bold">
                 Dirección MAC
               </label>
               <input
@@ -272,7 +272,7 @@ export default function EditarTerminal() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-8">
             <div>
-              <label htmlFor="modelo" className="block text-center text-base sm:text-lg font-medium">
+              <label htmlFor="modelo" className="block text-center text-base sm:text-lg font-bold">
                 Modelo
               </label>
               <input
@@ -286,7 +286,7 @@ export default function EditarTerminal() {
               />
             </div>
             <div>
-              <label htmlFor="marca" className="block text-center text-base sm:text-lg font-medium">
+              <label htmlFor="marca" className="block text-center text-base sm:text-lg font-bold">
                 Marca
               </label>
               <input

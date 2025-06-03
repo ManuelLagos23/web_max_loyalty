@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Navbar from '../components/Navbar';
+import { usePathname } from 'next/navigation';
+import Link from 'next/link';
 
 
 type Moneda = {
@@ -20,7 +22,7 @@ export default function Monedas() {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-
+  const pathname = usePathname();
   const fetchMonedas = useCallback(async () => {
     const response = await fetch(`/api/monedas?page=${currentPage}&limit=${itemsPerPage}`);
     if (response.ok) {
@@ -131,6 +133,14 @@ export default function Monedas() {
     }
   };
 
+  const regionRoutes = [
+    { name: 'Países', href: '/paises' },
+    { name: 'Departamentos', href: '/estados' },
+    { name: 'Monedas', href: '/monedas' },
+
+  ];
+
+
   return (
     <div className="font-sans bg-white text-gray-900 min-h-screen">
       <div className="flex">
@@ -146,12 +156,26 @@ export default function Monedas() {
               >
                 Gestión de Monedas
               </h1>
-              <p
-                className="text-center text-gray-700 leading-relaxed max-w-2xl
-                p-4 rounded-lg transition-all duration-300 hover:shadow-md mx-auto"
-              >
-                Administra las monedas registradas en la plataforma con facilidad y seguridad.
-              </p>
+
+              <nav className="flex justify-center space-x-4">
+                {regionRoutes.map((reporte) => {
+                  const isActive = pathname === reporte.href;
+                  return (
+                    <Link key={reporte.name} href={reporte.href}>
+                      <button
+                        className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-300 ${isActive
+                            ? 'bg-blue-600 text-white'
+                            : 'text-gray-700 bg-gray-200 hover:bg-blue-600 hover:text-white'
+                          }`}
+                      >
+                        {reporte.name}
+                      </button>
+                    </Link>
+                  );
+                })}
+              </nav>
+
+
             </div>
 
             <div className="flex justify-between mb-4">
@@ -227,9 +251,8 @@ export default function Monedas() {
               <button
                 onClick={handlePrevPage}
                 disabled={currentPage === 1}
-                className={`px-4 py-2 rounded-lg transition-all duration-300 ${
-                  currentPage === 1 ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'
-                }`}
+                className={`px-4 py-2 rounded-lg transition-all duration-300 ${currentPage === 1 ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'
+                  }`}
               >
                 Anterior
               </button>
@@ -239,9 +262,8 @@ export default function Monedas() {
               <button
                 onClick={handleNextPage}
                 disabled={currentPage === totalPages}
-                className={`px-4 py-2 rounded-lg transition-all duration-300 ${
-                  currentPage === totalPages ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'
-                }`}
+                className={`px-4 py-2 rounded-lg transition-all duration-300 ${currentPage === totalPages ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'
+                  }`}
               >
                 Siguiente
               </button>
@@ -269,7 +291,7 @@ export default function Monedas() {
                   </div>
                   <form onSubmit={handleSubmitAdd}>
                     <div className="mb-4">
-                      <label className="block text-center font-medium text-gray-700 mb-2" htmlFor="moneda">
+                      <label className="block text-center font-bold text-gray-700 mb-2" htmlFor="moneda">
                         Nombre de la Moneda
                       </label>
                       <input
@@ -324,7 +346,7 @@ export default function Monedas() {
                   </div>
                   <form onSubmit={handleSubmitUpdate}>
                     <div className="mb-4">
-                      <label className="block text-center font-medium text-gray-700 mb-2" htmlFor="moneda">
+                      <label className="block text-center font-bold text-gray-700 mb-2" htmlFor="moneda">
                         Nombre de la Moneda
                       </label>
                       <input

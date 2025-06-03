@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback } from 'react';
 
 import Navbar from '@/app/components/Navbar';
-
+import { usePathname } from 'next/navigation';
+import Link from 'next/link';
 
 interface Costo {
   id: number;
@@ -40,6 +41,7 @@ export default function Costos() {
   const [paises, setPaises] = useState<Pais[]>([]);
   const [estados, setEstados] = useState<Estado[]>([]);
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
+     const pathname = usePathname();
   const [formData, setFormData] = useState({
     id: 0,
     nombre_centro_costos: '',
@@ -338,6 +340,13 @@ export default function Costos() {
     }
   };
 
+     const empresaRoutes = [
+    { name: 'Empresas', href: '/empresas' },
+    { name: 'Establecimientos', href: '/centro_de_costos' },
+ 
+  ];
+
+
   return (
     <div className="font-sans bg-white text-gray-900 min-h-screen">
       
@@ -354,12 +363,24 @@ export default function Costos() {
               >
                 Gestión de Establecimientos
               </h1>
-              <p
-                className="text-center text-gray-700 leading-relaxed max-w-2xl
-                p-4 rounded-lg transition-all duration-300 hover:shadow-md mx-auto"
-              >
-                Administra los centros de costos registrados en la plataforma con facilidad y seguridad.
-              </p>
+            <nav className="flex justify-center space-x-4">
+                                                                               {empresaRoutes.map((empresa) => {
+                                                                                 const isActive = pathname === empresa.href;
+                                                                                 return (
+                                                                                   <Link key={empresa.name} href={empresa.href}>
+                                                                                     <button
+                                                                                       className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-300 ${
+                                                                                         isActive
+                                                                                           ? 'bg-blue-600 text-white'
+                                                                                           : 'text-gray-700 bg-gray-200 hover:bg-blue-600 hover:text-white'
+                                                                                       }`}
+                                                                                     >
+                                                                                       {empresa.name}
+                                                                                     </button>
+                                                                                   </Link>
+                                                                                 );
+                                                                               })}
+                                                                             </nav>
             </div>
 
             <div className="flex justify-between mb-4">

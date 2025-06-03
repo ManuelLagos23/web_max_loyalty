@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Navbar from '../components/Navbar';
-
+import { usePathname } from 'next/navigation';
+import Link from 'next/link';
 
 type Pais = {
   id: number;
@@ -20,6 +21,7 @@ export default function Paises() {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+    const pathname = usePathname();
 
   const fetchPaises = useCallback(async () => {
     const response = await fetch(`/api/paises?page=${currentPage}&limit=${itemsPerPage}`);
@@ -131,6 +133,14 @@ export default function Paises() {
     }
   };
 
+    const regionRoutes = [
+    { name: 'Países', href: '/paises' },
+    { name: 'Departamentos', href: '/estados' },
+    { name: 'Monedas', href: '/monedas' },
+ 
+  ];
+
+
   return (
     <div className="font-sans bg-white text-gray-900 min-h-screen">
       <div className="flex">
@@ -145,12 +155,26 @@ export default function Paises() {
               >
                 Gestión de Países
               </h1>
-              <p
-                className="text-center text-gray-700 leading-relaxed max-w-2xl
-                p-4 rounded-lg transition-all duration-300 hover:shadow-md mx-auto"
-              >
-                Administra los países registrados en la plataforma con facilidad y seguridad.
-              </p>
+
+                    <nav className="flex justify-center space-x-4">
+                              {regionRoutes.map((reporte) => {
+                                const isActive = pathname === reporte.href;
+                                return (
+                                  <Link key={reporte.name} href={reporte.href}>
+                                    <button
+                                      className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-300 ${
+                                        isActive
+                                          ? 'bg-blue-600 text-white'
+                                          : 'text-gray-700 bg-gray-200 hover:bg-blue-600 hover:text-white'
+                                      }`}
+                                    >
+                                      {reporte.name}
+                                    </button>
+                                  </Link>
+                                );
+                              })}
+                            </nav>
+         
             </div>
 
             <div className="flex justify-between mb-4">
@@ -268,7 +292,7 @@ export default function Paises() {
                   </div>
                   <form onSubmit={handleSubmitAdd}>
                     <div className="mb-4">
-                      <label className="block text-center font-medium text-gray-700 mb-2" htmlFor="pais">
+                      <label className="block text-center font-bold text-gray-700 mb-2" htmlFor="pais">
                         Nombre del País
                       </label>
                       <input
@@ -323,7 +347,7 @@ export default function Paises() {
                   </div>
                   <form onSubmit={handleSubmitUpdate}>
                     <div className="mb-4">
-                      <label className="block text-center font-medium text-gray-700 mb-2" htmlFor="pais">
+                      <label className="block text-center font-bold text-gray-700 mb-2" htmlFor="pais">
                         Nombre del País
                       </label>
                       <input

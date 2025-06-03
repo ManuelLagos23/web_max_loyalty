@@ -352,7 +352,7 @@ export default function Usuarios() {
                   {usuarioSeleccionado ? (
                     <form onSubmit={handleSubmitEditar}>
                       <input type="hidden" name="id" value={formData.id} />
-                      <label className="block text-center font-medium text-gray-700" htmlFor="nombre">
+                      <label className="block text-center font-bold text-gray-700" htmlFor="nombre">
                         Nombre
                       </label>
                       <input
@@ -363,7 +363,7 @@ export default function Usuarios() {
                         onChange={handleInputChange}
                         className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
                       />
-                      <label className="block text-center font-medium text-gray-700" htmlFor="email">
+                      <label className="block text-center font-bold text-gray-700" htmlFor="email">
                         Correo electrónico
                       </label>
                       <input
@@ -374,7 +374,7 @@ export default function Usuarios() {
                         onChange={handleInputChange}
                         className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
                       />
-                      <label className="block text-center font-medium text-gray-700" htmlFor="contraseña">
+                      <label className="block text-center font-bold text-gray-700" htmlFor="contraseña">
                         Contraseña
                       </label>
                       <input
@@ -385,7 +385,7 @@ export default function Usuarios() {
                         onChange={handleInputChange}
                         className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
                       />
-                      <label className="block text-center font-medium text-gray-700" htmlFor="foto">
+                      <label className="block text-center font-bold text-gray-700" htmlFor="foto">
                         Foto
                       </label>
                       {formData.img ? (
@@ -409,7 +409,7 @@ export default function Usuarios() {
                         className="w-full p-2 mb-4 border border-gray-300 rounded-lg text-center"
                         accept="image/*"
                       />
-                      <label className="block text-center font-medium text-gray-700" htmlFor="num_telefono">
+                      <label className="block text-center font-bold text-gray-700" htmlFor="num_telefono">
                         Número de teléfono
                       </label>
                       <input
@@ -438,7 +438,7 @@ export default function Usuarios() {
                     </form>
                   ) : (
                     <form onSubmit={handleSubmitAgregar}>
-                      <label className="block text-center font-medium text-gray-700" htmlFor="nombre">
+                      <label className="block text-center font-bold text-gray-700" htmlFor="nombre">
                         Nombre
                       </label>
                       <input
@@ -450,7 +450,7 @@ export default function Usuarios() {
                         className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
                         autoFocus
                       />
-                      <label className="block text-center font-medium text-gray-700" htmlFor="email">
+                      <label className="block text-center font-bold text-gray-700" htmlFor="email">
                         Correo electrónico
                       </label>
                       <input
@@ -461,7 +461,7 @@ export default function Usuarios() {
                         onChange={handleInputChange}
                         className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
                       />
-                      <label className="block text-center font-medium text-gray-700" htmlFor="contraseña">
+                      <label className="block text-center font-bold text-gray-700" htmlFor="contraseña">
                         Contraseña
                       </label>
                       <input
@@ -472,7 +472,7 @@ export default function Usuarios() {
                         onChange={handleInputChange}
                         className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
                       />
-                      <label className="block text-center font-medium text-gray-700" htmlFor="foto">
+                      <label className="block text-center font-bold text-gray-700" htmlFor="foto">
                         Foto
                       </label>
                       <input
@@ -482,7 +482,7 @@ export default function Usuarios() {
                         className="w-full p-2 mb-4 border border-gray-300 rounded-lg text-center"
                         accept="image/*"
                       />
-                      <label className="block text-center font-medium text-gray-700" htmlFor="num_telefono">
+                      <label className="block text-center font-bold text-gray-700" htmlFor="num_telefono">
                         Número de teléfono
                       </label>
                       <input

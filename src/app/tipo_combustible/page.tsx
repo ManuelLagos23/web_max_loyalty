@@ -282,7 +282,7 @@ export default function TiposCombustible() {
                 <h2 className="text-xl font-semibold mb-4 text-center">Agregar Tipo de Combustible</h2>
                 <form onSubmit={handleSubmitAdd}>
                   <div className="mb-4">
-                    <label className="block text-sm font-medium mb-2 text-center" htmlFor="code">
+                    <label className="block text-sm font-bold mb-2 text-center" htmlFor="code">
                       Código del Tipo de Combustible
                     </label>
                     <input
@@ -296,7 +296,7 @@ export default function TiposCombustible() {
                     />
                   </div>
                   <div className="mb-4">
-                    <label className="block text-sm font-medium mb-2 text-center" htmlFor="name">
+                    <label className="block text-sm font-bold mb-2 text-center" htmlFor="name">
                       Nombre del Tipo de Combustible
                     </label>
                     <input
@@ -341,7 +341,7 @@ export default function TiposCombustible() {
                 <h2 className="text-xl font-semibold mb-4 text-center">Actualizar Tipo de Combustible</h2>
                 <form onSubmit={handleSubmitUpdate}>
                   <div className="mb-4">
-                    <label className="block text-sm font-medium mb-2 text-center" htmlFor="code">
+                    <label className="block text-sm font-bold mb-2 text-center" htmlFor="code">
                       Código del Tipo de Combustible
                     </label>
                     <input
@@ -355,7 +355,7 @@ export default function TiposCombustible() {
                     />
                   </div>
                   <div className="mb-4">
-                    <label className="block text-sm font-medium mb-2 text-center" htmlFor="name">
+                    <label className="block text-sm font-bold mb-2 text-center" htmlFor="name">
                       Nombre del Tipo de Combustible
                     </label>
                     <input

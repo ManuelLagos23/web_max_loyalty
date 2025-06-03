@@ -258,19 +258,10 @@ export default function Navbar() {
                         pathname === '/canales' ? 'active-subitem' : ''
                       }`}
                     >
-                      Canales
+                      Canales y subcanales
                     </Link>
                   </li>
-                  <li>
-                    <Link
-                      href="/sub_canales"
-                      className={`block p-2 rounded hover:bg-gray-700 ${
-                        pathname === '/sub_canales' ? 'active-subitem' : ''
-                      }`}
-                    >
-                      Subcanales
-                    </Link>
-                  </li>
+                
 
 
                   <li>
@@ -284,48 +275,9 @@ export default function Navbar() {
                     </Link>
                   </li>
 
-                  
-                  <li>
-                    <Link
-                      href="/centro_de_costos"
-                      className={`block p-2 rounded hover:bg-gray-700 ${
-                        pathname === '/centro_de_costos' ? 'active-subitem' : ''
-                      }`}
-                    >
-                      Establecimientos
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      href="/paises"
-                      className={`block p-2 rounded hover:bg-gray-700 ${
-                        pathname === '/paises' ? 'active-subitem' : ''
-                      }`}
-                    >
-                      Paises
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      href="/estados"
-                      className={`block p-2 rounded hover:bg-gray-700 ${
-                        pathname === '/estados' ? 'active-subitem' : ''
-                      }`}
-                    >
-                      Estados
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      href="/monedas"
-                      className={`block p-2 rounded hover:bg-gray-700 ${
-                        pathname === '/monedas' ? 'active-subitem' : ''
-                      }`}
-                    >
-                      Monedas
-                    </Link>
-                  </li>
-
+                
+           
+            
                 </ul>
               )}
             </li>
@@ -346,7 +298,7 @@ export default function Navbar() {
                         pathname === '/terminales' ? 'active-subitem' : ''
                       }`}
                     >
-                      Terminales
+                      Terminales y usuarios
                     </Link>
                   </li>
                   <li>
@@ -359,16 +311,18 @@ export default function Navbar() {
                       Usuarios
                     </Link>
                   </li>
-                  <li>
+               
+                         <li>
                     <Link
-                      href="/miembros"
+                      href="/paises"
                       className={`block p-2 rounded hover:bg-gray-700 ${
-                        pathname === '/miembros' ? 'active-subitem' : ''
+                        pathname === '/paises' ? 'active-subitem' : ''
                       }`}
                     >
-                      Usuarios de terminales
+                    Configuración regional
                     </Link>
                   </li>
+              
 
                          <li>
                     <Link
@@ -381,17 +335,7 @@ export default function Navbar() {
                     </Link>
                   </li>
 
-                    <li>
-                    <Link
-                      href="/tipo_de_tarjetas"
-                      className={`block p-2 rounded hover:bg-gray-700 ${
-                        pathname === '/tipo_de_tarjetas' ? 'active-subitem' : ''
-                      }`}
-                    >
-                      Tipos de tarjetas
-                    </Link>
-                  </li>
-
+              
 
                    <li>
                     <Link
@@ -420,19 +364,10 @@ export default function Navbar() {
                         pathname === '/precios_semana' ? 'active-subitem' : ''
                       }`}
                     >
-                      Precios de la semana
+                      Precios y descuentos
                     </Link>
                   </li>
-                  <li>
-                    <Link
-                      href="/descuentos"
-                      className={`block p-2 rounded hover:bg-gray-700 ${
-                        pathname === '/descuentos' ? 'active-subitem' : ''
-                      }`}
-                    >
-                      Descuentos
-                    </Link>
-                  </li>
+               
 
                 </ul>
               )}
