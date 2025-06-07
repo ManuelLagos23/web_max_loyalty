@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -44,7 +45,7 @@ export default function Descuentos() {
     active: true,
     create_date: '',
     create_uid: 0,
-    descuento: 0,
+    descuento: '', // Changed to string for decimal input
     display_name: '',
     canal_id: 0,
     tipo_combustible_id: 0,
@@ -136,24 +137,34 @@ export default function Descuentos() {
         type === 'checkbox'
           ? checked
           : name === 'create_uid' ||
-            name === 'descuento' ||
             name === 'canal_id' ||
             name === 'tipo_combustible_id' ||
             name === 'write_uid'
             ? parseInt(value) || 0
+            : name === 'descuento'
+            ? value // Keep as string for decimal input
             : value,
     }));
   };
 
   const handleSubmitAdd = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!descuentoData.display_name || !descuentoData.canal_id || !descuentoData.tipo_combustible_id || !descuentoData.descuento) {
-      alert('Por favor, complete todos los campos obligatorios.');
+    if (
+      !descuentoData.display_name ||
+      !descuentoData.canal_id ||
+      !descuentoData.tipo_combustible_id ||
+      !descuentoData.descuento ||
+      isNaN(parseFloat(descuentoData.descuento))
+    ) {
+      alert('Por favor, complete todos los campos obligatorios con valores válidos.');
       return;
     }
+
+    const descuentoNumerico = parseFloat(descuentoData.descuento).toFixed(2);
+
     const formData = new FormData();
     formData.append('active', descuentoData.active.toString());
-    formData.append('descuento', descuentoData.descuento.toString());
+    formData.append('descuento', descuentoNumerico);
     formData.append('display_name', descuentoData.display_name);
     formData.append('canal_id', descuentoData.canal_id.toString());
     formData.append('tipo_combustible_id', descuentoData.tipo_combustible_id.toString());
@@ -171,7 +182,7 @@ export default function Descuentos() {
         active: true,
         create_date: '',
         create_uid: 0,
-        descuento: 0,
+        descuento: '',
         display_name: '',
         canal_id: 0,
         tipo_combustible_id: 0,
@@ -187,48 +198,56 @@ export default function Descuentos() {
 
   const handleSubmitUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (descuentoToUpdate) {
-      if (!descuentoData.display_name || !descuentoData.canal_id || !descuentoData.tipo_combustible_id || !descuentoData.descuento) {
-        alert('Por favor, complete todos los campos obligatorios.');
-        return;
-      }
-      const formData = new FormData();
-      formData.append('id', String(descuentoToUpdate.id));
-      formData.append('active', descuentoData.active.toString());
-      formData.append('descuento', descuentoData.descuento.toString());
-      formData.append('display_name', descuentoData.display_name);
-      formData.append('canal_id', descuentoData.canal_id.toString());
-      formData.append('tipo_combustible_id', descuentoData.tipo_combustible_id.toString());
+    if (
+      !descuentoToUpdate ||
+      !descuentoData.display_name ||
+      !descuentoData.canal_id ||
+      !descuentoData.tipo_combustible_id ||
+      !descuentoData.descuento ||
+      isNaN(parseFloat(descuentoData.descuento))
+    ) {
+      alert('Por favor, complete todos los campos obligatorios con valores válidos.');
+      return;
+    }
 
-      const response = await fetch('/api/descuentos', {
-        method: 'PUT',
-        body: formData,
+    const descuentoNumerico = parseFloat(descuentoData.descuento).toFixed(2);
+
+    const formData = new FormData();
+    formData.append('id', String(descuentoToUpdate.id));
+    formData.append('active', descuentoData.active.toString());
+    formData.append('descuento', descuentoNumerico);
+    formData.append('display_name', descuentoData.display_name);
+    formData.append('canal_id', descuentoData.canal_id.toString());
+    formData.append('tipo_combustible_id', descuentoData.tipo_combustible_id.toString());
+
+    const response = await fetch('/api/descuentos', {
+      method: 'PUT',
+      body: formData,
+    });
+
+    if (response.ok) {
+      const updatedDescuento = await response.json();
+      alert('Descuento actualizado exitosamente');
+      setDescuentos((prev) =>
+        prev.map((descuento) =>
+          descuento.id === updatedDescuento.data.id ? updatedDescuento.data : descuento
+        )
+      );
+      setDescuentoData({
+        active: true,
+        create_date: '',
+        create_uid: 0,
+        descuento: '',
+        display_name: '',
+        canal_id: 0,
+        tipo_combustible_id: 0,
+        write_date: '',
+        write_uid: 0,
       });
-
-      if (response.ok) {
-        const updatedDescuento = await response.json();
-        alert('Descuento actualizado exitosamente');
-        setDescuentos((prev) =>
-          prev.map((descuento) =>
-            descuento.id === updatedDescuento.data.id ? updatedDescuento.data : descuento
-          )
-        );
-        setDescuentoData({
-          active: true,
-          create_date: '',
-          create_uid: 0,
-          descuento: 0,
-          display_name: '',
-          canal_id: 0,
-          tipo_combustible_id: 0,
-          write_date: '',
-          write_uid: 0,
-        });
-        setIsUpdateModalOpen(false);
-        fetchDescuentos();
-      } else {
-        alert('Error al actualizar el descuento');
-      }
+      setIsUpdateModalOpen(false);
+      fetchDescuentos();
+    } else {
+      alert('Error al actualizar el descuento');
     }
   };
 
@@ -237,7 +256,6 @@ export default function Descuentos() {
       const response = await fetch(`/api/descuentos/${descuentoToDelete.id}`, {
         method: 'DELETE',
       });
-
 
       if (response.ok) {
         alert('Descuento eliminado exitosamente');
@@ -275,13 +293,10 @@ export default function Descuentos() {
     }
   };
 
-
   const priceRoutes = [
     { name: 'Precios de la semana', href: '/precios_semana' },
     { name: 'Descuentos', href: '/descuentos' },
-
   ];
-
 
   return (
     <div className="font-sans bg-white text-gray-900 min-h-screen flex">
@@ -296,18 +311,17 @@ export default function Descuentos() {
             >
               Gestión de Descuentos
             </h1>
-
-
             <nav className="flex justify-center space-x-4">
               {priceRoutes.map((price) => {
                 const isActive = pathname === price.href;
                 return (
                   <Link key={price.name} href={price.href}>
                     <button
-                      className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-300 ${isActive
+                      className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-300 ${
+                        isActive
                           ? 'bg-blue-600 text-white'
                           : 'text-gray-700 bg-gray-200 hover:bg-blue-600 hover:text-white'
-                        }`}
+                      }`}
                     >
                       {price.name}
                     </button>
@@ -315,7 +329,6 @@ export default function Descuentos() {
                 );
               })}
             </nav>
-
           </div>
           <div className="flex justify-between mb-2">
             <button
@@ -365,15 +378,13 @@ export default function Descuentos() {
                   <tr key={descuento.id}>
                     <td className="px-4 py-2 text-center">{indexOfFirstItem + index + 1}</td>
                     <td className="px-4 py-2 text-center">{descuento.active ? 'Sí' : 'No'}</td>
-                    <td className="px-4 py-2 text-center">{descuento.descuento}</td>
+                    <td className="px-4 py-2 text-center">{descuento.descuento.toFixed(2)}</td>
                     <td className="px-4 py-2 text-center">{descuento.display_name}</td>
                     <td className="px-4 py-2 text-center">{descuento.canal_nombre}</td>
                     <td className="px-4 py-2 text-center">{descuento.tipo_combustible_nombre}</td>
-
-                    <td className="px-4 py-2 text-center" >{new Date(descuento.create_date).toLocaleDateString()}</td>
+                    <td className="px-4 py-2 text-center">{new Date(descuento.create_date).toLocaleDateString()}</td>
                     <td className="px-4 py-2 text-center">{descuento.create_uid_name || descuento.create_uid}</td>
-
-                    <td className="px-4 py-2 text-center" >{new Date(descuento.write_date).toLocaleDateString()}</td>
+                    <td className="px-4 py-2 text-center">{new Date(descuento.write_date).toLocaleDateString()}</td>
                     <td className="px-4 py-2 text-center">{descuento.write_uid_name || descuento.write_uid}</td>
                     <td className="px-4 py-2 text-center">
                       <button
@@ -383,7 +394,7 @@ export default function Descuentos() {
                             active: descuento.active,
                             create_date: descuento.create_date,
                             create_uid: descuento.create_uid,
-                            descuento: descuento.descuento,
+                            descuento: descuento.descuento.toString(),
                             display_name: descuento.display_name,
                             canal_id: descuento.canal_id,
                             tipo_combustible_id: descuento.tipo_combustible_id,
@@ -415,7 +426,9 @@ export default function Descuentos() {
             <button
               onClick={handlePrevPage}
               disabled={currentPage === 1}
-              className={`px-4 py-2 rounded-lg ${currentPage === 1 ? 'bg-gray-300' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+              className={`px-4 py-2 rounded-lg ${
+                currentPage === 1 ? 'bg-gray-300' : 'bg-blue-600 text-white hover:bg-blue-700'
+              }`}
             >
               Anterior
             </button>
@@ -425,7 +438,9 @@ export default function Descuentos() {
             <button
               onClick={handleNextPage}
               disabled={currentPage === totalPages}
-              className={`px-4 py-2 rounded-lg ${currentPage === totalPages ? 'bg-gray-300' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+              className={`px-4 py-2 rounded-lg ${
+                currentPage === totalPages ? 'bg-gray-300' : 'bg-blue-600 text-white hover:bg-blue-700'
+              }`}
             >
               Siguiente
             </button>
@@ -451,7 +466,9 @@ export default function Descuentos() {
                         type="number"
                         id="descuento"
                         name="descuento"
-                        placeholder="Ejemplo: 10"
+                        placeholder="Ejemplo: 10.00"
+                        step="0.01"
+                        min="0"
                         value={descuentoData.descuento}
                         onChange={handleInputChange}
                         className="w-full px-4 py-2 border border-gray-300 rounded-md text-center"
@@ -565,7 +582,9 @@ export default function Descuentos() {
                         type="number"
                         id="descuento"
                         name="descuento"
-                        placeholder="Ejemplo: 10"
+                        placeholder="Ejemplo: 10.00"
+                        step="0.01"
+                        min="0"
                         value={descuentoData.descuento}
                         onChange={handleInputChange}
                         className="w-full px-4 py-2 border border-gray-300 rounded-md text-center"
@@ -586,7 +605,6 @@ export default function Descuentos() {
                       />
                     </div>
                   </div>
-
                   <div className="mb-4">
                     <label className="block text-sm font-bold mb-2 text-center" htmlFor="active">
                       Descuento Activo
