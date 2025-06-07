@@ -62,7 +62,7 @@ export default function Turnos() {
   const [searchTerm, setSearchTerm] = useState('');
   const [turnoAEliminar, setTurnoAEliminar] = useState<Turno | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(5);
+  const [itemsPerPage] = useState(10);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const openAgregarPopup = () => {
