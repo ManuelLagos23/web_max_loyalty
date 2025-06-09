@@ -220,13 +220,10 @@ export default function Clientes() {
                 <th className="px-4 py-2 text-left">#</th>
                 <th className="px-4 py-2 text-left">Logo</th>
                 <th className="px-4 py-2 text-left">Nombre</th>
-                <th className="px-4 py-2 text-left">País</th>
                 <th className="px-4 py-2 text-left">Estado</th>
                 <th className="px-4 py-2 text-left">Ciudad</th>
                 <th className="px-4 py-2 text-left">Canal</th>
                 <th className="px-4 py-2 text-left">Subcanal</th>
-                <th className="px-4 py-2 text-left">Correo</th>
-                <th className="px-4 py-2 text-left">Teléfono</th>
                 <th className="px-4 py-2 text-left">NFI</th>
                 <th className="px-4 py-2 text-left">Acciones</th>
               </tr>
@@ -251,18 +248,20 @@ export default function Clientes() {
                       )}
                     </td>
                     <td className="px-4 py-2">{cliente.nombre}</td>
-                    <td className="px-4 py-2">{cliente.pais}</td>
                     <td className="px-4 py-2">{cliente.estado}</td>
                     <td className="px-4 py-2">{cliente.ciudad}</td>
                     <td className="px-4 py-2">{cliente.canal_nombre}</td>
                     <td className="px-4 py-2">{cliente.subcanal_nombre}</td>
-                    <td className="px-4 py-2">{cliente.email}</td>
-                    <td className="px-4 py-2">{cliente.telefono}</td>
                     <td className="px-4 py-2">{cliente.nfi}</td>
                     <td className="px-4 py-2 flex space-x-2">
                       <Link href={`/clientes/editar/${cliente.id}`}>
                         <button className="bg-yellow-500 text-white px-3 py-1 rounded-lg hover:bg-yellow-600 mr-2">
                           Editar
+                        </button>
+                      </Link>
+                      <Link href={`/clientes/ver/${cliente.id}`}>
+                        <button className="bg-green-500 text-white px-3 py-1 rounded-lg hover:bg-green-600 mr-2">
+                          Ver
                         </button>
                       </Link>
                       <button

@@ -7,17 +7,20 @@ import Head from 'next/head';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 
-
 interface Tarjeta {
   id: number;
   numero_tarjeta: string;
-  cliente_id: number;
-  cliente_nombre: string;
+  cliente_id?: number;
+  cliente_nombre?: string;
   tipo_tarjeta_id: number;
   tipo_tarjeta_nombre: string;
-  canal_id: number;
-  codigo_canal: string;
+  canal_id?: number;
+  codigo_canal?: string;
+  subcanal_id?: number;
+  subcanal_nombre?: string;
   created_at: string;
+  vehiculo_id?: number;
+  vehiculo_nombre?: string;
 }
 
 interface Cliente {
@@ -30,19 +33,44 @@ interface TipoTarjeta {
   tipo_tarjeta: string;
 }
 
+interface Vehiculo {
+  id: number;
+  modelo: string;
+  placa: string;
+  marca: string;
+}
+
+interface Canal {
+  id: number;
+  canal: string;
+}
+
+interface Subcanal {
+  id: number;
+  subcanal: string;
+  canal_id: number;
+}
+
 export default function Tarjetas() {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false);
   const [tarjetas, setTarjetas] = useState<Tarjeta[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
+  const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
   const [tiposTarjeta, setTiposTarjeta] = useState<TipoTarjeta[]>([]);
+  const [canales, setCanales] = useState<Canal[]>([]);
+  const [subcanales, setSubcanales] = useState<Subcanal[]>([]);
   const pathname = usePathname();
   const [formData, setFormData] = useState({
     id: 0,
     numero_tarjeta: '',
     cliente_id: 0,
     tipo_tarjeta_id: 0,
+    vehiculo_id: 0,
+    canal_id: 0,
+    subcanal_id: 0,
   });
+  const [esFlota, setEsFlota] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchTermCliente, setSearchTermCliente] = useState('');
   const [filteredClientes, setFilteredClientes] = useState<Cliente[]>([]);
@@ -78,28 +106,40 @@ export default function Tarjetas() {
   const openPopup = async (modo: 'agregar' | 'editar') => {
     try {
       setIsPopupOpen(true);
-      setIsDropdownOpen(true); // Mostrar el dropdown por defecto
+      setIsDropdownOpen(true);
       if (modo === 'agregar') {
         setTarjetaSeleccionada(null);
+        setEsFlota(false);
         const newCardNumber = await generateCardNumber();
         setFormData({
           id: 0,
           numero_tarjeta: newCardNumber,
           cliente_id: 0,
           tipo_tarjeta_id: 0,
+          vehiculo_id: 0,
+          canal_id: 0,
+          subcanal_id: 0,
         });
         setSearchTermCliente('');
-        setFilteredClientes(clientes); // Mostrar todos los clientes al abrir
+        setFilteredClientes(clientes);
+        setSubcanales([]);
       } else if (modo === 'editar' && tarjetaSeleccionada) {
+        setEsFlota(!!tarjetaSeleccionada.vehiculo_id);
         setFormData({
           id: tarjetaSeleccionada.id,
           numero_tarjeta: tarjetaSeleccionada.numero_tarjeta,
-          cliente_id: tarjetaSeleccionada.cliente_id,
+          cliente_id: tarjetaSeleccionada.cliente_id || 0,
           tipo_tarjeta_id: tarjetaSeleccionada.tipo_tarjeta_id,
+          vehiculo_id: tarjetaSeleccionada.vehiculo_id || 0,
+          canal_id: tarjetaSeleccionada.canal_id || 0,
+          subcanal_id: tarjetaSeleccionada.subcanal_id || 0,
         });
         const selectedCliente = clientes.find(c => c.id === tarjetaSeleccionada.cliente_id);
         setSearchTermCliente(selectedCliente ? selectedCliente.nombre : '');
-        setFilteredClientes(clientes); // Mostrar todos los clientes al abrir
+        setFilteredClientes(clientes);
+        if (tarjetaSeleccionada.canal_id) {
+          await fetchSubcanales(tarjetaSeleccionada.canal_id);
+        }
       }
     } catch (error) {
       console.error('Error al abrir popup:', error);
@@ -112,6 +152,9 @@ export default function Tarjetas() {
     setIsPopupOpen(false);
     setSearchTermCliente('');
     setIsDropdownOpen(false);
+    setEsFlota(false);
+    setFormData(prev => ({ ...prev, canal_id: 0, subcanal_id: 0 }));
+    setSubcanales([]);
   };
 
   const openDeletePopup = (tarjeta: Tarjeta) => {
@@ -124,13 +167,31 @@ export default function Tarjetas() {
     setIsDeletePopupOpen(false);
   };
 
+
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: name === 'cliente_id' || name === 'tipo_tarjeta_id' ? parseInt(value) : value,
-    });
-  };
+  const { name, value } = e.target;
+  let parsedValue: string | number = value;
+
+  // Convertir a número para los campos que lo requieren
+  if (['cliente_id', 'tipo_tarjeta_id', 'vehiculo_id', 'canal_id', 'subcanal_id'].includes(name)) {
+    parsedValue = parseInt(value, 10) || 0; // Asegura un número, usa 0 si parseInt falla
+  }
+
+  setFormData(prev => ({
+    ...prev,
+    [name]: parsedValue,
+  }));
+
+  // Actualizar subcanales si cambia canal_id
+  if (name === 'canal_id' && typeof parsedValue === 'number' && parsedValue !== 0) {
+    fetchSubcanales(parsedValue);
+    setFormData(prev => ({ ...prev, subcanal_id: 0 }));
+  } else if (name === 'canal_id' && parsedValue === 0) {
+    setSubcanales([]);
+    setFormData(prev => ({ ...prev, subcanal_id: 0 }));
+  }
+};
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
@@ -140,12 +201,12 @@ export default function Tarjetas() {
   const handleSearchClienteChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const term = e.target.value.toLowerCase();
     setSearchTermCliente(term);
-    setIsDropdownOpen(true); // Mantener el dropdown abierto mientras se escribe
+    setIsDropdownOpen(true);
 
     if (clientes) {
       const filtered = term.length > 0
         ? clientes.filter((cliente) => cliente.nombre.toLowerCase().includes(term))
-        : clientes; // Mostrar todos si no hay término
+        : clientes;
       setFilteredClientes(filtered);
     }
   };
@@ -158,14 +219,20 @@ export default function Tarjetas() {
 
   const handleSubmitAgregar = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.numero_tarjeta || !formData.cliente_id || !formData.tipo_tarjeta_id) {
+    if (!formData.numero_tarjeta || !formData.tipo_tarjeta_id || (esFlota && (!formData.vehiculo_id || !formData.canal_id || !formData.subcanal_id)) || (!esFlota && !formData.cliente_id)) {
       alert('Por favor, complete todos los campos.');
       return;
     }
     const formDataToSend = new FormData();
     formDataToSend.append('numero_tarjeta', formData.numero_tarjeta);
-    formDataToSend.append('cliente_id', formData.cliente_id.toString());
     formDataToSend.append('tipo_tarjeta_id', formData.tipo_tarjeta_id.toString());
+    if (esFlota) {
+      formDataToSend.append('vehiculo_id', formData.vehiculo_id.toString());
+      formDataToSend.append('canal_id', formData.canal_id.toString());
+      formDataToSend.append('subcanal_id', formData.subcanal_id.toString());
+    } else {
+      formDataToSend.append('cliente_id', formData.cliente_id.toString());
+    }
 
     try {
       const response = await fetch('/api/tarjetas', {
@@ -189,15 +256,21 @@ export default function Tarjetas() {
 
   const handleSubmitEditar = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.id || !formData.numero_tarjeta || !formData.cliente_id || !formData.tipo_tarjeta_id) {
+    if (!formData.id || !formData.numero_tarjeta || !formData.tipo_tarjeta_id || (esFlota && (!formData.vehiculo_id || !formData.canal_id || !formData.subcanal_id)) || (!esFlota && !formData.cliente_id)) {
       alert('Por favor, complete todos los campos obligatorios.');
       return;
     }
     const formDataToSend = new FormData();
     formDataToSend.append('id', formData.id.toString());
     formDataToSend.append('numero_tarjeta', formData.numero_tarjeta);
-    formDataToSend.append('cliente_id', formData.cliente_id.toString());
     formDataToSend.append('tipo_tarjeta_id', formData.tipo_tarjeta_id.toString());
+    if (esFlota) {
+      formDataToSend.append('vehiculo_id', formData.vehiculo_id.toString());
+      formDataToSend.append('canal_id', formData.canal_id.toString());
+      formDataToSend.append('subcanal_id', formData.subcanal_id.toString());
+    } else {
+      formDataToSend.append('cliente_id', formData.cliente_id.toString());
+    }
 
     try {
       const response = await fetch('/api/tarjetas', {
@@ -240,8 +313,6 @@ export default function Tarjetas() {
     }
   };
 
-
-
   const handlePrintCard = async (tarjeta: Tarjeta) => {
     const mmToPt = (mm: number) => mm * 2.83465;
     const width = mmToPt(102.72);
@@ -265,18 +336,18 @@ export default function Tarjetas() {
       const bottomMargin = 10;
       const numberY = height - bottomMargin - 16;
       const nameY = height - bottomMargin;
-      const canalY = 30; // Esquina superior izquierda para código del canal
+      const canalY = 30;
 
       doc.setFont('Helvetica', 'normal');
       doc.setFontSize(12);
       doc.setTextColor('#000000');
 
-      doc.text(tarjeta.codigo_canal, marginLeftcanal, canalY); // Código canal en frontal
+      doc.text(tarjeta.codigo_canal || 'N/A', marginLeftcanal, canalY);
       doc.text(tarjeta.numero_tarjeta, marginLeft, numberY);
 
       doc.setFont('Helvetica', 'bold');
       doc.setFontSize(12);
-      doc.text(tarjeta.cliente_nombre, marginLeft, nameY);
+      doc.text(tarjeta.cliente_nombre || tarjeta.vehiculo_nombre || 'No asociado', marginLeft, nameY);
 
       doc.addPage([width, height], 'landscape');
 
@@ -293,7 +364,7 @@ export default function Tarjetas() {
 
         doc.setFont('Helvetica', 'normal');
         doc.setFontSize(10);
-        doc.text(issuanceText, issuanceX, issuanceY); // Solo fecha en trasera
+        doc.text(issuanceText, issuanceX, issuanceY);
 
         doc.save(`tarjeta_${tarjeta.numero_tarjeta}.pdf`);
       };
@@ -339,6 +410,20 @@ export default function Tarjetas() {
     }
   }, []);
 
+  const fetchVehiculos = useCallback(async () => {
+    try {
+      const response = await fetch('/api/vehiculos');
+      if (response.ok) {
+        const data: Vehiculo[] = await response.json();
+        setVehiculos(data);
+      } else {
+        console.error('Error al obtener los vehículos:', response.status, response.statusText);
+      }
+    } catch (error) {
+      console.error('Error en la solicitud:', error);
+    }
+  }, []);
+
   const fetchTiposTarjeta = useCallback(async () => {
     try {
       const response = await fetch('/api/tipos_tarjetas');
@@ -353,22 +438,61 @@ export default function Tarjetas() {
     }
   }, []);
 
+  const fetchCanales = useCallback(async () => {
+    try {
+      const response = await fetch('/api/canales');
+      if (response.ok) {
+        const data: Canal[] = await response.json();
+        setCanales(data);
+      } else {
+        console.error('Error al obtener los canales:', response.status, response.statusText);
+      }
+    } catch (error) {
+      console.error('Error en la solicitud:', error);
+    }
+  }, []);
+
+  const fetchSubcanales = useCallback(async (canalId: number) => {
+    try {
+      const response = await fetch(`/api/subcanales?canal_id=${canalId}`);
+      if (response.ok) {
+        const data: Subcanal[] = await response.json();
+        setSubcanales(data);
+      } else {
+        console.error('Error al obtener los subcanales:', response.status, response.statusText);
+        setSubcanales([]);
+      }
+    } catch (error) {
+      console.error('Error en la solicitud:', error);
+      setSubcanales([]);
+    }
+  }, []);
+
   const handleEditar = async (tarjeta: Tarjeta) => {
     setTarjetaSeleccionada(tarjeta);
+    setEsFlota(!!tarjeta.vehiculo_id);
     setFormData({
       id: tarjeta.id,
       numero_tarjeta: tarjeta.numero_tarjeta,
-      cliente_id: tarjeta.cliente_id,
+      cliente_id: tarjeta.cliente_id || 0,
       tipo_tarjeta_id: tarjeta.tipo_tarjeta_id,
+      vehiculo_id: tarjeta.vehiculo_id || 0,
+      canal_id: tarjeta.canal_id || 0,
+      subcanal_id: tarjeta.subcanal_id || 0,
     });
+    if (tarjeta.canal_id) {
+      await fetchSubcanales(tarjeta.canal_id);
+    }
     openPopup('editar');
   };
 
   useEffect(() => {
     fetchTarjetas();
     fetchClientes();
+    fetchVehiculos();
     fetchTiposTarjeta();
-  }, [fetchTarjetas, fetchClientes, fetchTiposTarjeta]);
+    fetchCanales();
+  }, [fetchTarjetas, fetchClientes, fetchVehiculos, fetchTiposTarjeta, fetchCanales]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -399,19 +523,15 @@ export default function Tarjetas() {
     return date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
   };
 
-
-
   const cardsRoutes = [
     { name: 'Tarjetas', href: '/tarjetas' },
     { name: 'Tipos de tarjetas', href: '/tipo_de_tarjetas' },
-
   ];
 
   return (
     <div className="font-sans bg-white text-gray-900 min-h-screen flex">
       <Head>
         <meta charSet="UTF-8" />
-
       </Head>
       <Navbar />
       <div className="flex-1 flex flex-col">
@@ -425,18 +545,15 @@ export default function Tarjetas() {
               Gestión de Tarjetas
             </h1>
 
-
-
             <nav className="flex justify-center space-x-4">
               {cardsRoutes.map((card) => {
                 const isActive = pathname === card.href;
                 return (
                   <Link key={card.name} href={card.href}>
                     <button
-                      className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-300 ${isActive
-                          ? 'bg-blue-600 text-white'
-                          : 'text-gray-700 bg-gray-200 hover:bg-blue-600 hover:text-white'
-                        }`}
+                      className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-300 ${
+                        isActive ? 'bg-blue-600 text-white' : 'text-gray-700 bg-gray-200 hover:bg-blue-600 hover:text-white'
+                      }`}
                     >
                       {card.name}
                     </button>
@@ -458,19 +575,20 @@ export default function Tarjetas() {
           <div className="mb-6">
             <input
               type="text"
-              placeholder="Buscar por número de tarjeta, cliente o tipo de tarjeta..."
+              placeholder="Buscar por número de tarjeta, cliente, vehículo o tipo de tarjeta..."
               value={searchTerm}
               onChange={handleSearchChange}
               className="w-2/5 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
-          <table className="min-w-full bg-gray-100 table-auto rounded-lg shadow-md ">
+          <table className="min-w-full bg-gray-100 table-auto rounded-lg shadow-md">
             <thead>
               <tr className="bg-gray-200">
                 <th className="px-4 py-2 text-left text-gray-700 font-semibold">#</th>
                 <th className="px-4 py-2 text-left text-gray-700 font-semibold">Número de Tarjeta</th>
                 <th className="px-4 py-2 text-left text-gray-700 font-semibold">Cliente</th>
+                <th className="px-4 py-2 text-left text-gray-700 font-semibold">Vehículo</th>
                 <th className="px-4 py-2 text-left text-gray-700 font-semibold">Tipo de Tarjeta</th>
                 <th className="px-4 py-2 text-left text-gray-700 font-semibold">Fecha de Creación</th>
                 <th className="px-4 py-2 text-left text-gray-700 font-semibold">Acciones</th>
@@ -482,7 +600,8 @@ export default function Tarjetas() {
                   <tr key={tarjeta.id} className="hover:bg-gray-50 transition-all duration-200">
                     <td className="px-4 py-2">{(currentPage - 1) * itemsPerPage + index + 1}</td>
                     <td className="px-4 py-2">{tarjeta.numero_tarjeta}</td>
-                    <td className="px-4 py-2">{tarjeta.cliente_nombre}</td>
+                    <td className="px-4 py-2">{tarjeta.cliente_nombre || '-'}</td>
+                    <td className="px-4 py-2">{tarjeta.vehiculo_nombre || '-'}</td>
                     <td className="px-4 py-2">{tarjeta.tipo_tarjeta_nombre}</td>
                     <td className="px-4 py-2">{formatDate(tarjeta.created_at)}</td>
                     <td className="px-4 py-2 flex space-x-2">
@@ -509,7 +628,7 @@ export default function Tarjetas() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} className="px-4 py-2 text-center text-gray-500">
+                  <td colSpan={7} className="px-4 py-2 text-center text-gray-500">
                     No hay tarjetas disponibles.
                   </td>
                 </tr>
@@ -521,8 +640,9 @@ export default function Tarjetas() {
             <button
               onClick={handlePrevPage}
               disabled={currentPage === 1}
-              className={`px-4 py-2 rounded-lg transition-all duration-300 ${currentPage === 1 ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'
-                }`}
+              className={`px-4 py-2 rounded-lg transition-all duration-300 ${
+                currentPage === 1 ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'
+              }`}
             >
               Anterior
             </button>
@@ -532,8 +652,9 @@ export default function Tarjetas() {
             <button
               onClick={handleNextPage}
               disabled={currentPage === totalPages}
-              className={`px-4 py-2 rounded-lg transition-all duration-300 ${currentPage === totalPages ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'
-                }`}
+              className={`px-4 py-2 rounded-lg transition-all duration-300 ${
+                currentPage === totalPages ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'
+              }`}
             >
               Siguiente
             </button>
@@ -591,45 +712,126 @@ export default function Tarjetas() {
                         ))}
                       </select>
                     </div>
-
-                    <div className="mb-4 relative" ref={dropdownRef}>
-                      <label htmlFor="cliente_id" className="block text-center font-bold text-gray-700 mb-2">
-                        Cliente
+                    <div className="mb-4">
+                      <label className="flex justify-center items-center text-center font-bold text-gray-700 mb-2">
+                        <input
+                          type="checkbox"
+                          checked={esFlota}
+                          onChange={() => {
+                            setEsFlota(!esFlota);
+                            setFormData((prev) => ({
+                              ...prev,
+                              cliente_id: esFlota ? prev.cliente_id : 0,
+                              vehiculo_id: !esFlota ? prev.vehiculo_id : 0,
+                              canal_id: !esFlota ? prev.canal_id : 0,
+                              subcanal_id: !esFlota ? prev.subcanal_id : 0,
+                            }));
+                            setSearchTermCliente('');
+                            setSubcanales([]);
+                          }}
+                          className="mr-2"
+                        />
+                        Flota
                       </label>
-                      <input
-                        type="text"
-                        id="cliente_id"
-                        name="cliente_id"
-                        value={searchTermCliente}
-                        onChange={handleSearchClienteChange}
-                        onFocus={() => {
-                          setSearchTermCliente('');
-                          setFormData((prev) => ({ ...prev, cliente_id: 0 }));
-                          setFilteredClientes(clientes); // Mostrar todos al enfocar
-                          setIsDropdownOpen(true);
-                        }}
-                        placeholder="Busca o selecciona un cliente..."
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
-                      />
-                      {isDropdownOpen && (
-                        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                          {filteredClientes.length > 0 ? (
-                            filteredClientes.map((cliente) => (
-                              <div
-                                key={cliente.id}
-                                onClick={() => handleSelectCliente(cliente)}
-                                className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer text-center"
-                              >
-                                {cliente.nombre}
-                              </div>
-                            ))
-                          ) : (
-                            <div className="px-4 py-2 text-gray-500 text-center">No se encontraron clientes.</div>
-                          )}
-                        </div>
-                      )}
                     </div>
-
+                    {!esFlota && (
+                      <div className="mb-4 relative" ref={dropdownRef}>
+                        <label htmlFor="cliente_id" className="block text-center font-bold text-gray-700 mb-2">
+                          Cliente
+                        </label>
+                        <input
+                          type="text"
+                          id="cliente_id"
+                          name="cliente_id"
+                          value={searchTermCliente}
+                          onChange={handleSearchClienteChange}
+                          onFocus={() => {
+                            setSearchTermCliente('');
+                            setFormData((prev) => ({ ...prev, cliente_id: 0 }));
+                            setFilteredClientes(clientes);
+                            setIsDropdownOpen(true);
+                          }}
+                          placeholder="Busca o selecciona un cliente..."
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                        />
+                        {isDropdownOpen && (
+                          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                            {filteredClientes.length > 0 ? (
+                              filteredClientes.map((cliente) => (
+                                <div
+                                  key={cliente.id}
+                                  onClick={() => handleSelectCliente(cliente)}
+                                  className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer text-center"
+                                >
+                                  {cliente.nombre}
+                                </div>
+                              ))
+                            ) : (
+                              <div className="px-4 py-2 text-gray-500 text-center">No se encontraron clientes.</div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    {esFlota && (
+                      <>
+                        <div className="mb-4">
+                          <label htmlFor="vehiculo_id" className="block text-center font-bold text-gray-700 mb-2">
+                            Vehículo
+                          </label>
+                          <select
+                            name="vehiculo_id"
+                            value={formData.vehiculo_id}
+                            onChange={handleInputChange}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                          >
+                            <option value="0">Seleccionar vehículo</option>
+                            {vehiculos.map((vehiculo) => (
+                              <option key={vehiculo.id} value={vehiculo.id}>
+                                {vehiculo.marca} {vehiculo.modelo} - {vehiculo.placa}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="mb-4">
+                          <label htmlFor="canal_id" className="block text-center font-bold text-gray-700 mb-2">
+                            Canal
+                          </label>
+                          <select
+                            name="canal_id"
+                            value={formData.canal_id}
+                            onChange={handleInputChange}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                          >
+                            <option value="0">Seleccionar canal</option>
+                            {canales.map((canal) => (
+                              <option key={canal.id} value={canal.id}>
+                                {canal.canal}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="mb-4">
+                          <label htmlFor="subcanal_id" className="block text-center font-bold text-gray-700 mb-2">
+                            Subcanal
+                          </label>
+                          <select
+                            name="subcanal_id"
+                            value={formData.subcanal_id}
+                            onChange={handleInputChange}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                            disabled={formData.canal_id === 0}
+                          >
+                            <option value="0">Seleccionar subcanal</option>
+                            {subcanales.map((subcanal) => (
+                              <option key={subcanal.id} value={subcanal.id}>
+                                {subcanal.subcanal}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </>
+                    )}
                     <div className="flex justify-between">
                       <button
                         type="button"
@@ -678,45 +880,128 @@ export default function Tarjetas() {
                         ))}
                       </select>
                     </div>
-
-                    <div className="mb-4 relative" ref={dropdownRef}>
-                      <label htmlFor="cliente_id" className="block text-center font-bold text-gray-700 mb-2">
-                        Cliente
+                    <div className="mb-4">
+                      <label className="flex justify-center items-center text-center font-bold text-gray-700 mb-2">
+                        <input
+                          type="checkbox"
+                          checked={esFlota}
+                          onChange={() => {
+                            setEsFlota(!esFlota);
+                            setFormData((prev) => ({
+                              ...prev,
+                              cliente_id: esFlota ? prev.cliente_id : 0,
+                              vehiculo_id: !esFlota ? prev.vehiculo_id : 0,
+                              canal_id: !esFlota ? prev.canal_id : 0,
+                              subcanal_id: !esFlota ? prev.subcanal_id : 0,
+                            }));
+                            setSearchTermCliente('');
+                            setSubcanales([]);
+                          }}
+                          className="mr-2"
+                        />
+                        Flota
                       </label>
-                      <input
-                        type="text"
-                        id="cliente_id"
-                        name="cliente_id"
-                        value={searchTermCliente}
-                        onChange={handleSearchClienteChange}
-                        onFocus={() => {
-                          setSearchTermCliente('');
-                          setFormData((prev) => ({ ...prev, cliente_id: 0 }));
-                          setFilteredClientes(clientes); // Mostrar todos al enfocar
-                          setIsDropdownOpen(true);
-                        }}
-                        placeholder="Busca o selecciona un cliente..."
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
-                      />
-                      {isDropdownOpen && (
-                        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                          {filteredClientes.length > 0 ? (
-                            filteredClientes.map((cliente) => (
-                              <div
-                                key={cliente.id}
-                                onClick={() => handleSelectCliente(cliente)}
-                                className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer text-center"
-                              >
-                                {cliente.nombre}
-                              </div>
-                            ))
-                          ) : (
-                            <div className="px-4 py-2 text-gray-500 text-center">No se encontraron clientes.</div>
-                          )}
-                        </div>
-                      )}
                     </div>
+                    {!esFlota && (
+                      <div className="mb-4 relative" ref={dropdownRef}>
+                        <label htmlFor="cliente_id" className="block text-center font-bold text-gray-700 mb-2">
+                          Cliente
+                        </label>
+                        <input
+                          type="text"
+                          id="cliente_id"
+                          name="cliente_id"
+                          value={searchTermCliente}
+                          onChange={handleSearchClienteChange}
+                          onFocus={() => {
+                            setSearchTermCliente('');
+                            setFormData((prev) => ({ ...prev, cliente_id: 0 }));
+                            setFilteredClientes(clientes);
+                            setIsDropdownOpen(true);
+                          }}
+                          placeholder="Busca o selecciona un cliente..."
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                        />
+                        {isDropdownOpen && (
+                          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                            {filteredClientes.length > 0 ? (
+                              filteredClientes.map((cliente) => (
+                                <div
+                                  key={cliente.id}
+                                  onClick={() => handleSelectCliente(cliente)}
+                                  className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer text-center"
+                                >
+                                  {cliente.nombre}
+                                </div>
+                              ))
+                            ) : (
+                              <div className="px-4 py-2 text-gray-500 text-center">No se encontraron clientes.</div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    {esFlota && (
+                      <>
+                 
+                        <div className="mb-4">
+                          <label htmlFor="canal_id" className="block text-center font-bold text-gray-700 mb-2">
+                            Canal
+                          </label>
+                          <select
+                            name="canal_id"
+                            value={formData.canal_id}
+                            onChange={handleInputChange}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                          >
+                            <option value="0">Seleccionar canal</option>
+                            {canales.map((canal) => (
+                              <option key={canal.id} value={canal.id}>
+                                {canal.canal}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="mb-4">
+                          <label htmlFor="subcanal_id" className="block text-center font-bold text-gray-700 mb-2">
+                            Subcanal
+                          </label>
+                          <select
+                            name="subcanal_id"
+                            value={formData.subcanal_id}
+                            onChange={handleInputChange}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                            disabled={formData.canal_id === 0}
+                          >
+                            <option value="0">Seleccionar subcanal</option>
+                            {subcanales.map((subcanal) => (
+                              <option key={subcanal.id} value={subcanal.id}>
+                                {subcanal.subcanal}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
 
+                               <div className="mb-4">
+                          <label htmlFor="vehiculo_id" className="block text-center font-bold text-gray-700 mb-2">
+                            Vehículo
+                          </label>
+                          <select
+                            name="vehiculo_id"
+                            value={formData.vehiculo_id}
+                            onChange={handleInputChange}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                          >
+                            <option value="0">Seleccionar vehículo</option>
+                            {vehiculos.map((vehiculo) => (
+                              <option key={vehiculo.id} value={vehiculo.id}>
+                                {vehiculo.marca} {vehiculo.modelo} - {vehiculo.placa}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </>
+                    )}
                     <div className="flex justify-between">
                       <button
                         type="button"
@@ -747,7 +1032,7 @@ export default function Tarjetas() {
                 }
               }}
             >
-              <div className="bg-white p-6 rounded-lg shadow-xl w-1/3 border ">
+              <div className="bg-white p-6 rounded-lg shadow-xl w-1/3 border">
                 <h2
                   className="text-2xl font-bold text-gray-800 mb-4 tracking-tight 
                   bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent

@@ -5,6 +5,7 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const tipo = searchParams.get('tipo');
@@ -42,11 +43,10 @@ export async function GET(request: Request) {
         }
       }
 
-   
       while (!isUnique && attempts < maxAttempts && correlative <= 9999) {
         attempts++;
         const correlativePart = correlative.toString().padStart(4, '0');
-       newCardNumber = correlativePart;
+        newCardNumber = correlativePart;
 
         const checkResult = await client.query(
           'SELECT id FROM tarjetas WHERE numero_tarjeta = $1',
@@ -101,14 +101,21 @@ export async function GET(request: Request) {
     const offset = (page - 1) * limit;
     const result = await client.query(
       `
-      SELECT t.id, t.numero_tarjeta, t.cliente_id, t.tipo_tarjeta_id, t.created_at, 
-             c.nombre AS cliente_nombre, tt.tipo_tarjeta AS tipo_tarjeta_nombre,
-             c.canal_id, can.codigo_canal
+      SELECT t.id, t.numero_tarjeta, t.cliente_id, t.vehiculo_id, t.tipo_tarjeta_id, t.created_at, 
+             COALESCE(c.nombre, '') AS cliente_nombre, 
+             COALESCE(v.marca || ' ' || v.modelo || ' - ' || v.placa, '') AS vehiculo_nombre,
+             tt.tipo_tarjeta AS tipo_tarjeta_nombre,
+             COALESCE(c.canal_id, 0) AS canal_id, 
+             COALESCE(can.codigo_canal, '') AS codigo_canal
       FROM tarjetas t
-      JOIN clientes c ON t.cliente_id = c.id
+      LEFT JOIN clientes c ON t.cliente_id = c.id
+      LEFT JOIN vehiculos v ON t.vehiculo_id = v.id
       JOIN tipos_tarjetas tt ON t.tipo_tarjeta_id = tt.id
-      JOIN canales can ON c.canal_id = can.id
-      WHERE t.numero_tarjeta ILIKE $1 OR c.nombre ILIKE $1 OR tt.tipo_tarjeta ILIKE $1
+      LEFT JOIN canales can ON c.canal_id = can.id
+      WHERE t.numero_tarjeta ILIKE $1 
+         OR COALESCE(c.nombre, '') ILIKE $1 
+         OR COALESCE(v.marca || ' ' || v.modelo || ' - ' || v.placa, '') ILIKE $1 
+         OR tt.tipo_tarjeta ILIKE $1
       ORDER BY t.id
       LIMIT $2 OFFSET $3
       `,
@@ -119,10 +126,14 @@ export async function GET(request: Request) {
       `
       SELECT COUNT(*) AS total
       FROM tarjetas t
-      JOIN clientes c ON t.cliente_id = c.id
+      LEFT JOIN clientes c ON t.cliente_id = c.id
+      LEFT JOIN vehiculos v ON t.vehiculo_id = v.id
       JOIN tipos_tarjetas tt ON t.tipo_tarjeta_id = tt.id
-      JOIN canales can ON c.canal_id = can.id
-      WHERE t.numero_tarjeta ILIKE $1 OR c.nombre ILIKE $1 OR tt.tipo_tarjeta ILIKE $1
+      LEFT JOIN canales can ON c.canal_id = can.id
+      WHERE t.numero_tarjeta ILIKE $1 
+         OR COALESCE(c.nombre, '') ILIKE $1 
+         OR COALESCE(v.marca || ' ' || v.modelo || ' - ' || v.placa, '') ILIKE $1 
+         OR tt.tipo_tarjeta ILIKE $1
       `,
       [`%${search}%`]
     );
@@ -149,18 +160,45 @@ export async function POST(request: Request) {
     const formData = await request.formData();
     const numero_tarjeta = formData.get('numero_tarjeta')?.toString();
     const cliente_id = formData.get('cliente_id')?.toString();
+    const vehiculo_id = formData.get('vehiculo_id')?.toString();
     const tipo_tarjeta_id = formData.get('tipo_tarjeta_id')?.toString();
+    const canal_id = formData.get('canal_id')?.toString();
+    const subcanal_id = formData.get('subcanal_id')?.toString();
 
-    if (!numero_tarjeta || !cliente_id || !tipo_tarjeta_id) {
+    // Validar campos obligatorios y tipos
+    if (!numero_tarjeta || !tipo_tarjeta_id) {
       return NextResponse.json(
-        { message: 'Número de tarjeta, cliente y tipo de tarjeta son obligatorios' },
+        { message: 'Número de tarjeta y tipo de tarjeta son obligatorios' },
         { status: 400 }
       );
     }
 
+    // Validar que exactamente uno de cliente_id o vehiculo_id esté presente
+    if (!cliente_id && !vehiculo_id) {
+      return NextResponse.json(
+        { message: 'Debe proporcionar un cliente_id o un vehiculo_id' },
+        { status: 400 }
+      );
+    }
+    if (cliente_id && vehiculo_id) {
+      return NextResponse.json(
+        { message: 'No puede proporcionar ambos: cliente_id y vehiculo_id' },
+        { status: 400 }
+      );
+    }
+
+    // Validar canal_id y subcanal_id si se proporciona vehiculo_id
+    if (vehiculo_id && (!canal_id || !subcanal_id)) {
+      return NextResponse.json(
+        { message: 'Canal y subcanal son obligatorios para tarjetas de flota' },
+        { status: 400 }
+      );
+    }
+
+    // Validar formato de número de tarjeta
     if (!/^\d{4}$/.test(numero_tarjeta)) {
       return NextResponse.json(
-        { message: 'El número de tarjeta debe tener 8 dígitos' },
+        { message: 'El número de tarjeta debe tener 4 dígitos' },
         { status: 400 }
       );
     }
@@ -169,12 +207,25 @@ export async function POST(request: Request) {
 
     const client = await pool.connect();
 
-    const clienteCheck = await client.query('SELECT id FROM clientes WHERE id = $1', [cliente_id]);
-    if ((clienteCheck.rowCount ?? 0) === 0) {
-      client.release();
-      return NextResponse.json({ message: 'Cliente no encontrado' }, { status: 400 });
+    // Verificar existencia de cliente_id si se proporciona
+    if (cliente_id) {
+      const clienteCheck = await client.query('SELECT id FROM clientes WHERE id = $1', [cliente_id]);
+      if ((clienteCheck.rowCount ?? 0) === 0) {
+        client.release();
+        return NextResponse.json({ message: 'Cliente no encontrado' }, { status: 400 });
+      }
     }
 
+    // Verificar existencia de vehiculo_id si se proporciona
+    if (vehiculo_id) {
+      const vehiculoCheck = await client.query('SELECT id FROM vehiculos WHERE id = $1', [vehiculo_id]);
+      if ((vehiculoCheck.rowCount ?? 0) === 0) {
+        client.release();
+        return NextResponse.json({ message: 'Vehículo no encontrado' }, { status: 400 });
+      }
+    }
+
+    // Verificar existencia de tipo_tarjeta_id
     const tipoTarjetaCheck = await client.query(
       'SELECT id FROM tipos_tarjetas WHERE id = $1',
       [tipo_tarjeta_id]
@@ -184,6 +235,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: 'Tipo de tarjeta no encontrado' }, { status: 400 });
     }
 
+
+    // Verificar que el número de tarjeta no exista
     const numeroCheck = await client.query(
       'SELECT id FROM tarjetas WHERE numero_tarjeta = $1',
       [numero_tarjeta]
@@ -193,17 +246,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: 'El número de tarjeta ya existe' }, { status: 400 });
     }
 
+    // Insertar la tarjeta
     const result = await client.query(
       `
-      INSERT INTO tarjetas (numero_tarjeta, numero_correlativo, cliente_id, tipo_tarjeta_id, created_at)
-      VALUES ($1, $2, $3, $4, CURRENT_DATE)
-      RETURNING id, numero_tarjeta, cliente_id, tipo_tarjeta_id, created_at,
-                (SELECT nombre FROM clientes WHERE id = $3) as cliente_nombre,
-                (SELECT tipo_tarjeta FROM tipos_tarjetas WHERE id = $4) as tipo_tarjeta_nombre,
-                (SELECT canal_id FROM clientes WHERE id = $3) as canal_id,
-                (SELECT codigo_canal FROM canales WHERE id = (SELECT canal_id FROM clientes WHERE id = $3)) as codigo_canal
+      INSERT INTO tarjetas (numero_tarjeta, numero_correlativo, cliente_id, vehiculo_id, tipo_tarjeta_id, canal_id, subcanal_id, created_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, CURRENT_DATE)
+      RETURNING id, numero_tarjeta, cliente_id, vehiculo_id, tipo_tarjeta_id, canal_id, subcanal_id, created_at,
+                (SELECT nombre FROM clientes WHERE id = $3) AS cliente_nombre,
+                (SELECT marca || ' ' || modelo || ' - ' || placa FROM vehiculos WHERE id = $4) AS vehiculo_nombre,
+                (SELECT tipo_tarjeta FROM tipos_tarjetas WHERE id = $5) AS tipo_tarjeta_nombre,
+                (SELECT codigo_canal FROM canales WHERE id = $6) AS codigo_canal,
+                (SELECT subcanal FROM subcanales WHERE id = $7) AS subcanal_nombre
       `,
-      [numero_tarjeta, numero_correlativo, cliente_id, tipo_tarjeta_id]
+      [numero_tarjeta, numero_correlativo, cliente_id || null, vehiculo_id || null, tipo_tarjeta_id, canal_id || null, subcanal_id || null]
     );
 
     client.release();
@@ -220,18 +275,45 @@ export async function PUT(request: Request) {
     const id = formData.get('id')?.toString();
     const numero_tarjeta = formData.get('numero_tarjeta')?.toString();
     const cliente_id = formData.get('cliente_id')?.toString();
+    const vehiculo_id = formData.get('vehiculo_id')?.toString();
     const tipo_tarjeta_id = formData.get('tipo_tarjeta_id')?.toString();
+    const canal_id = formData.get('canal_id')?.toString();
+    const subcanal_id = formData.get('subcanal_id')?.toString();
 
-    if (!id || !numero_tarjeta || !cliente_id || !tipo_tarjeta_id) {
+    // Validar campos obligatorios
+    if (!id || !numero_tarjeta || !tipo_tarjeta_id) {
       return NextResponse.json(
-        { message: 'ID, número de tarjeta, cliente y tipo de tarjeta son obligatorios' },
+        { message: 'ID, número de tarjeta y tipo de tarjeta son obligatorios' },
         { status: 400 }
       );
     }
 
-    if (!/^\d{8}$/.test(numero_tarjeta)) {
+    // Validar que exactamente uno de cliente_id o vehiculo_id esté presente
+    if (!cliente_id && !vehiculo_id) {
       return NextResponse.json(
-        { message: 'El número de tarjeta debe tener 8 dígitos' },
+        { message: 'Debe proporcionar un cliente_id o un vehiculo_id' },
+        { status: 400 }
+      );
+    }
+    if (cliente_id && vehiculo_id) {
+      return NextResponse.json(
+        { message: 'No puede proporcionar ambos: cliente_id y vehiculo_id' },
+        { status: 400 }
+      );
+    }
+
+    // Validar canal_id y subcanal_id si se proporciona vehiculo_id
+    if (vehiculo_id && (!canal_id || !subcanal_id)) {
+      return NextResponse.json(
+        { message: 'Canal y subcanal son obligatorios para tarjetas de flota' },
+        { status: 400 }
+      );
+    }
+
+    // Validar formato de número de tarjeta
+    if (!/^\d{4}$/.test(numero_tarjeta)) {
+      return NextResponse.json(
+        { message: 'El número de tarjeta debe tener 4 dígitos' },
         { status: 400 }
       );
     }
@@ -240,12 +322,25 @@ export async function PUT(request: Request) {
 
     const client = await pool.connect();
 
-    const clienteCheck = await client.query('SELECT id FROM clientes WHERE id = $1', [cliente_id]);
-    if ((clienteCheck.rowCount ?? 0) === 0) {
-      client.release();
-      return NextResponse.json({ message: 'Cliente no encontrado' }, { status: 400 });
+    // Verificar existencia de cliente_id si se proporciona
+    if (cliente_id) {
+      const clienteCheck = await client.query('SELECT id FROM clientes WHERE id = $1', [cliente_id]);
+      if ((clienteCheck.rowCount ?? 0) === 0) {
+        client.release();
+        return NextResponse.json({ message: 'Cliente no encontrado' }, { status: 400 });
+      }
     }
 
+    // Verificar existencia de vehiculo_id si se proporciona
+    if (vehiculo_id) {
+      const vehiculoCheck = await client.query('SELECT id FROM vehiculos WHERE id = $1', [vehiculo_id]);
+      if ((vehiculoCheck.rowCount ?? 0) === 0) {
+        client.release();
+        return NextResponse.json({ message: 'Vehículo no encontrado' }, { status: 400 });
+      }
+    }
+
+    // Verificar existencia de tipo_tarjeta_id
     const tipoTarjetaCheck = await client.query(
       'SELECT id FROM tipos_tarjetas WHERE id = $1',
       [tipo_tarjeta_id]
@@ -255,6 +350,25 @@ export async function PUT(request: Request) {
       return NextResponse.json({ message: 'Tipo de tarjeta no encontrado' }, { status: 400 });
     }
 
+    // Verificar existencia de canal_id si se proporciona
+    if (canal_id) {
+      const canalCheck = await client.query('SELECT id FROM canales WHERE id = $1', [canal_id]);
+      if ((canalCheck.rowCount ?? 0) === 0) {
+        client.release();
+        return NextResponse.json({ message: 'Canal no encontrado' }, { status: 400 });
+      }
+    }
+
+    // Verificar existencia de subcanal_id si se proporciona
+    if (subcanal_id) {
+      const subcanalCheck = await client.query('SELECT id FROM subcanales WHERE id = $1 AND canal_id = $2', [subcanal_id, canal_id]);
+      if ((subcanalCheck.rowCount ?? 0) === 0) {
+        client.release();
+        return NextResponse.json({ message: 'Subcanal no encontrado o no pertenece al canal especificado' }, { status: 400 });
+      }
+    }
+
+    // Verificar que el número de tarjeta no exista para otra tarjeta
     const numeroCheck = await client.query(
       'SELECT id FROM tarjetas WHERE numero_tarjeta = $1 AND id != $2',
       [numero_tarjeta, id]
@@ -264,18 +378,20 @@ export async function PUT(request: Request) {
       return NextResponse.json({ message: 'El número de tarjeta ya existe' }, { status: 400 });
     }
 
+    // Actualizar la tarjeta
     const result = await client.query(
       `
       UPDATE tarjetas 
-      SET numero_tarjeta = $1, numero_correlativo = $2, cliente_id = $3, tipo_tarjeta_id = $4
-      WHERE id = $5
-      RETURNING id, numero_tarjeta, cliente_id, tipo_tarjeta_id, created_at,
-                (SELECT nombre FROM clientes WHERE id = $3) as cliente_nombre,
-                (SELECT tipo_tarjeta FROM tipos_tarjetas WHERE id = $4) as tipo_tarjeta_nombre,
-                (SELECT canal_id FROM clientes WHERE id = $3) as canal_id,
-                (SELECT codigo_canal FROM canales WHERE id = (SELECT canal_id FROM clientes WHERE id = $3)) as codigo_canal
+      SET numero_tarjeta = $1, numero_correlativo = $2, cliente_id = $3, vehiculo_id = $4, tipo_tarjeta_id = $5, canal_id = $6, subcanal_id = $7
+      WHERE id = $8
+      RETURNING id, numero_tarjeta, cliente_id, vehiculo_id, tipo_tarjeta_id, canal_id, subcanal_id, created_at,
+                (SELECT nombre FROM clientes WHERE id = $3) AS cliente_nombre,
+                (SELECT marca || ' ' || modelo || ' - ' || placa FROM vehiculos WHERE id = $4) AS vehiculo_nombre,
+                (SELECT tipo_tarjeta FROM tipos_tarjetas WHERE id = $5) AS tipo_tarjeta_nombre,
+                (SELECT codigo_canal FROM canales WHERE id = $6) AS codigo_canal,
+                (SELECT nombre FROM subcanales WHERE id = $7) AS subcanal_nombre
       `,
-      [numero_tarjeta, numero_correlativo, cliente_id, tipo_tarjeta_id, id]
+      [numero_tarjeta, numero_correlativo, cliente_id || null, vehiculo_id || null, tipo_tarjeta_id, canal_id || null, subcanal_id || null, id]
     );
 
     client.release();

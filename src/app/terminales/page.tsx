@@ -446,10 +446,6 @@ export default function Terminales() {
                     <th className="px-4 py-2 text-left text-gray-700 font-semibold">Estación de servicio</th>
                     <th className="px-4 py-2 text-left text-gray-700 font-semibold">Código terminal</th>
                     <th className="px-4 py-2 text-left text-gray-700 font-semibold">Nombre terminal</th>
-                    <th className="px-4 py-2 text-left text-gray-700 font-semibold">S/N</th>
-                    <th className="px-4 py-2 text-left text-gray-700 font-semibold">MAC</th>
-                    <th className="px-4 py-2 text-left text-gray-700 font-semibold">Modelo</th>
-                    <th className="px-4 py-2 text-left text-gray-700 font-semibold">Marca</th>
                     <th className="px-4 py-2 text-left text-gray-700 font-semibold">Acciones</th>
                   </tr>
                 </thead>
@@ -468,14 +464,15 @@ export default function Terminales() {
                           </td>
                           <td className="px-4 py-2">{terminal.codigo_terminal}</td>
                           <td className="px-4 py-2">{terminal.nombre_terminal}</td>
-                          <td className="px-4 py-2">{terminal.numero_serie}</td>
-                          <td className="px-4 py-2">{terminal.mac}</td>
-                          <td className="px-4 py-2">{terminal.modelo}</td>
-                          <td className="px-4 py-2">{terminal.marca}</td>
                           <td className="px-4 py-2 flex space-x-2">
                             <Link href={`/terminales/editar/${terminal.id}`}>
                               <button className="bg-yellow-500 text-white px-3 py-1 rounded-lg hover:bg-yellow-600 mr-2">
                                 Editar
+                              </button>
+                            </Link>
+                            <Link href={`/terminales/ver/${terminal.id}`}>
+                              <button className="bg-green-500 text-white px-3 py-1 rounded-lg hover:bg-green-600 mr-2">
+                                Ver
                               </button>
                             </Link>
                             <button

@@ -71,20 +71,21 @@ export default function Navbar() {
       pathname.startsWith('/canales') ||
       pathname.startsWith('/empresas') ||
       pathname.startsWith('/centro_de_costos') ||
-      pathname.startsWith('/paises') ||
-      pathname.startsWith('/estados') ||
-      pathname.startsWith('/sub_canales') ||
-      pathname.startsWith('/monedas')
+      pathname.startsWith('/tipo_de_tarjetas') ||
+      pathname.startsWith('/sub_canales') 
+      
     );
     setIsConfiguracionesOpen(
       pathname.startsWith('/terminales') ||
       pathname.startsWith('/usuarios') ||
       pathname.startsWith('/miembros') ||
-      pathname.startsWith('/tipo_de_tarjetas') ||
+      pathname.startsWith('/paises') ||
       pathname.startsWith('/descuentos') ||
       pathname.startsWith('/precios_semana') ||
       pathname.startsWith('/turnos') ||
       pathname.startsWith('/tipo_combustible') ||
+      pathname.startsWith('/monedas') ||
+      pathname.startsWith('/estados') ||
       pathname.startsWith('/unidad_medida')
       
     );
@@ -209,14 +210,34 @@ export default function Navbar() {
               <button
                 onClick={handleMaxPayClick}
                 className="w-full text-left p-2 rounded hover:bg-gray-700 flex items-center justify-between"
-                hidden
+                
               >
-                Max-Pay
+                Max-Flota
                 <ChevronDown className={`w-5 h-5 transition-transform ${isMaxPayOpen ? 'rotate-180' : ''}`} />
               </button>
               {isMaxPayOpen && (
                 <ul className="ml-4 space-y-2">
-                  {/* Agrega rutas de Max-Pay si es necesario */}
+                   <li>
+                    <Link
+                      href="/vehiculos"
+                      className={`block p-2 rounded hover:bg-gray-700 ${
+                        pathname === '/vehiculo' ? 'active-subitem' : ''
+                      }`}
+                    >
+                      Vehículos
+                    </Link>
+                  </li>
+
+                   <li>
+                    <Link
+                      href="/monedero_flota"
+                      className={`block p-2 rounded hover:bg-gray-700 ${
+                        pathname === '/vehiculo' ? 'active-subitem' : ''
+                      }`}
+                    >
+                      Monedero
+                    </Link>
+                  </li>
                 </ul>
               )}
             </li>
