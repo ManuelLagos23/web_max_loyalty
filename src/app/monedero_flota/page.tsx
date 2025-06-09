@@ -137,7 +137,7 @@ export default function MonederoFlota() {
       }
     } catch (err) {
       console.error('Error fetching tarjetas:', err);
-      setError('Error al cargar las tarjetas: ' + (err as Error).message);
+
     }
   }, []);
 
