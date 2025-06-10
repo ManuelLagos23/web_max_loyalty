@@ -564,7 +564,8 @@ export default function Puntos() {
               <table className="mt-6 w-full bg-gray-100 table-auto border-collapse border-gray-300">
                 <thead className="bg-gray-200">
                   <tr>
-                    <th className="px-4 py-2 text-left">#</th>
+                   
+                       <th className="px-4 py-2 text-left">ID</th>
                     <th className="px-4 py-2 text-left" hidden>ID Cliente</th>
                     <th className="px-4 py-2 text-left">Cliente</th>
                     <th className="px-4 py-2 text-left" hidden>ID Transacción</th>
@@ -579,17 +580,31 @@ export default function Puntos() {
                 </thead>
                 <tbody>
                   {currentPuntos.length > 0 ? (
-                    currentPuntos.map((punto, index) => (
+                    currentPuntos.map((punto) => (
                       <tr key={punto.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-2 text-center">{indexOfFirstItem + index + 1}</td>
-                        <td className="px-4 py-2" hidden>{punto.id}</td>
+                        
+                        <td className="px-4 py-2" >{punto.id}</td>
                         <td className="px-4 py-2" hidden>{punto.cliente_id}</td>
                         <td className="px-4 py-2">{punto.cliente_nombre ?? 'Sin cliente'}</td>
                         <td className="px-4 py-2" hidden>{punto.transaccion_id}</td>
                         <td className="px-4 py-2" hidden>{punto.canjeados_id}</td>
                         <td className="px-4 py-2">{new Date(punto.created_at).toLocaleDateString()}</td>
-                        <td className="px-4 py-2">{punto.debe}</td>
-                        <td className="px-4 py-2">{punto.haber}</td>
+                 
+
+                 <td className="px-4 py-2">
+  {(punto.debe ?? 0).toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}
+</td>
+
+<td className="px-4 py-2">
+  {(punto.haber ?? 0).toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}
+</td>
+
                         {mostrarAcciones && (
                           <td className="px-4 py-2">
                             <button

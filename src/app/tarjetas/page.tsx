@@ -708,7 +708,7 @@ export default function Tarjetas() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={7} className="px-4 py-2 text-center text-gray-500">
+                  <td colSpan={8} className="px-4 py-2 text-center text-gray-500">
                     No hay tarjetas disponibles.
                   </td>
                 </tr>

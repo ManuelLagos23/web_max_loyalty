@@ -317,16 +317,18 @@ export default function Transacciones() {
           <table className="mt-6 w-full bg-gray-100 table-auto border-collapse border-gray-300">
             <thead className="bg-gray-200">
               <tr>
-                <th className="px-4 py-2">#</th>
+              
+                <th className="px-4 py-2">ID</th>
+
                 <th className="px-4 py-2">Cliente</th>
                 <th className="px-4 py-2">Establecimiento</th>
                 <th className="px-4 py-2">Fecha</th>
-                <th className="px-4 py-2">Monto</th>
+                <th className="px-4 py-2">Lempiras</th>
                 <th className="px-4 py-2">Terminal</th>
                 <th className="px-4 py-2">Número de Tarjeta</th>
                 <th className="px-4 py-2">Estado</th>
-                <th className="px-4 py-2">Unidades</th>
-                <th className="px-4 py-2">Descuento</th>
+                <th className="px-4 py-2">Litros</th>
+                <th className="px-4 py-2">Descuento LPS. </th>
                 <th className="px-4 py-2">Canal</th>
                 <th className="px-4 py-2">Tipo Combustible</th>
                 <th className="px-4 py-2">Turno ID</th> {/* Added Turno ID column */}
@@ -342,13 +344,21 @@ export default function Transacciones() {
                   </td>
                 </tr>
               ) : (
-                currentTransacciones.map((transaccion, index) => (
+                currentTransacciones.map((transaccion) => (
                   <tr className="hover:bg-gray-50" key={transaccion.id}>
-                    <td className="px-4 py-2 text-center">{indexOfFirstItem + index + 1}</td>
+                   
+                     <td className="px-4 py-2 text-center">{transaccion.id}</td>
+                  
                     <td className="px-4 py-2 text-center">{transaccion.cliente_nombre ?? 'Sin cliente'}</td>
                     <td className="px-4 py-2 text-center">{transaccion.establecimiento_nombre}</td>
                     <td className="px-4 py-2">{new Date(transaccion.fecha).toLocaleDateString()}</td>
-                    <td className="px-4 py-2 text-center">{transaccion.monto.toFixed(2)}</td>
+           <td className="px-4 py-2 text-center">
+  {transaccion.monto.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}
+</td>
+
                     <td className="px-4 py-2 text-center">{transaccion.terminal_nombre}</td>
                     <td className="px-4 py-2 text-center">{transaccion.numero_tarjeta ?? 'Sin tarjeta'}</td>
                     <td className="px-4 py-2 text-center">{transaccion.estado ? 'Validada' : 'Cancelada'}</td>
