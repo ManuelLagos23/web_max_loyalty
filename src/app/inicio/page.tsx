@@ -110,7 +110,7 @@ export default function Home() {
   const indicators = [
     { title: 'Clientes', value: dashboardData.clientes, icon: <FaUsers className="text-3xl text-blue-600" /> },
     { title: 'Empresas', value: dashboardData.empresas, icon: <FaBuilding className="text-3xl text-blue-600" /> },
-    { title: 'Centros de Costos', value: dashboardData.centrosCostos, icon: <FaMoneyCheckAlt className="text-3xl text-blue-600" /> },
+    { title: 'Establecimientos', value: dashboardData.centrosCostos, icon: <FaMoneyCheckAlt className="text-3xl text-blue-600" /> },
     { title: 'Canales', value: dashboardData.canales, icon: <FaNetworkWired className="text-3xl text-blue-600" /> },
     { title: 'Subcanales', value: dashboardData.subcanales, icon: <FaSitemap className="text-3xl text-blue-600" /> },
     { title: 'Terminales', value: dashboardData.terminales, icon: <FaDesktop className="text-3xl text-blue-600" /> },

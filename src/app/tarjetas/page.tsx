@@ -833,24 +833,7 @@ export default function Tarjetas() {
                     )}
                     {selectedTipoTarjetaFlota === true && (
                       <>
-                        <div className="mb-4">
-                          <label htmlFor="vehiculo_id" className="block text-center font-bold text-gray-700 mb-2">
-                            Vehículo
-                          </label>
-                          <select
-                            name="vehiculo_id"
-                            value={formData.vehiculo_id || 0}
-                            onChange={handleInputChange}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
-                          >
-                            <option value="0">Seleccionar vehículo</option>
-                            {vehiculos.map((vehiculo) => (
-                              <option key={vehiculo.id} value={vehiculo.id}>
-                                {vehiculo.marca} {vehiculo.modelo} - {vehiculo.placa}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
+                 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                           <div className="mb-4">
                             <label htmlFor="canal_id" className="block text-center font-bold text-gray-700 mb-2">
@@ -889,6 +872,25 @@ export default function Tarjetas() {
                               ))}
                             </select>
                           </div>
+
+                                 <div className="mb-4">
+                          <label htmlFor="vehiculo_id" className="block text-center font-bold text-gray-700 mb-2">
+                            Vehículo
+                          </label>
+                          <select
+                            name="vehiculo_id"
+                            value={formData.vehiculo_id || 0}
+                            onChange={handleInputChange}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                          >
+                            <option value="0">Seleccionar vehículo</option>
+                            {vehiculos.map((vehiculo) => (
+                              <option key={vehiculo.id} value={vehiculo.id}>
+                                {vehiculo.marca} {vehiculo.modelo} - {vehiculo.placa}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
                         </div>
                       </>
                     )}
@@ -981,24 +983,7 @@ export default function Tarjetas() {
                     )}
                     {selectedTipoTarjetaFlota === true && (
                       <>
-                        <div className="mb-4">
-                          <label htmlFor="vehiculo_id" className="block text-center font-semibold text-gray-700 mb-2">
-                            Vehículo
-                          </label>
-                          <select
-                            name="vehiculo_id"
-                            value={formData.vehiculo_id || 0}
-                            onChange={handleInputChange}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 text-center"
-                          >
-                            <option value="0">Seleccionar vehículo</option>
-                            {vehiculos.map((vehiculo) => (
-                              <option key={vehiculo.id} value={vehiculo.id}>
-                                {vehiculo.marca} {vehiculo.modelo} - {vehiculo.placa}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
+                   
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                           <div className="mb-4">
                             <label htmlFor="canal_id" className="block text-center font-semibold text-gray-700 mb-2">
@@ -1037,6 +1022,25 @@ export default function Tarjetas() {
                               ))}
                             </select>
                           </div>
+
+                               <div className="mb-4">
+                          <label htmlFor="vehiculo_id" className="block text-center font-semibold text-gray-700 mb-2">
+                            Vehículo
+                          </label>
+                          <select
+                            name="vehiculo_id"
+                            value={formData.vehiculo_id || 0}
+                            onChange={handleInputChange}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 text-center"
+                          >
+                            <option value="0">Seleccionar vehículo</option>
+                            {vehiculos.map((vehiculo) => (
+                              <option key={vehiculo.id} value={vehiculo.id}>
+                                {vehiculo.marca} {vehiculo.modelo} - {vehiculo.placa}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
                         </div>
                       </>
                     )}

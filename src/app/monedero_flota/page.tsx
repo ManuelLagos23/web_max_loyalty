@@ -32,11 +32,11 @@ type Tarjeta = {
   tipo_tarjeta_id: number;
   vehiculo_id: number | null;
   cliente_nombre?: string;
-  tipo_tarjeta_id_nombre?: string;
+  tipo_tarjeta_nombre?: string;
   canal_id?: number;
   codigo_canal?: string;
   subcanal_id?: number;
-  subc?: string;
+  subcanal_nombre?: string;
 };
 
 type Canal = {
@@ -118,11 +118,11 @@ export default function MonederoFlota() {
 
   const fetchVehiculos = useCallback(async () => {
     try {
-      const response = await fetch('/api/vehiculos/disponibles');
+      const response = await fetch('/api/vehiculos');
       if (!response.ok) throw new Error('Error fetching vehiculos');
       const data = await response.json();
-      console.log('Vehiculos fetched:', data.vehiculos || data);
-      setVehiculos(Array.isArray(data.vehiculos) ? data.vehiculos : Array.isArray(data) ? data : []);
+      console.log('Vehiculos fetched:', data);
+      setVehiculos(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error('Error fetching vehiculos:', err);
       setError('Error al cargar los vehículos');
@@ -134,12 +134,12 @@ export default function MonederoFlota() {
       const response = await fetch('/api/tarjetas');
       if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
       const data = await response.json();
-      console.log('Tarjetas fetched:', data);
+      console.log('Tarjetas raw data:', JSON.stringify(data, null, 2));
       const tarjetasConVehiculo = Array.isArray(data.tarjetas)
         ? data.tarjetas.filter((tarjeta: Tarjeta) => tarjeta.vehiculo_id !== null)
         : [];
+      console.log('Tarjetas filtered:', JSON.stringify(tarjetasConVehiculo, null, 2));
       setTarjetas(tarjetasConVehiculo);
-      setFilteredTarjetas(tarjetasConVehiculo);
     } catch (err) {
       console.error('Error fetching tarjetas:', err);
       setError('Error al cargar las tarjetas');
@@ -189,7 +189,7 @@ export default function MonederoFlota() {
       const data = await response.json();
       console.log(`Vehiculo IDs fetched for canal_id=${canalId}, subcanal_id=${subcanalId}:`, data);
       setVehiculoIds(Array.isArray(data.vehiculo_ids) ? data.vehiculo_ids : []);
-      setFilteredTarjetas(Array.isArray(data.tarjetas) ? data.tarjetas.filter((t: Tarjeta) => t.vehiculo_id !== null) : []);
+      setFilteredTarjetas(Array.isArray(data.tarjetas) ? data.tarjetas : []);
     } catch (err) {
       console.error('Error fetching vehiculo IDs:', err);
       setVehiculoIds([]);
@@ -215,7 +215,7 @@ export default function MonederoFlota() {
     setMonederoData((prev) => {
       const newData = {
         ...prev,
-        [name]: value,
+        [name]: ['vehiculo_id', 'canal_id', 'subcanal_id', 'tarjeta_id'].includes(name) ? value : value,
       };
       if (name === 'canal_id') {
         newData.subcanal_id = '';
@@ -239,17 +239,19 @@ export default function MonederoFlota() {
       }
       if (name === 'vehiculo_id') {
         const selectedTarjetas = filteredTarjetas.filter((tarjeta) => tarjeta.vehiculo_id === Number(value));
-        if (selectedTarjetas.length > 0) {
-          const selectedTarjeta = selectedTarjetas[0];
-          newData.tarjeta_id = String(selectedTarjeta.id);
-          if (selectedTarjetas.length > 1) {
-            setError(`Advertencia: El vehículo seleccionado tiene ${selectedTarjetas.length} tarjetas asociadas. Se seleccionó la primera.`);
-          }
-        } else {
-          newData.tarjeta_id = '';
+        console.log(`Vehiculo ID: ${value}, Tarjetas encontradas:`, selectedTarjetas);
+        if (selectedTarjetas.length > 1) {
+          console.warn(`Múltiples tarjetas encontradas para vehiculo_id ${value}:`, selectedTarjetas);
+          setError(`Advertencia: El vehículo seleccionado tiene ${selectedTarjetas.length} tarjetas asociadas. Se seleccionó la primera.`);
+        }
+        const selectedTarjeta = selectedTarjetas[0];
+        newData.tarjeta_id = selectedTarjeta ? String(selectedTarjeta.id) : '';
+        if (!selectedTarjeta) {
+          console.error(`No se encontró tarjeta para vehiculo_id ${value}`);
           setError('No se encontró una tarjeta asociada al vehículo seleccionado.');
         }
       }
+      console.log('MonederoData updated:', newData);
       return newData;
     });
   };
@@ -407,7 +409,8 @@ export default function MonederoFlota() {
 
   const handleEditClick = async (monedero: Monedero) => {
     setMonederoToUpdate(monedero);
-    const associatedTarjeta = tarjetas.find((tarjeta) => tarjeta.id === monedero.tarjeta_id);
+    const associatedTarjeta = filteredTarjetas.find((tarjeta) => tarjeta.id === monedero.tarjeta_id) || 
+      tarjetas.find((tarjeta) => tarjeta.id === monedero.tarjeta_id);
     const canalId = monedero.canal_id || associatedTarjeta?.canal_id || 0;
     const subcanalId = monedero.subcanal_id || associatedTarjeta?.subcanal_id || 0;
     const vehiculoId = monedero.vehiculo_id || associatedTarjeta?.vehiculo_id || 0;
@@ -419,7 +422,7 @@ export default function MonederoFlota() {
       galones_consumidos: String(monedero.galones_consumidos || '0'),
       galones_disponibles: String(monedero.galones_disponibles || '0'),
       odometro: String(monedero.odometro || '0'),
-      tarjeta_id: String(monedero.tarjeta_id || ''),
+      tarjeta_id: String(monedero.tarjeta_id || 0),
       canal_id: String(canalId),
       subcanal_id: String(subcanalId),
     });
@@ -428,10 +431,6 @@ export default function MonederoFlota() {
       await fetchSubcanales(canalId);
       if (subcanalId) {
         await fetchVehiculoIds(canalId, subcanalId);
-        const selectedTarjetas = filteredTarjetas.filter((tarjeta) => tarjeta.vehiculo_id === vehiculoId);
-        if (selectedTarjetas.length > 0) {
-          setMonederoData((prev) => ({ ...prev, tarjeta_id: String(selectedTarjetas[0].id) }));
-        }
       }
     }
 

@@ -323,7 +323,7 @@ export default function Transacciones() {
                 <th className="px-4 py-2">Cliente</th>
                 <th className="px-4 py-2">Establecimiento</th>
                 <th className="px-4 py-2">Fecha</th>
-                <th className="px-4 py-2">Lempiras</th>
+                <th className="px-4 py-2">Total LPS.</th>
                 <th className="px-4 py-2">Terminal</th>
                 <th className="px-4 py-2">Número de Tarjeta</th>
                 <th className="px-4 py-2">Estado</th>
