@@ -1,18 +1,16 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-
-
 import Navbar from '../components/Navbar';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-
 
 type TipoTarjeta = {
   id: number;
   tipo_tarjeta: string;
   codigo_tipo_tarjeta: string;
   descripcion: string;
+  flota: boolean;
 };
 
 export default function TiposTarjeta() {
@@ -20,11 +18,12 @@ export default function TiposTarjeta() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    const pathname = usePathname();
+  const pathname = usePathname();
   const [tipoTarjetaData, setTipoTarjetaData] = useState({
     tipo_tarjeta: '',
     codigo_tipo_tarjeta: '',
     descripcion: '',
+    flota: false,
   });
   const [tipoTarjetaToUpdate, setTipoTarjetaToUpdate] = useState<TipoTarjeta | null>(null);
   const [tipoTarjetaToDelete, setTipoTarjetaToDelete] = useState<TipoTarjeta | null>(null);
@@ -45,8 +44,11 @@ export default function TiposTarjeta() {
   }, [fetchTiposTarjeta]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setTipoTarjetaData((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target as HTMLInputElement;
+    setTipoTarjetaData((prev) => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value,
+    }));
   };
 
   const handleSubmitAdd = async (e: React.FormEvent) => {
@@ -55,6 +57,7 @@ export default function TiposTarjeta() {
     formData.append('tipo_tarjeta', tipoTarjetaData.tipo_tarjeta);
     formData.append('codigo_tipo_tarjeta', tipoTarjetaData.codigo_tipo_tarjeta);
     formData.append('descripcion', tipoTarjetaData.descripcion);
+    formData.append('flota', String(tipoTarjetaData.flota));
 
     const response = await fetch('/api/tipos_tarjetas', {
       method: 'POST',
@@ -65,7 +68,7 @@ export default function TiposTarjeta() {
       const newTipoTarjeta = await response.json();
       alert('Tipo de tarjeta agregado exitosamente');
       setTiposTarjeta((prev) => [...prev, newTipoTarjeta.data]);
-      setTipoTarjetaData({ tipo_tarjeta: '', codigo_tipo_tarjeta: '', descripcion: '' });
+      setTipoTarjetaData({ tipo_tarjeta: '', codigo_tipo_tarjeta: '', descripcion: '', flota: false });
       setIsAddModalOpen(false);
       fetchTiposTarjeta();
     } else {
@@ -81,6 +84,7 @@ export default function TiposTarjeta() {
       formData.append('tipo_tarjeta', tipoTarjetaData.tipo_tarjeta);
       formData.append('codigo_tipo_tarjeta', tipoTarjetaData.codigo_tipo_tarjeta);
       formData.append('descripcion', tipoTarjetaData.descripcion);
+      formData.append('flota', String(tipoTarjetaData.flota));
 
       const response = await fetch('/api/tipos_tarjetas', {
         method: 'PUT',
@@ -95,7 +99,7 @@ export default function TiposTarjeta() {
             tipo.id === updatedTipoTarjeta.data.id ? updatedTipoTarjeta.data : tipo
           )
         );
-        setTipoTarjetaData({ tipo_tarjeta: '', codigo_tipo_tarjeta: '', descripcion: '' });
+        setTipoTarjetaData({ tipo_tarjeta: '', codigo_tipo_tarjeta: '', descripcion: '', flota: false });
         setIsUpdateModalOpen(false);
         fetchTiposTarjeta();
       } else {
@@ -146,48 +150,42 @@ export default function TiposTarjeta() {
     }
   };
 
-      const cardsRoutes = [
+  const cardsRoutes = [
     { name: 'Tarjetas', href: '/tarjetas' },
     { name: 'Tipos de tarjetas', href: '/tipo_de_tarjetas' },
- 
+         { name: 'Tarjetas desactivadas', href: '/tarjetas/desactivadas' },
   ];
-
-
 
   return (
     <div className="font-sans bg-white text-gray-900 min-h-screen">
       <div className="flex">
         <Navbar />
         <div className="flex-1 flex flex-col">
-  
           <main className="flex-1 p-8">
             <div className="space-y-6">
               <h1
-                className="text-4xl font-bold text-gray-900 mb-4
-                bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
-                transition-all duration-300 text-center"
+                className="text-4xl font-bold text-gray-900 mb-4 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent transition-all duration-300 text-center"
               >
                 Gestión de Tipos de Tarjeta
               </h1>
-                       <nav className="flex justify-center space-x-4">
-                                                                     {cardsRoutes.map((card) => {
-                                                                       const isActive = pathname === card.href;
-                                                                       return (
-                                                                         <Link key={card.name} href={card.href}>
-                                                                           <button
-                                                                             className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-300 ${
-                                                                               isActive
-                                                                                 ? 'bg-blue-600 text-white'
-                                                                                 : 'text-gray-700 bg-gray-200 hover:bg-blue-600 hover:text-white'
-                                                                             }`}
-                                                                           >
-                                                                             {card.name}
-                                                                           </button>
-                                                                         </Link>
-                                                                       );
-                                                                     })}
-                                                                   </nav>
-                    
+              <nav className="flex justify-center space-x-4">
+                {cardsRoutes.map((card) => {
+                  const isActive = pathname === card.href;
+                  return (
+                    <Link key={card.name} href={card.href}>
+                      <button
+                        className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-300 ${
+                          isActive
+                            ? 'bg-blue-600 text-white'
+                            : 'text-gray-700 bg-gray-200 hover:bg-blue-600 hover:text-white'
+                        }`}
+                      >
+                        {card.name}
+                      </button>
+                    </Link>
+                  );
+                })}
+              </nav>
             </div>
 
             <div className="flex justify-between mb-4">
@@ -202,7 +200,7 @@ export default function TiposTarjeta() {
             <div className="mb-6">
               <input
                 type="text"
-                placeholder="Buscar por tipo, código o descripción..."
+                placeholder="Buscar por tipo, código, descripción o flota..."
                 value={searchTerm}
                 onChange={(e) => {
                   setSearchTerm(e.target.value);
@@ -219,13 +217,14 @@ export default function TiposTarjeta() {
                   <th className="px-4 py-2 text-left text-gray-700 font-semibold">Tipo de Tarjeta</th>
                   <th className="px-4 py-2 text-left text-gray-700 font-semibold">Código</th>
                   <th className="px-4 py-2 text-left text-gray-700 font-semibold">Descripción</th>
+                  <th className="px-4 py-2 text-left text-gray-700 font-semibold">Flota</th>
                   <th className="px-4 py-2 text-left text-gray-700 font-semibold">Acciones</th>
                 </tr>
               </thead>
               <tbody>
                 {currentTiposTarjeta.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-4 py-2 text-center text-gray-500">
+                    <td colSpan={6} className="px-4 py-2 text-center text-gray-500">
                       No hay tipos de tarjeta disponibles
                     </td>
                   </tr>
@@ -236,6 +235,7 @@ export default function TiposTarjeta() {
                       <td className="px-4 py-2">{tipo.tipo_tarjeta}</td>
                       <td className="px-4 py-2">{tipo.codigo_tipo_tarjeta}</td>
                       <td className="px-4 py-2">{tipo.descripcion}</td>
+                      <td className="px-4 py-2">{tipo.flota ? 'Sí' : 'No'}</td>
                       <td className="px-4 py-2 flex space-x-2">
                         <button
                           onClick={() => {
@@ -244,6 +244,7 @@ export default function TiposTarjeta() {
                               tipo_tarjeta: tipo.tipo_tarjeta,
                               codigo_tipo_tarjeta: tipo.codigo_tipo_tarjeta,
                               descripcion: tipo.descripcion,
+                              flota: tipo.flota,
                             });
                             setIsUpdateModalOpen(true);
                           }}
@@ -304,9 +305,7 @@ export default function TiposTarjeta() {
                 <div className="bg-white p-6 rounded-lg shadow-xl w-1/3 border">
                   <div className="text-center">
                     <h2
-                      className="text-3xl font-bold text-gray-800 mb-6 tracking-tight 
-                      bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
-                      transition-all duration-300 hover:scale-105"
+                      className="text-3xl font-bold text-gray-800 mb-6 tracking-tight bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent transition-all duration-300 hover:scale-105"
                     >
                       Agregar Tipo de Tarjeta
                     </h2>
@@ -354,6 +353,19 @@ export default function TiposTarjeta() {
                         rows={4}
                       />
                     </div>
+                    <div className="mb-4 flex justify-center items-center">
+                      <label className="font-medium text-gray-700 mr-2" htmlFor="flota">
+                        ¿Es de Flota?
+                      </label>
+                      <input
+                        type="checkbox"
+                        id="flota"
+                        name="flota"
+                        checked={tipoTarjetaData.flota}
+                        onChange={handleInputChange}
+                        className="h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                    </div>
                     <div className="flex justify-between">
                       <button
                         type="button"
@@ -387,9 +399,7 @@ export default function TiposTarjeta() {
                 <div className="bg-white p-6 rounded-lg shadow-xl w-1/3 border">
                   <div className="text-center">
                     <h2
-                      className="text-3xl font-bold text-gray-800 mb-6 tracking-tight 
-                      bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
-                      transition-all duration-300 hover:scale-105"
+                      className="text-3xl font-bold text-gray-800 mb-6 tracking-tight bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent transition-all duration-300 hover:scale-105"
                     >
                       Actualizar Tipo de Tarjeta
                     </h2>
@@ -437,6 +447,19 @@ export default function TiposTarjeta() {
                         rows={4}
                       />
                     </div>
+                    <div className="mb-4 flex justify-center items-center">
+                      <label className="font-medium text-gray-700 mr-2" htmlFor="flota">
+                        ¿Es de Flota?
+                      </label>
+                      <input
+                        type="checkbox"
+                        id="flota"
+                        name="flota"
+                        checked={tipoTarjetaData.flota}
+                        onChange={handleInputChange}
+                        className="h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                    </div>
                     <div className="flex justify-between">
                       <button
                         type="button"
@@ -469,9 +492,7 @@ export default function TiposTarjeta() {
               >
                 <div className="bg-white p-6 rounded-lg shadow-xl w-1/3 border">
                   <h2
-                    className="text-2xl font-bold text-gray-800 mb-4 tracking-tight 
-                    bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
-                    transition-all duration-300 hover:scale-105 text-center"
+                    className="text-2xl font-bold text-gray-800 mb-4 tracking-tight bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent transition-all duration-300 hover:scale-105 text-center"
                   >
                     Confirmar Eliminación
                   </h2>

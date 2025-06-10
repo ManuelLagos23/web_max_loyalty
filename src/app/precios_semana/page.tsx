@@ -437,7 +437,7 @@ export default function PrecioVentaCombustible() {
                 <th className="px-4 py-2 text-center">Estación</th>
                 <th className="px-4 py-2 text-center" hidden>Semana Año</th>
                 <th className="px-4 py-2 text-center">Tipo de Combustible</th>
-                <th className="px-4 py-2 text-center">Precio</th>
+                <th className="px-4 py-2 text-center">Precio LPS por Litro</th>
                 <th className="px-4 py-2 text-center">Acciones</th>
               </tr>
             </thead>

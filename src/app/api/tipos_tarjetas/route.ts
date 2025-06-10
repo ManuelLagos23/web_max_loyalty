@@ -12,27 +12,32 @@ export async function POST(request: Request) {
     const tipo_tarjeta = formData.get('tipo_tarjeta');
     const codigo_tipo_tarjeta = formData.get('codigo_tipo_tarjeta');
     const descripcion = formData.get('descripcion');
+    const flota = formData.get('flota');
 
     if (
       !tipo_tarjeta ||
       !codigo_tipo_tarjeta ||
       !descripcion ||
+      flota === null ||
       typeof tipo_tarjeta !== 'string' ||
       typeof codigo_tipo_tarjeta !== 'string' ||
-      typeof descripcion !== 'string'
+      typeof descripcion !== 'string' ||
+      typeof flota !== 'string'
     ) {
       return NextResponse.json(
-        { message: 'El tipo de tarjeta, código y descripción son obligatorios y deben ser cadenas de texto' },
+        { message: 'El tipo de tarjeta, código, descripción y flota son obligatorios y deben ser cadenas de texto' },
         { status: 400 }
       );
     }
 
+    const flotaBoolean = flota === 'true';
+
     const client = await pool.connect();
     const result = await client.query(
-      `INSERT INTO tipos_tarjetas (tipo_tarjeta, codigo_tipo_tarjeta, descripcion) 
-       VALUES ($1, $2, $3) 
-       RETURNING id, tipo_tarjeta, codigo_tipo_tarjeta, descripcion`,
-      [tipo_tarjeta, codigo_tipo_tarjeta, descripcion]
+      `INSERT INTO tipos_tarjetas (tipo_tarjeta, codigo_tipo_tarjeta, descripcion, flota) 
+       VALUES ($1, $2, $3, $4) 
+       RETURNING id, tipo_tarjeta, codigo_tipo_tarjeta, descripcion, flota`,
+      [tipo_tarjeta, codigo_tipo_tarjeta, descripcion, flotaBoolean]
     );
     client.release();
 
@@ -51,7 +56,7 @@ export async function GET() {
   try {
     const client = await pool.connect();
     const result = await client.query(
-      `SELECT id, tipo_tarjeta, codigo_tipo_tarjeta, descripcion FROM tipos_tarjetas`
+      `SELECT id, tipo_tarjeta, codigo_tipo_tarjeta, descripcion, flota FROM tipos_tarjetas`
     );
     client.release();
 
@@ -70,29 +75,34 @@ export async function PUT(request: Request) {
     const tipo_tarjeta = formData.get('tipo_tarjeta');
     const codigo_tipo_tarjeta = formData.get('codigo_tipo_tarjeta');
     const descripcion = formData.get('descripcion');
+    const flota = formData.get('flota');
 
     if (
       !id ||
       !tipo_tarjeta ||
       !codigo_tipo_tarjeta ||
       !descripcion ||
+      flota === null ||
       typeof tipo_tarjeta !== 'string' ||
       typeof codigo_tipo_tarjeta !== 'string' ||
-      typeof descripcion !== 'string'
+      typeof descripcion !== 'string' ||
+      typeof flota !== 'string'
     ) {
       return NextResponse.json(
-        { message: 'El ID, tipo de tarjeta, código y descripción son obligatorios y deben ser válidos' },
+        { message: 'El ID, tipo de tarjeta, código, descripción y flota son obligatorios y deben ser válidos' },
         { status: 400 }
       );
     }
 
+    const flotaBoolean = flota === 'true';
+
     const client = await pool.connect();
     const result = await client.query(
       `UPDATE tipos_tarjetas 
-       SET tipo_tarjeta = $1, codigo_tipo_tarjeta = $2, descripcion = $3 
-       WHERE id = $4 
-       RETURNING id, tipo_tarjeta, codigo_tipo_tarjeta, descripcion`,
-      [tipo_tarjeta, codigo_tipo_tarjeta, descripcion, id]
+       SET tipo_tarjeta = $1, codigo_tipo_tarjeta = $2, descripcion = $3, flota = $4 
+       WHERE id = $5 
+       RETURNING id, tipo_tarjeta, codigo_tipo_tarjeta, descripcion, flota`,
+      [tipo_tarjeta, codigo_tipo_tarjeta, descripcion, flotaBoolean, id]
     );
     client.release();
 

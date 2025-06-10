@@ -15,7 +15,7 @@ interface Tarjeta {
   tipo_tarjeta_id: number;
   tipo_tarjeta_nombre: string;
   canal_id?: number;
-  codigo_canal?: string;
+  canal?: string;
   subcanal_id?: number;
   subcanal_nombre?: string;
   created_at: string;
@@ -31,6 +31,7 @@ interface Cliente {
 interface TipoTarjeta {
   id: number;
   tipo_tarjeta: string;
+  flota: boolean;
 }
 
 interface Vehiculo {
@@ -53,7 +54,7 @@ interface Subcanal {
 
 export default function Tarjetas() {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
-  const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false);
+  const [isDeactivatePopupOpen, setIsDeactivatePopupOpen] = useState(false);
   const [tarjetas, setTarjetas] = useState<Tarjeta[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
@@ -70,12 +71,12 @@ export default function Tarjetas() {
     canal_id: 0,
     subcanal_id: 0,
   });
-  const [esFlota, setEsFlota] = useState(false);
+  const [selectedTipoTarjetaFlota, setSelectedTipoTarjetaFlota] = useState<boolean | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchTermCliente, setSearchTermCliente] = useState('');
   const [filteredClientes, setFilteredClientes] = useState<Cliente[]>([]);
   const [tarjetaSeleccionada, setTarjetaSeleccionada] = useState<Tarjeta | null>(null);
-  const [tarjetaAEliminar, setTarjetaAEliminar] = useState<Tarjeta | null>(null);
+  const [tarjetaADesactivar, setTarjetaADesactivar] = useState<Tarjeta | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
@@ -88,7 +89,6 @@ export default function Tarjetas() {
       const response = await fetch('/api/tarjetas?tipo=generar', {
         method: 'GET',
       });
-
       if (response.ok) {
         const data = await response.json();
         return data.numero_tarjeta;
@@ -109,7 +109,7 @@ export default function Tarjetas() {
       setIsDropdownOpen(true);
       if (modo === 'agregar') {
         setTarjetaSeleccionada(null);
-        setEsFlota(false);
+        setSelectedTipoTarjetaFlota(null);
         const newCardNumber = await generateCardNumber();
         setFormData({
           id: 0,
@@ -124,7 +124,8 @@ export default function Tarjetas() {
         setFilteredClientes(clientes);
         setSubcanales([]);
       } else if (modo === 'editar' && tarjetaSeleccionada) {
-        setEsFlota(!!tarjetaSeleccionada.vehiculo_id);
+        const tipoTarjeta = tiposTarjeta.find(t => t.id === tarjetaSeleccionada.tipo_tarjeta_id);
+        setSelectedTipoTarjetaFlota(tipoTarjeta ? tipoTarjeta.flota : false);
         setFormData({
           id: tarjetaSeleccionada.id,
           numero_tarjeta: tarjetaSeleccionada.numero_tarjeta,
@@ -152,46 +153,78 @@ export default function Tarjetas() {
     setIsPopupOpen(false);
     setSearchTermCliente('');
     setIsDropdownOpen(false);
-    setEsFlota(false);
+    setSelectedTipoTarjetaFlota(null);
     setFormData(prev => ({ ...prev, canal_id: 0, subcanal_id: 0 }));
     setSubcanales([]);
   };
 
-  const openDeletePopup = (tarjeta: Tarjeta) => {
-    setTarjetaAEliminar(tarjeta);
-    setIsDeletePopupOpen(true);
+  const openDeactivatePopup = (tarjeta: Tarjeta) => {
+    setTarjetaADesactivar(tarjeta);
+    setIsDeactivatePopupOpen(true);
   };
 
-  const closeDeletePopup = () => {
-    setTarjetaAEliminar(null);
-    setIsDeletePopupOpen(false);
+  const closeDeactivatePopup = () => {
+    setTarjetaADesactivar(null);
+    setIsDeactivatePopupOpen(false);
   };
 
+  const handleInputChange = async (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    let parsedValue: string | number = value;
 
+    if (['cliente_id', 'tipo_tarjeta_id', 'vehiculo_id', 'canal_id', 'subcanal_id'].includes(name)) {
+      parsedValue = parseInt(value, 10) || 0;
+    }
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-  const { name, value } = e.target;
-  let parsedValue: string | number = value;
+    setFormData(prev => ({
+      ...prev,
+      [name]: parsedValue,
+    }));
 
-  // Convertir a número para los campos que lo requieren
-  if (['cliente_id', 'tipo_tarjeta_id', 'vehiculo_id', 'canal_id', 'subcanal_id'].includes(name)) {
-    parsedValue = parseInt(value, 10) || 0; // Asegura un número, usa 0 si parseInt falla
-  }
+    if (name === 'tipo_tarjeta_id' && typeof parsedValue === 'number' && parsedValue !== 0) {
+      try {
+        const response = await fetch(`/api/tipos_tarjetas/${parsedValue}`);
+        if (response.ok) {
+          const tipoTarjeta: TipoTarjeta = await response.json();
+          setSelectedTipoTarjetaFlota(tipoTarjeta.flota);
+          setFormData(prev => ({
+            ...prev,
+            cliente_id: tipoTarjeta.flota ? 0 : prev.cliente_id,
+            vehiculo_id: !tipoTarjeta.flota ? 0 : prev.vehiculo_id,
+            canal_id: !tipoTarjeta.flota ? 0 : prev.canal_id,
+            subcanal_id: !tipoTarjeta.flota ? 0 : prev.subcanal_id,
+          }));
+          setSearchTermCliente('');
+          setSubcanales([]);
+        } else {
+          console.error('Error al obtener tipo de tarjeta:', response.status, response.statusText);
+          setSelectedTipoTarjetaFlota(false);
+        }
+      } catch (error) {
+        console.error('Error en la solicitud:', error);
+        setSelectedTipoTarjetaFlota(false);
+      }
+    } else if (name === 'tipo_tarjeta_id' && parsedValue === 0) {
+      setSelectedTipoTarjetaFlota(null);
+      setFormData(prev => ({
+        ...prev,
+        cliente_id: 0,
+        vehiculo_id: 0,
+        canal_id: 0,
+        subcanal_id: 0,
+      }));
+      setSearchTermCliente('');
+      setSubcanales([]);
+    }
 
-  setFormData(prev => ({
-    ...prev,
-    [name]: parsedValue,
-  }));
-
-  // Actualizar subcanales si cambia canal_id
-  if (name === 'canal_id' && typeof parsedValue === 'number' && parsedValue !== 0) {
-    fetchSubcanales(parsedValue);
-    setFormData(prev => ({ ...prev, subcanal_id: 0 }));
-  } else if (name === 'canal_id' && parsedValue === 0) {
-    setSubcanales([]);
-    setFormData(prev => ({ ...prev, subcanal_id: 0 }));
-  }
-};
+    if (name === 'canal_id' && typeof parsedValue === 'number' && parsedValue !== 0) {
+      fetchSubcanales(parsedValue);
+      setFormData(prev => ({ ...prev, subcanal_id: 0 }));
+    } else if (name === 'canal_id' && parsedValue === 0) {
+      setSubcanales([]);
+      setFormData(prev => ({ ...prev, subcanal_id: 0 }));
+    }
+  };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
@@ -219,14 +252,19 @@ export default function Tarjetas() {
 
   const handleSubmitAgregar = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.numero_tarjeta || !formData.tipo_tarjeta_id || (esFlota && (!formData.vehiculo_id || !formData.canal_id || !formData.subcanal_id)) || (!esFlota && !formData.cliente_id)) {
-      alert('Por favor, complete todos los campos.');
+    if (
+      !formData.numero_tarjeta ||
+      !formData.tipo_tarjeta_id ||
+      (selectedTipoTarjetaFlota && (!formData.vehiculo_id || !formData.canal_id || !formData.subcanal_id)) ||
+      (!selectedTipoTarjetaFlota && !formData.cliente_id)
+    ) {
+      alert('Por favor, complete todos los campos obligatorios.');
       return;
     }
     const formDataToSend = new FormData();
     formDataToSend.append('numero_tarjeta', formData.numero_tarjeta);
     formDataToSend.append('tipo_tarjeta_id', formData.tipo_tarjeta_id.toString());
-    if (esFlota) {
+    if (selectedTipoTarjetaFlota) {
       formDataToSend.append('vehiculo_id', formData.vehiculo_id.toString());
       formDataToSend.append('canal_id', formData.canal_id.toString());
       formDataToSend.append('subcanal_id', formData.subcanal_id.toString());
@@ -243,6 +281,7 @@ export default function Tarjetas() {
         alert('Tarjeta agregada exitosamente');
         closePopup();
         fetchTarjetas();
+        fetchVehiculos();
       } else {
         const errorData = await response.json();
         console.error('Error al agregar tarjeta:', errorData);
@@ -256,7 +295,13 @@ export default function Tarjetas() {
 
   const handleSubmitEditar = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.id || !formData.numero_tarjeta || !formData.tipo_tarjeta_id || (esFlota && (!formData.vehiculo_id || !formData.canal_id || !formData.subcanal_id)) || (!esFlota && !formData.cliente_id)) {
+    if (
+      !formData.id ||
+      !formData.numero_tarjeta ||
+      !formData.tipo_tarjeta_id ||
+      (selectedTipoTarjetaFlota && (!formData.vehiculo_id || !formData.canal_id || !formData.subcanal_id)) ||
+      (!selectedTipoTarjetaFlota && !formData.cliente_id)
+    ) {
       alert('Por favor, complete todos los campos obligatorios.');
       return;
     }
@@ -264,7 +309,7 @@ export default function Tarjetas() {
     formDataToSend.append('id', formData.id.toString());
     formDataToSend.append('numero_tarjeta', formData.numero_tarjeta);
     formDataToSend.append('tipo_tarjeta_id', formData.tipo_tarjeta_id.toString());
-    if (esFlota) {
+    if (selectedTipoTarjetaFlota) {
       formDataToSend.append('vehiculo_id', formData.vehiculo_id.toString());
       formDataToSend.append('canal_id', formData.canal_id.toString());
       formDataToSend.append('subcanal_id', formData.subcanal_id.toString());
@@ -281,6 +326,7 @@ export default function Tarjetas() {
         alert('Tarjeta actualizada exitosamente');
         closePopup();
         fetchTarjetas();
+        fetchVehiculos();
       } else {
         const errorData = await response.json();
         console.error('Error al actualizar tarjeta:', errorData);
@@ -292,24 +338,27 @@ export default function Tarjetas() {
     }
   };
 
-  const handleDelete = async () => {
-    if (!tarjetaAEliminar) return;
+  const handleDeactivate = async () => {
+    if (!tarjetaADesactivar) return;
     try {
-      const response = await fetch(`/api/tarjetas/${tarjetaAEliminar.id}`, {
-        method: 'DELETE',
+      const response = await fetch(`/api/tarjetas/${tarjetaADesactivar.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ active: false }),
       });
       if (response.ok) {
-        alert('Tarjeta eliminada exitosamente');
-        closeDeletePopup();
+        alert('Tarjeta desactivada exitosamente');
+        closeDeactivatePopup();
         fetchTarjetas();
+        fetchVehiculos();
       } else {
         const errorData = await response.json();
-        console.error('Error al eliminar tarjeta:', errorData);
-        alert(`Error al eliminar la tarjeta: ${errorData.message || 'Error desconocido'}`);
+        console.error('Error al desactivar tarjeta:', errorData);
+        alert(`Error al desactivar la tarjeta: ${errorData.message || 'Error desconocido'}`);
       }
     } catch (error) {
       console.error('Error en la solicitud:', error);
-      alert('Error al eliminar la tarjeta');
+      alert('Error al desactivar la tarjeta');
     }
   };
 
@@ -325,7 +374,7 @@ export default function Tarjetas() {
     });
 
     const frontImage = new Image();
-    frontImage.src = '/images/logo-max-card.png';
+    frontImage.src = '/images/logo-mini-card.png';
 
     frontImage.onload = () => {
       doc.addImage(frontImage, 'PNG', 0, 0, width, height);
@@ -334,7 +383,7 @@ export default function Tarjetas() {
       const marginLeftcanal = 30;
       const marginRight = 170;
       const bottomMargin = 10;
-      const numberY = height - bottomMargin - 16;
+      const numberY = height - bottomMargin - 10;
       const nameY = height - bottomMargin;
       const canalY = 30;
 
@@ -342,7 +391,7 @@ export default function Tarjetas() {
       doc.setFontSize(12);
       doc.setTextColor('#000000');
 
-      doc.text(tarjeta.codigo_canal || 'N/A', marginLeftcanal, canalY);
+      doc.text(tarjeta.canal || 'N/A', marginLeftcanal, canalY);
       doc.text(tarjeta.numero_tarjeta, marginLeft, numberY);
 
       doc.setFont('Helvetica', 'bold');
@@ -352,7 +401,7 @@ export default function Tarjetas() {
       doc.addPage([width, height], 'landscape');
 
       const backImage = new Image();
-      backImage.src = '/images/logo-max-back.png';
+      backImage.src = '/images/logo-mini-back.png';
 
       backImage.onload = () => {
         doc.addImage(backImage, 'PNG', 0, 0, width, height);
@@ -366,35 +415,33 @@ export default function Tarjetas() {
         doc.setFontSize(10);
         doc.text(issuanceText, issuanceX, issuanceY);
 
-        doc.save(`tarjeta_${tarjeta.numero_tarjeta}.pdf`);
+        doc.save(`${tarjeta.numero_tarjeta}.pdf`);
       };
 
       backImage.onerror = () => {
-        console.error('Error al cargar la imagen trasera. Verifica la ruta: /images/logo-max-back.png');
+        console.error('Error al cargar la imagen trasera. Verifica la ruta: /images/logo-mini-back.png');
       };
     };
 
     frontImage.onerror = () => {
-      console.error('Error al cargar la imagen frontal. Verifica la ruta: /images/logo-max-card.png');
+      console.error('Error al cargar la imagen frontal. Verifica la ruta: /images/logo-mini-card.png');
     };
   };
 
   const fetchTarjetas = useCallback(async () => {
     try {
-      const response = await fetch(
-        `/api/tarjetas?page=${currentPage}&limit=${itemsPerPage}&search=${encodeURIComponent(searchTerm)}`
-      );
+      const response = await fetch(`/api/tarjetas?page=${encodeURIComponent(currentPage)}&limit=${encodeURIComponent(itemsPerPage)}&search=${encodeURIComponent(searchTerm)}`);
       if (response.ok) {
         const data = await response.json();
         setTarjetas(data.tarjetas);
         setTotalItems(data.total);
       } else {
-        console.error('Error al obtener las tarjetas:', response.status, response.statusText);
+        console.error('Error al cargar tarjetas:', response.status, response.statusText);
       }
     } catch (error) {
-      console.error('Error en la solicitud:', error);
+      console.error('Error:', error);
     }
-  }, [currentPage, itemsPerPage, searchTerm]);
+  }, [currentPage, searchTerm, itemsPerPage]);
 
   const fetchClientes = useCallback(async () => {
     try {
@@ -402,25 +449,26 @@ export default function Tarjetas() {
       if (response.ok) {
         const data: Cliente[] = await response.json();
         setClientes(data);
+        setFilteredClientes(data);
       } else {
-        console.error('Error al obtener los clientes:', response.status, response.statusText);
+        console.error('Error al cargar los clientes:', response.status, response.statusText);
       }
     } catch (error) {
-      console.error('Error en la solicitud:', error);
+      console.error('Error:', error);
     }
   }, []);
 
   const fetchVehiculos = useCallback(async () => {
     try {
-      const response = await fetch('/api/vehiculos');
+      const response = await fetch('/api/vehiculos/disponibles');
       if (response.ok) {
-        const data: Vehiculo[] = await response.json();
-        setVehiculos(data);
+        const data = await response.json();
+        setVehiculos(data.vehiculos || data);
       } else {
-        console.error('Error al obtener los vehículos:', response.status, response.statusText);
+        console.error('Error al cargar los vehículos:', response.status, response.statusText);
       }
     } catch (error) {
-      console.error('Error en la solicitud:', error);
+      console.error('Error:', error);
     }
   }, []);
 
@@ -431,10 +479,10 @@ export default function Tarjetas() {
         const data: TipoTarjeta[] = await response.json();
         setTiposTarjeta(data);
       } else {
-        console.error('Error al obtener los tipos de tarjeta:', response.status, response.statusText);
+        console.error('Error al cargar los tipos de tarjeta:', response.status, response.statusText);
       }
     } catch (error) {
-      console.error('Error en la solicitud:', error);
+      console.error('Error:', error);
     }
   }, []);
 
@@ -445,10 +493,10 @@ export default function Tarjetas() {
         const data: Canal[] = await response.json();
         setCanales(data);
       } else {
-        console.error('Error al obtener los canales:', response.status, response.statusText);
+        console.error('Error al cargar los canales:', response.status, response.statusText);
       }
     } catch (error) {
-      console.error('Error en la solicitud:', error);
+      console.error('Error:', error);
     }
   }, []);
 
@@ -459,18 +507,30 @@ export default function Tarjetas() {
         const data: Subcanal[] = await response.json();
         setSubcanales(data);
       } else {
-        console.error('Error al obtener los subcanales:', response.status, response.statusText);
+        console.error('Error al cargar los subcanales:', response.status, response.statusText);
         setSubcanales([]);
       }
     } catch (error) {
-      console.error('Error en la solicitud:', error);
+      console.error('Error:', error);
       setSubcanales([]);
     }
   }, []);
 
   const handleEditar = async (tarjeta: Tarjeta) => {
     setTarjetaSeleccionada(tarjeta);
-    setEsFlota(!!tarjeta.vehiculo_id);
+    try {
+      const response = await fetch(`/api/tipos_tarjetas/${tarjeta.tipo_tarjeta_id}`);
+      if (response.ok) {
+        const tipoTarjeta: TipoTarjeta = await response.json();
+        setSelectedTipoTarjetaFlota(tipoTarjeta.flota);
+      } else {
+        console.error('Error al cargar tipo de tarjeta:', response.status, response.statusText);
+        setSelectedTipoTarjetaFlota(false);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      setSelectedTipoTarjetaFlota(false);
+    }
     setFormData({
       id: tarjeta.id,
       numero_tarjeta: tarjeta.numero_tarjeta,
@@ -526,6 +586,7 @@ export default function Tarjetas() {
   const cardsRoutes = [
     { name: 'Tarjetas', href: '/tarjetas' },
     { name: 'Tipos de tarjetas', href: '/tipo_de_tarjetas' },
+      { name: 'Tarjetas desactivadas', href: '/tarjetas/desactivadas' },
   ];
 
   return (
@@ -570,6 +631,21 @@ export default function Tarjetas() {
             >
               Agregar Tarjeta
             </button>
+            <div className="w-2/5" hidden>
+              <select
+                name="tipo_tarjeta_id"
+                value={formData.tipo_tarjeta_id}
+                onChange={handleInputChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+              >
+                <option value="0">Filtrar por tipo de tarjeta</option>
+                {tiposTarjeta.map((tipo) => (
+                  <option key={tipo.id} value={tipo.id}>
+                    {tipo.tipo_tarjeta}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <div className="mb-6">
@@ -590,6 +666,8 @@ export default function Tarjetas() {
                 <th className="px-4 py-2 text-left text-gray-700 font-semibold">Cliente</th>
                 <th className="px-4 py-2 text-left text-gray-700 font-semibold">Vehículo</th>
                 <th className="px-4 py-2 text-left text-gray-700 font-semibold">Tipo de Tarjeta</th>
+                    <th className="px-4 py-2 text-left text-gray-700 font-semibold">Canal</th>
+                        <th className="px-4 py-2 text-left text-gray-700 font-semibold">Subcanal</th>
                 <th className="px-4 py-2 text-left text-gray-700 font-semibold">Fecha de Creación</th>
                 <th className="px-4 py-2 text-left text-gray-700 font-semibold">Acciones</th>
               </tr>
@@ -603,6 +681,8 @@ export default function Tarjetas() {
                     <td className="px-4 py-2">{tarjeta.cliente_nombre || '-'}</td>
                     <td className="px-4 py-2">{tarjeta.vehiculo_nombre || '-'}</td>
                     <td className="px-4 py-2">{tarjeta.tipo_tarjeta_nombre}</td>
+                         <td className="px-4 py-2">{tarjeta.canal}</td>
+                              <td className="px-4 py-2">{tarjeta.subcanal_nombre}</td>
                     <td className="px-4 py-2">{formatDate(tarjeta.created_at)}</td>
                     <td className="px-4 py-2 flex space-x-2">
                       <button
@@ -612,10 +692,10 @@ export default function Tarjetas() {
                         Editar
                       </button>
                       <button
-                        onClick={() => openDeletePopup(tarjeta)}
+                        onClick={() => openDeactivatePopup(tarjeta)}
                         className="bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600 transition-all duration-300"
                       >
-                        Eliminar
+                        Desactivar
                       </button>
                       <button
                         onClick={() => handlePrintCard(tarjeta)}
@@ -712,29 +792,7 @@ export default function Tarjetas() {
                         ))}
                       </select>
                     </div>
-                    <div className="mb-4">
-                      <label className="flex justify-center items-center text-center font-bold text-gray-700 mb-2">
-                        <input
-                          type="checkbox"
-                          checked={esFlota}
-                          onChange={() => {
-                            setEsFlota(!esFlota);
-                            setFormData((prev) => ({
-                              ...prev,
-                              cliente_id: esFlota ? prev.cliente_id : 0,
-                              vehiculo_id: !esFlota ? prev.vehiculo_id : 0,
-                              canal_id: !esFlota ? prev.canal_id : 0,
-                              subcanal_id: !esFlota ? prev.subcanal_id : 0,
-                            }));
-                            setSearchTermCliente('');
-                            setSubcanales([]);
-                          }}
-                          className="mr-2"
-                        />
-                        Flota
-                      </label>
-                    </div>
-                    {!esFlota && (
+                    {selectedTipoTarjetaFlota === false && (
                       <div className="mb-4 relative" ref={dropdownRef}>
                         <label htmlFor="cliente_id" className="block text-center font-bold text-gray-700 mb-2">
                           Cliente
@@ -773,7 +831,7 @@ export default function Tarjetas() {
                         )}
                       </div>
                     )}
-                    {esFlota && (
+                    {selectedTipoTarjetaFlota === true && (
                       <>
                         <div className="mb-4">
                           <label htmlFor="vehiculo_id" className="block text-center font-bold text-gray-700 mb-2">
@@ -781,7 +839,7 @@ export default function Tarjetas() {
                           </label>
                           <select
                             name="vehiculo_id"
-                            value={formData.vehiculo_id}
+                            value={formData.vehiculo_id || 0}
                             onChange={handleInputChange}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
                           >
@@ -793,42 +851,44 @@ export default function Tarjetas() {
                             ))}
                           </select>
                         </div>
-                        <div className="mb-4">
-                          <label htmlFor="canal_id" className="block text-center font-bold text-gray-700 mb-2">
-                            Canal
-                          </label>
-                          <select
-                            name="canal_id"
-                            value={formData.canal_id}
-                            onChange={handleInputChange}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
-                          >
-                            <option value="0">Seleccionar canal</option>
-                            {canales.map((canal) => (
-                              <option key={canal.id} value={canal.id}>
-                                {canal.canal}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                        <div className="mb-4">
-                          <label htmlFor="subcanal_id" className="block text-center font-bold text-gray-700 mb-2">
-                            Subcanal
-                          </label>
-                          <select
-                            name="subcanal_id"
-                            value={formData.subcanal_id}
-                            onChange={handleInputChange}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
-                            disabled={formData.canal_id === 0}
-                          >
-                            <option value="0">Seleccionar subcanal</option>
-                            {subcanales.map((subcanal) => (
-                              <option key={subcanal.id} value={subcanal.id}>
-                                {subcanal.subcanal}
-                              </option>
-                            ))}
-                          </select>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                          <div className="mb-4">
+                            <label htmlFor="canal_id" className="block text-center font-bold text-gray-700 mb-2">
+                              Canal
+                            </label>
+                            <select
+                              name="canal_id"
+                              value={formData.canal_id || 0}
+                              onChange={handleInputChange}
+                              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                            >
+                              <option value="0">Seleccionar canal</option>
+                              {canales.map((canal) => (
+                                <option key={canal.id} value={canal.id}>
+                                  {canal.canal}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="mb-4">
+                            <label htmlFor="subcanal_id" className="block text-center font-bold text-gray-700 mb-2">
+                              Subcanal
+                            </label>
+                            <select
+                              name="subcanal_id"
+                              value={formData.subcanal_id || 0}
+                              onChange={handleInputChange}
+                              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                              disabled={formData.canal_id === 0}
+                            >
+                              <option value="0">Seleccionar subcanal</option>
+                              {subcanales.map((subcanal) => (
+                                <option key={subcanal.id} value={subcanal.id}>
+                                  {subcanal.subcanal}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
                         </div>
                       </>
                     )}
@@ -880,31 +940,9 @@ export default function Tarjetas() {
                         ))}
                       </select>
                     </div>
-                    <div className="mb-4">
-                      <label className="flex justify-center items-center text-center font-bold text-gray-700 mb-2">
-                        <input
-                          type="checkbox"
-                          checked={esFlota}
-                          onChange={() => {
-                            setEsFlota(!esFlota);
-                            setFormData((prev) => ({
-                              ...prev,
-                              cliente_id: esFlota ? prev.cliente_id : 0,
-                              vehiculo_id: !esFlota ? prev.vehiculo_id : 0,
-                              canal_id: !esFlota ? prev.canal_id : 0,
-                              subcanal_id: !esFlota ? prev.subcanal_id : 0,
-                            }));
-                            setSearchTermCliente('');
-                            setSubcanales([]);
-                          }}
-                          className="mr-2"
-                        />
-                        Flota
-                      </label>
-                    </div>
-                    {!esFlota && (
+                    {selectedTipoTarjetaFlota === false && (
                       <div className="mb-4 relative" ref={dropdownRef}>
-                        <label htmlFor="cliente_id" className="block text-center font-bold text-gray-700 mb-2">
+                        <label htmlFor="cliente_id" className="block text-center font-semibold text-gray-700 mb-2">
                           Cliente
                         </label>
                         <input
@@ -920,18 +958,18 @@ export default function Tarjetas() {
                             setIsDropdownOpen(true);
                           }}
                           placeholder="Busca o selecciona un cliente..."
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 text-center"
                         />
                         {isDropdownOpen && (
-                          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto">
                             {filteredClientes.length > 0 ? (
-                              filteredClientes.map((cliente) => (
+                              filteredClientes.map((client) => (
                                 <div
-                                  key={cliente.id}
-                                  onClick={() => handleSelectCliente(cliente)}
-                                  className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer text-center"
+                                  key={client.id}
+                                  onClick={() => handleSelectCliente(client)}
+                                  className="px-4 py-2 text-gray-800 hover:bg-gray-100 cursor-pointer text-center"
                                 >
-                                  {cliente.nombre}
+                                  {client.nombre}
                                 </div>
                               ))
                             ) : (
@@ -941,56 +979,17 @@ export default function Tarjetas() {
                         )}
                       </div>
                     )}
-                    {esFlota && (
+                    {selectedTipoTarjetaFlota === true && (
                       <>
-                 
                         <div className="mb-4">
-                          <label htmlFor="canal_id" className="block text-center font-bold text-gray-700 mb-2">
-                            Canal
-                          </label>
-                          <select
-                            name="canal_id"
-                            value={formData.canal_id}
-                            onChange={handleInputChange}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
-                          >
-                            <option value="0">Seleccionar canal</option>
-                            {canales.map((canal) => (
-                              <option key={canal.id} value={canal.id}>
-                                {canal.canal}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                        <div className="mb-4">
-                          <label htmlFor="subcanal_id" className="block text-center font-bold text-gray-700 mb-2">
-                            Subcanal
-                          </label>
-                          <select
-                            name="subcanal_id"
-                            value={formData.subcanal_id}
-                            onChange={handleInputChange}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
-                            disabled={formData.canal_id === 0}
-                          >
-                            <option value="0">Seleccionar subcanal</option>
-                            {subcanales.map((subcanal) => (
-                              <option key={subcanal.id} value={subcanal.id}>
-                                {subcanal.subcanal}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-
-                               <div className="mb-4">
-                          <label htmlFor="vehiculo_id" className="block text-center font-bold text-gray-700 mb-2">
+                          <label htmlFor="vehiculo_id" className="block text-center font-semibold text-gray-700 mb-2">
                             Vehículo
                           </label>
                           <select
                             name="vehiculo_id"
-                            value={formData.vehiculo_id}
+                            value={formData.vehiculo_id || 0}
                             onChange={handleInputChange}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 text-center"
                           >
                             <option value="0">Seleccionar vehículo</option>
                             {vehiculos.map((vehiculo) => (
@@ -1000,19 +999,58 @@ export default function Tarjetas() {
                             ))}
                           </select>
                         </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                          <div className="mb-4">
+                            <label htmlFor="canal_id" className="block text-center font-semibold text-gray-700 mb-2">
+                              Canal
+                            </label>
+                            <select
+                              name="canal_id"
+                              value={formData.canal_id || 0}
+                              onChange={handleInputChange}
+                              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 text-center"
+                            >
+                              <option value="0">Seleccionar canal</option>
+                              {canales.map((canal) => (
+                                <option key={canal.id} value={canal.id}>
+                                  {canal.canal}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="mb-4">
+                            <label htmlFor="subcanal_id" className="block text-center font-semibold text-gray-700 mb-2">
+                              Subcanal
+                            </label>
+                            <select
+                              name="subcanal_id"
+                              value={formData.subcanal_id || 0}
+                              onChange={handleInputChange}
+                              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 text-center"
+                              disabled={formData.canal_id === 0}
+                            >
+                              <option value="0">Seleccionar subcanal</option>
+                              {subcanales.map((subcanal) => (
+                                <option key={subcanal.id} value={subcanal.id}>
+                                  {subcanal.subcanal}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
                       </>
                     )}
-                    <div className="flex justify-between">
+                    <div className="flex justify-between items-center mt-4">
                       <button
                         type="button"
                         onClick={closePopup}
-                        className="bg-gray-400 text-white px-4 py-2 rounded-lg hover:bg-gray-500 transition-all duration-300"
+                        className="bg-gray-400 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-500 hover:text-white transition-colors duration-200"
                       >
                         Cancelar
                       </button>
                       <button
                         type="submit"
-                        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all duration-300"
+                        className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors duration-200"
                       >
                         Agregar
                       </button>
@@ -1023,38 +1061,38 @@ export default function Tarjetas() {
             </div>
           )}
 
-          {isDeletePopupOpen && (
+          {isDeactivatePopupOpen && (
             <div
-              className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-md border"
+              className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-md"
               onClick={(e) => {
                 if (e.target === e.currentTarget) {
-                  closeDeletePopup();
+                  closeDeactivatePopup();
                 }
               }}
             >
-              <div className="bg-white p-6 rounded-lg shadow-xl w-1/3 border">
+              <div className="bg-white p-6 rounded-lg shadow-lg w-1/3 border">
                 <h2
                   className="text-2xl font-bold text-gray-800 mb-4 tracking-tight 
-                  bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
-                  transition-all duration-300 hover:scale-105 text-center"
+                  bg-gradient-to-r from-blue-600 to-indigo-600 text-transparent bg-clip-text
+                  text-center"
                 >
-                  Confirmar Eliminación
+                  Confirmar Desactivación
                 </h2>
-                <p className="text-center text-gray-700 mb-4">
-                  ¿Estás seguro de que deseas eliminar la tarjeta {tarjetaAEliminar?.numero_tarjeta}?
+                <p className="text-center text-gray-600 mb-4">
+                  ¿Estás seguro de que deseas desactivar la tarjeta {tarjetaADesactivar?.numero_tarjeta}?
                 </p>
                 <div className="flex justify-between">
                   <button
-                    onClick={closeDeletePopup}
+                    onClick={closeDeactivatePopup}
                     className="bg-gray-400 text-white px-4 py-2 rounded-lg hover:bg-gray-500 transition-all duration-300"
                   >
                     Cancelar
                   </button>
                   <button
-                    onClick={handleDelete}
-                    className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-all duration-300"
+                    onClick={handleDeactivate}
+                    className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors duration-200"
                   >
-                    Eliminar
+                    Desactivar
                   </button>
                 </div>
               </div>

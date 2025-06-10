@@ -26,9 +26,9 @@ type Vehiculo = {
 type Tarjeta = {
   id: number;
   numero_tarjeta: string;
-  cliente_id: number;
+  cliente_id: number | null;
   tipo_tarjeta_id: number;
-  vehiculo_id: number;
+  vehiculo_id: number | null;
   cliente_nombre?: string;
   tipo_tarjeta_nombre?: string;
   canal_id?: number;
@@ -52,8 +52,10 @@ export default function MonederoFlota() {
   const [monederos, setMonederos] = useState<Monedero[]>([]);
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
   const [tarjetas, setTarjetas] = useState<Tarjeta[]>([]);
+  const [filteredTarjetas, setFilteredTarjetas] = useState<Tarjeta[]>([]);
   const [canales, setCanales] = useState<Canal[]>([]);
   const [subcanales, setSubcanales] = useState<Subcanal[]>([]);
+  const [vehiculoIds, setVehiculoIds] = useState<number[]>([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -137,7 +139,7 @@ export default function MonederoFlota() {
       }
     } catch (err) {
       console.error('Error fetching tarjetas:', err);
-
+      setError('Error al cargar las tarjetas');
     }
   }, []);
 
@@ -168,6 +170,22 @@ export default function MonederoFlota() {
     }
   }, []);
 
+  const fetchVehiculoIds = useCallback(async (canalId: number, subcanalId: number) => {
+    try {
+      const response = await fetch(`/api/tarjetas/filtro?canal_id=${canalId}&subcanal_id=${subcanalId}`);
+      if (!response.ok) throw new Error('Error fetching vehiculo IDs');
+      const data = await response.json();
+      console.log(`Vehiculo IDs fetched for canal_id=${canalId}, subcanal_id=${subcanalId}:`, data);
+      setVehiculoIds(Array.isArray(data.vehiculo_ids) ? data.vehiculo_ids : []);
+      setFilteredTarjetas(Array.isArray(data.tarjetas) ? data.tarjetas : []);
+    } catch (err) {
+      console.error('Error fetching vehiculo IDs:', err);
+      setVehiculoIds([]);
+      setFilteredTarjetas([]);
+      setError('Error al cargar los IDs de vehículos');
+    }
+  }, []);
+
   useEffect(() => {
     fetchMonederos();
     fetchVehiculos();
@@ -180,24 +198,42 @@ export default function MonederoFlota() {
     setMonederoData((prev) => {
       const newData = {
         ...prev,
-        [name]: name === 'vehiculo_id' || name === 'tarjeta_id' || name === 'canal_id' || name === 'subcanal_id' ? Number(value) : value,
+        [name]: name === 'vehiculo_id' || name === 'canal_id' || name === 'subcanal_id' ? Number(value) : value,
       };
-      if (name === 'tarjeta_id') {
-        const selectedTarjeta = tarjetas.find((tarjeta) => tarjeta.id === Number(value));
-        newData.vehiculo_id = selectedTarjeta ? selectedTarjeta.vehiculo_id : 0;
-      }
       if (name === 'canal_id') {
-        newData.subcanal_id = 0; // Reiniciar subcanal
-        newData.tarjeta_id = 0; // Reiniciar tarjeta
-        newData.vehiculo_id = 0; // Reiniciar vehículo
-        setSubcanales([]); // Limpiar subcanales
+        newData.subcanal_id = 0;
+        newData.vehiculo_id = 0;
+        newData.tarjeta_id = 0;
+        setSubcanales([]);
+        setVehiculoIds([]);
+        setFilteredTarjetas([]);
         if (Number(value) !== 0) {
           fetchSubcanales(Number(value));
         }
       }
       if (name === 'subcanal_id') {
-        newData.tarjeta_id = 0; // Reiniciar tarjeta
-        newData.vehiculo_id = 0; // Reiniciar vehículo
+        newData.vehiculo_id = 0;
+        newData.tarjeta_id = 0;
+        if (newData.canal_id !== 0 && Number(value) !== 0) {
+          fetchVehiculoIds(newData.canal_id, Number(value));
+        } else {
+          setVehiculoIds([]);
+          setFilteredTarjetas([]);
+        }
+      }
+      if (name === 'vehiculo_id') {
+        const selectedTarjetas = filteredTarjetas.filter((tarjeta) => tarjeta.vehiculo_id === Number(value));
+        console.log(`Vehiculo ID: ${value}, Tarjetas encontradas:`, selectedTarjetas);
+        if (selectedTarjetas.length > 1) {
+          console.warn(`Múltiples tarjetas encontradas para vehiculo_id ${value}:`, selectedTarjetas);
+          setError(`Advertencia: El vehículo seleccionado tiene ${selectedTarjetas.length} tarjetas asociadas. Se seleccionó la primera.`);
+        }
+        const selectedTarjeta = selectedTarjetas[0];
+        newData.tarjeta_id = selectedTarjeta ? selectedTarjeta.id : 0;
+        if (!selectedTarjeta) {
+          console.error(`No se encontró tarjeta para vehiculo_id ${value}`);
+          setError('No se encontró una tarjeta asociada al vehículo seleccionado.');
+        }
       }
       console.log('MonederoData updated:', newData);
       return newData;
@@ -210,12 +246,12 @@ export default function MonederoFlota() {
       alert('Por favor seleccione un período');
       return;
     }
-    if (monederoData.tarjeta_id === 0) {
-      alert('Por favor seleccione una tarjeta');
-      return;
-    }
     if (monederoData.vehiculo_id === 0) {
       alert('Por favor seleccione un vehículo');
+      return;
+    }
+    if (monederoData.tarjeta_id === 0) {
+      alert('No hay tarjeta asociada al vehículo seleccionado');
       return;
     }
     if (monederoData.canal_id === 0) {
@@ -271,12 +307,12 @@ export default function MonederoFlota() {
       alert('Por favor seleccione un período');
       return;
     }
-    if (monederoData.tarjeta_id === 0) {
-      alert('Por favor seleccione una tarjeta');
-      return;
-    }
     if (monederoData.vehiculo_id === 0) {
       alert('Por favor seleccione un vehículo');
+      return;
+    }
+    if (monederoData.tarjeta_id === 0) {
+      alert('No hay tarjeta asociada al vehículo seleccionado');
       return;
     }
     if (monederoData.canal_id === 0) {
@@ -375,7 +411,7 @@ export default function MonederoFlota() {
     }
   };
 
-  console.log('All Tarjetas:', JSON.stringify(tarjetas, null, 2));
+  const filteredVehiculos = vehiculos.filter((vehiculo) => vehiculoIds.includes(vehiculo.id));
 
   return (
     <div className="font-sans bg-white text-gray-900 min-h-screen">
@@ -384,9 +420,7 @@ export default function MonederoFlota() {
         <div className="flex-1 flex flex-col">
           <main className="flex-1 p-6">
             <div className="space-y-6">
-              <h1
-                className="text-4xl font-bold text-center text-gray-800 mb-4 bg-clip-text bg-gradient-to-r from-blue-700 to-indigo-700 text-transparent"
-              >
+              <h1 className="text-4xl font-bold text-center text-gray-800 mb-4 bg-clip-text bg-gradient-to-r from-blue-700 to-indigo-700 text-transparent">
                 Gestión de Monedero de Flota
               </h1>
             </div>
@@ -419,7 +453,7 @@ export default function MonederoFlota() {
               />
             </div>
 
-            <table className="w-full bg-white rounded-md shadow-md">
+            <table className="w-full rounded-md shadow-md bg-gray-100">
               <thead>
                 <tr className="bg-gray-100">
                   <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">#</th>
@@ -428,7 +462,7 @@ export default function MonederoFlota() {
                   <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Período</th>
                   <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Galones Disponibles</th>
                   <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Galones Consumidos</th>
-                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Odómetro</th>
+                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700" hidden>Odómetro</th>
                   <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Tarjeta</th>
                   <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Acciones</th>
                 </tr>
@@ -449,26 +483,32 @@ export default function MonederoFlota() {
                       <td className="px-4 py-2">{getPeriodLabel(monedero.periodo)}</td>
                       <td className="px-4 py-2">{monedero.galones_disponibles || '0'}</td>
                       <td className="px-4 py-2">{monedero.galones_consumidos || '0'}</td>
-                      <td className="px-4 py-2">{monedero.odometro || 'N/A'}</td>
+                      <td className="px-4 py-2" hidden>{monedero.odometro || 'N/A'}</td>
                       <td className="px-4 py-2">{monedero.tarjeta_numero || 'N/A'}</td>
                       <td className="px-4 py-2 flex space-x-2">
                         <button
                           onClick={() => {
                             setMonederoToUpdate(monedero);
-                            const associatedTarjeta = tarjetas.find((tarjeta) => tarjeta.id === monedero.tarjeta_id);
+                            const associatedTarjeta = filteredTarjetas.find((tarjeta) => tarjeta.id === monedero.tarjeta_id) || tarjetas.find((tarjeta) => tarjeta.id === monedero.tarjeta_id);
+                            const vehiculoId = associatedTarjeta?.vehiculo_id || monedero.vehiculo_id || 0;
+                            const canalId = associatedTarjeta?.canal_id || 0;
+                            const subcanalId = associatedTarjeta?.subcanal_id || 0;
                             setMonederoData({
                               galones_totales: String(monedero.galones_totales || ''),
-                              vehiculo_id: associatedTarjeta ? associatedTarjeta.vehiculo_id : monedero.vehiculo_id || 0,
+                              vehiculo_id: vehiculoId,
                               periodo: String(monedero.periodo || ''),
-                              galones_consumidos: String(monedero.galones_consumidos || ''),
-                              galones_disponibles: String(monedero.galones_disponibles || ''),
-                              odometro: String(monedero.odometro || ''),
+                              galones_consumidos: String(monedero.galones_consumidos || '0'),
+                              galones_disponibles: String(monedero.galones_disponibles || '0'),
+                              odometro: String(monedero.odometro || '0'),
                               tarjeta_id: monedero.tarjeta_id || 0,
-                              canal_id: associatedTarjeta?.canal_id || 0,
-                              subcanal_id: associatedTarjeta?.subcanal_id || 0,
+                              canal_id: canalId,
+                              subcanal_id: subcanalId,
                             });
-                            if (associatedTarjeta?.canal_id) {
-                              fetchSubcanales(associatedTarjeta.canal_id);
+                            if (canalId) {
+                              fetchSubcanales(canalId);
+                              if (subcanalId) {
+                                fetchVehiculoIds(canalId, subcanalId);
+                              }
                             }
                             setIsUpdateModalOpen(true);
                           }}
@@ -502,9 +542,7 @@ export default function MonederoFlota() {
               >
                 Anterior
               </button>
-              <span className="text-gray-700">
-                Página {currentPage} de {totalPages}
-              </span>
+              <span className="text-gray-700">Página {currentPage} de {totalPages}</span>
               <button
                 onClick={handleNextPage}
                 disabled={currentPage === totalPages}
@@ -526,18 +564,16 @@ export default function MonederoFlota() {
                   }
                 }}
               >
-                <div className="bg-white p-6 rounded-md shadow-xl w-1/2 max-h-[90vh] overflow-y-auto border border-gray-200">
+                <div className="bg-white p-6 rounded-md shadow-xl w-1/2 max-h-[90vh] overflow-y-auto border-1">
                   <div className="text-center">
-                    <h2
-                      className="text-2xl font-bold text-gray-800 mb-4 bg-clip-text bg-gradient-to-r from-blue-700 to-indigo-700 text-transparent"
-                    >
+                    <h2 className="text-2xl font-bold text-gray-800 mb-4 bg-clip-text bg-gradient-to-r from-blue-700 to-indigo-700 text-transparent">
                       Agregar Monedero
                     </h2>
                   </div>
                   <form onSubmit={handleSubmitAdd}>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="mb-4">
-                        <label className="block text-sm font-semibold text-gray-700 mb-1" htmlFor="galones_totales">
+                        <label className="block text-sm font-semibold text-gray-700 mb-1 text-center" htmlFor="galones_totales">
                           Galones Totales
                         </label>
                         <input
@@ -547,13 +583,85 @@ export default function MonederoFlota() {
                           placeholder="Ejemplo: 100"
                           value={monederoData.galones_totales}
                           onChange={handleInputChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
                           required
                           step="0.01"
                         />
                       </div>
                       <div className="mb-4">
-                        <label className="block text-sm font-semibold text-gray-700 mb-1" htmlFor="vehiculo_id">
+                        <label className="block text-sm font-semibold text-gray-700 mb-1 text-center" htmlFor="periodo">
+                          Período
+                        </label>
+                        <select
+                          id="periodo"
+                          name="periodo"
+                          value={monederoData.periodo}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                          required
+                        >
+                          <option value="" disabled>
+                            Seleccione un período
+                          </option>
+                          <option value="1">Diario</option>
+                          <option value="7">Semanal</option>
+                          <option value="15">Quincenal</option>
+                          <option value="30">Mensual</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                      <div className="mb-4">
+                        <label className="block text-sm font-semibold text-gray-700 mb-1 text-center" htmlFor="canal_id">
+                          Canal
+                        </label>
+                        <select
+                          id="canal_id"
+                          name="canal_id"
+                          value={monederoData.canal_id}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                          required
+                        >
+                          <option value={0} disabled>
+                            Seleccione un canal
+                          </option>
+                          {canales.map((canal) => (
+                            <option key={canal.id} value={canal.id}>
+                              {canal.canal}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="mb-4">
+                        <label className="block text-sm font-semibold text-gray-700 mb-1 text-center" htmlFor="subcanal_id">
+                          Subcanal
+                        </label>
+                        <select
+                          id="subcanal_id"
+                          name="subcanal_id"
+                          value={monederoData.subcanal_id}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                          disabled={monederoData.canal_id === 0}
+                          required
+                        >
+                          <option value={0} disabled>
+                            {subcanales.length === 0 && monederoData.canal_id !== 0
+                              ? 'No hay subcanales disponibles'
+                              : 'Seleccione un subcanal'}
+                          </option>
+                          {subcanales.map((subcanal) => (
+                            <option key={subcanal.id} value={subcanal.id}>
+                              {subcanal.subcanal}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                      <div className="mb-4">
+                        <label className="block text-sm font-semibold text-gray-700 mb-1 text-center" htmlFor="vehiculo_id">
                           Vehículo
                         </label>
                         <select
@@ -561,110 +669,36 @@ export default function MonederoFlota() {
                           name="vehiculo_id"
                           value={monederoData.vehiculo_id}
                           onChange={handleInputChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          disabled
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                          disabled={monederoData.subcanal_id === 0}
                           required
                         >
                           <option value={0} disabled>
-                            Seleccione un vehículo
+                            {filteredVehiculos.length === 0 && monederoData.subcanal_id !== 0
+                              ? 'No hay vehículos disponibles'
+                              : 'Seleccione un vehículo'}
                           </option>
-                          {vehiculos.map((vehiculo) => (
+                          {filteredVehiculos.map((vehiculo) => (
                             <option key={vehiculo.id} value={vehiculo.id}>
-                              {vehiculo.modelo} - {vehiculo.placa} - {vehiculo.marca}
+                              {vehiculo.marca} {vehiculo.modelo} - {vehiculo.placa}
                             </option>
                           ))}
                         </select>
                       </div>
-                    </div>
-                    <div className="mb-4">
-                      <label className="block text-sm font-semibold text-gray-700 mb-1" htmlFor="periodo">
-                        Período
-                      </label>
-                      <select
-                        id="periodo"
-                        name="periodo"
-                        value={monederoData.periodo}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        required
-                      >
-                        <option value="" disabled>
-                          Seleccione un período
-                        </option>
-                        <option value="1">Diario</option>
-                        <option value="7">Semanal</option>
-                        <option value="15">Quincenal</option>
-                        <option value="30">Mensual</option>
-                      </select>
-                    </div>
-                    <div className="mb-4">
-                      <label className="block text-sm font-semibold text-gray-700 mb-1" htmlFor="canal_id">
-                        Canal
-                      </label>
-                      <select
-                        id="canal_id"
-                        name="canal_id"
-                        value={monederoData.canal_id}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        required
-                      >
-                        <option value={0} disabled>
-                          Seleccione un canal
-                        </option>
-                        {canales.map((canal) => (
-                          <option key={canal.id} value={canal.id}>
-                            {canal.canal}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="mb-4">
-                      <label className="block text-sm font-semibold text-gray-700 mb-1" htmlFor="subcanal_id">
-                        Subcanal
-                      </label>
-                      <select
-                        id="subcanal_id"
-                        name="subcanal_id"
-                        value={monederoData.subcanal_id}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        disabled={monederoData.canal_id === 0}
-                        required
-                      >
-                        <option value={0} disabled>
-                          {subcanales.length === 0 && monederoData.canal_id !== 0
-                            ? 'No hay subcanales disponibles'
-                            : 'Seleccione un subcanal'}
-                        </option>
-                        {subcanales.map((subcanal) => (
-                          <option key={subcanal.id} value={subcanal.id}>
-                            {subcanal.subcanal}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="mb-4">
-                      <label className="block text-sm font-semibold text-gray-700 mb-1" htmlFor="tarjeta_id">
-                        Tarjeta
-                      </label>
-                      <select
-                        id="tarjeta_id"
-                        name="tarjeta_id"
-                        value={monederoData.tarjeta_id}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        required
-                      >
-                        <option value={0} disabled>
-                          {tarjetas.length === 0 ? 'No hay tarjetas disponibles' : 'Seleccione una tarjeta'}
-                        </option>
-                        {tarjetas.map((tarjeta) => (
-                          <option key={tarjeta.id} value={tarjeta.id}>
-                            {tarjeta.numero_tarjeta} (Vehículo: {vehiculos.find((v) => v.id === tarjeta.vehiculo_id)?.placa || 'N/A'})
-                          </option>
-                        ))}
-                      </select>
+                      <div className="mb-4">
+                        <label className="block text-sm font-semibold text-gray-700 mb-1 text-center" htmlFor="tarjeta_id">
+                          Tarjeta
+                        </label>
+                        <input
+                          id="tarjeta_id"
+                          value={
+                            filteredTarjetas.find((tarjeta) => tarjeta.id === monederoData.tarjeta_id)?.numero_tarjeta || 
+                            tarjetas.find((tarjeta) => tarjeta.id === monederoData.tarjeta_id)?.numero_tarjeta || 'N/A'
+                          }
+                          readOnly
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-500 text-center"
+                        />
+                      </div>
                     </div>
                     <div className="flex justify-between">
                       <button
@@ -696,18 +730,16 @@ export default function MonederoFlota() {
                   }
                 }}
               >
-                <div className="bg-white p-6 rounded-md shadow-xl w-1/2 max-h-[90vh] overflow-y-auto border border-gray-200">
+                <div className="bg-white p-6 rounded-md shadow-xl w-1/2 max-h-[90vh] overflow-y-auto border-1">
                   <div className="text-center">
-                    <h2
-                      className="text-2xl font-bold text-gray-800 mb-4 bg-clip-text bg-gradient-to-r from-blue-700 to-indigo-700 text-transparent"
-                    >
+                    <h2 className="text-2xl font-bold text-gray-800 mb-4 bg-clip-text bg-gradient-to-r from-blue-700 to-indigo-700 text-transparent">
                       Actualizar Monedero
                     </h2>
                   </div>
                   <form onSubmit={handleSubmitUpdate}>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="mb-4">
-                        <label className="block text-sm font-semibold text-gray-700 mb-1" htmlFor="galones_totales">
+                        <label className="block text-sm font-semibold text-gray-700 mb-1 text-center" htmlFor="galones_totales">
                           Galones Totales
                         </label>
                         <input
@@ -717,13 +749,85 @@ export default function MonederoFlota() {
                           placeholder="Ejemplo: 100"
                           value={monederoData.galones_totales}
                           onChange={handleInputChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
                           required
                           step="0.01"
                         />
                       </div>
                       <div className="mb-4">
-                        <label className="block text-sm font-semibold text-gray-700 mb-1" htmlFor="vehiculo_id">
+                        <label className="block text-sm font-semibold text-gray-700 mb-1 text-center" htmlFor="periodo">
+                          Período
+                        </label>
+                        <select
+                          id="periodo"
+                          name="periodo"
+                          value={monederoData.periodo}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                          required
+                        >
+                          <option value="" disabled>
+                            Seleccione un período
+                          </option>
+                          <option value="1">Diario</option>
+                          <option value="7">Semanal</option>
+                          <option value="15">Quincenal</option>
+                          <option value="30">Mensual</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                      <div className="mb-4">
+                        <label className="block text-sm font-semibold text-gray-700 mb-1 text-center" htmlFor="canal_id">
+                          Canal
+                        </label>
+                        <select
+                          id="canal_id"
+                          name="canal_id"
+                          value={monederoData.canal_id}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                          required
+                        >
+                          <option value={0} disabled>
+                            Seleccione un canal
+                          </option>
+                          {canales.map((canal) => (
+                            <option key={canal.id} value={canal.id}>
+                              {canal.canal}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="mb-4">
+                        <label className="block text-sm font-semibold text-gray-700 mb-1 text-center" htmlFor="subcanal_id">
+                          Subcanal
+                        </label>
+                        <select
+                          id="subcanal_id"
+                          name="subcanal_id"
+                          value={monederoData.subcanal_id}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                          disabled={monederoData.canal_id === 0}
+                          required
+                        >
+                          <option value={0} disabled>
+                            {subcanales.length === 0 && monederoData.canal_id !== 0
+                              ? 'No hay subcanales disponibles'
+                              : 'Seleccione un subcanal'}
+                          </option>
+                          {subcanales.map((subcanal) => (
+                            <option key={subcanal.id} value={subcanal.id}>
+                              {subcanal.subcanal}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                      <div className="mb-4">
+                        <label className="block text-sm font-semibold text-gray-700 mb-1 text-center" htmlFor="vehiculo_id">
                           Vehículo
                         </label>
                         <select
@@ -731,110 +835,36 @@ export default function MonederoFlota() {
                           name="vehiculo_id"
                           value={monederoData.vehiculo_id}
                           onChange={handleInputChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          disabled
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                          disabled={monederoData.subcanal_id === 0}
                           required
                         >
                           <option value={0} disabled>
-                            Seleccione un vehículo
+                            {filteredVehiculos.length === 0 && monederoData.subcanal_id !== 0
+                              ? 'No hay vehículos disponibles'
+                              : 'Seleccione un vehículo'}
                           </option>
-                          {vehiculos.map((vehiculo) => (
+                          {filteredVehiculos.map((vehiculo) => (
                             <option key={vehiculo.id} value={vehiculo.id}>
-                              {vehiculo.modelo} - {vehiculo.placa} - {vehiculo.marca}
+                              {vehiculo.marca} {vehiculo.modelo} - {vehiculo.placa}
                             </option>
                           ))}
                         </select>
                       </div>
-                    </div>
-                    <div className="mb-4">
-                      <label className="block text-sm font-semibold text-gray-700 mb-1" htmlFor="periodo">
-                        Período
-                      </label>
-                      <select
-                        id="periodo"
-                        name="periodo"
-                        value={monederoData.periodo}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        required
-                      >
-                        <option value="" disabled>
-                          Seleccione un período
-                        </option>
-                        <option value="1">Diario</option>
-                        <option value="7">Semanal</option>
-                        <option value="15">Quincenal</option>
-                        <option value="30">Mensual</option>
-                      </select>
-                    </div>
-                    <div className="mb-4">
-                      <label className="block text-sm font-semibold text-gray-700 mb-1" htmlFor="canal_id">
-                        Canal
-                      </label>
-                      <select
-                        id="canal_id"
-                        name="canal_id"
-                        value={monederoData.canal_id}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        required
-                      >
-                        <option value={0} disabled>
-                          Seleccione un canal
-                        </option>
-                        {canales.map((canal) => (
-                          <option key={canal.id} value={canal.id}>
-                            {canal.canal}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="mb-4">
-                      <label className="block text-sm font-semibold text-gray-700 mb-1" htmlFor="subcanal_id">
-                        Subcanal
-                      </label>
-                      <select
-                        id="subcanal_id"
-                        name="subcanal_id"
-                        value={monederoData.subcanal_id}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        disabled={monederoData.canal_id === 0}
-                        required
-                      >
-                        <option value={0} disabled>
-                          {subcanales.length === 0 && monederoData.canal_id !== 0
-                            ? 'No hay subcanales disponibles'
-                            : 'Seleccione un subcanal'}
-                        </option>
-                        {subcanales.map((subcanal) => (
-                          <option key={subcanal.id} value={subcanal.id}>
-                            {subcanal.subcanal}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="mb-4">
-                      <label className="block text-sm font-semibold text-gray-700 mb-1" htmlFor="tarjeta_id">
-                        Tarjeta
-                      </label>
-                      <select
-                        id="tarjeta_id"
-                        name="tarjeta_id"
-                        value={monederoData.tarjeta_id}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        required
-                      >
-                        <option value={0} disabled>
-                          {tarjetas.length === 0 ? 'No hay tarjetas disponibles' : 'Seleccione una tarjeta'}
-                        </option>
-                        {tarjetas.map((tarjeta) => (
-                          <option key={tarjeta.id} value={tarjeta.id}>
-                            {tarjeta.numero_tarjeta} (Vehículo: {vehiculos.find((v) => v.id === tarjeta.vehiculo_id)?.placa || 'N/A'})
-                          </option>
-                        ))}
-                      </select>
+                      <div className="mb-4">
+                        <label className="block text-sm font-semibold text-gray-700 mb-1 text-center" htmlFor="tarjeta_id">
+                          Tarjeta
+                        </label>
+                        <input
+                          id="tarjeta_id"
+                          value={
+                            filteredTarjetas.find((tarjeta) => tarjeta.id === monederoData.tarjeta_id)?.numero_tarjeta || 
+                            tarjetas.find((tarjeta) => tarjeta.id === monederoData.tarjeta_id)?.numero_tarjeta || 'N/A'
+                          }
+                          readOnly
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-500 text-center"
+                        />
+                      </div>
                     </div>
                     <div className="flex justify-between">
                       <button
@@ -867,9 +897,7 @@ export default function MonederoFlota() {
                 }}
               >
                 <div className="bg-white p-6 rounded-md shadow-xl w-1/3 border border-gray-200">
-                  <h2
-                    className="text-xl font-bold text-gray-800 mb-4 bg-clip-text bg-gradient-to-r from-blue-700 to-indigo-700 text-transparent"
-                  >
+                  <h2 className="text-xl font-bold text-gray-800 mb-4 bg-clip-text bg-gradient-to-r from-blue-700 to-indigo-700 text-transparent">
                     Confirmar Eliminación
                   </h2>
                   <p className="text-center text-gray-700 mb-4">

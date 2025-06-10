@@ -356,13 +356,12 @@ export default function Descuentos() {
                 <th className="px-4 py-2 text-center">#</th>
                 <th className="px-4 py-2 text-center">Activo</th>
                 <th className="px-4 py-2 text-center">Descuento</th>
-                <th className="px-4 py-2 text-center">Nombre para Mostrar</th>
+                <th className="px-4 py-2 text-center">Descripción</th>
                 <th className="px-4 py-2 text-center">Canal</th>
                 <th className="px-4 py-2 text-center">Tipo de Combustible</th>
                 <th className="px-4 py-2 text-center">Fecha Creación</th>
                 <th className="px-4 py-2 text-center">Creado Por</th>
                 <th className="px-4 py-2 text-center">Fecha Modificación</th>
-                <th className="px-4 py-2 text-center">Modificado Por</th>
                 <th className="px-4 py-2 text-center">Acciones</th>
               </tr>
             </thead>
@@ -385,7 +384,6 @@ export default function Descuentos() {
                     <td className="px-4 py-2 text-center">{new Date(descuento.create_date).toLocaleDateString()}</td>
                     <td className="px-4 py-2 text-center">{descuento.create_uid_name || descuento.create_uid}</td>
                     <td className="px-4 py-2 text-center">{new Date(descuento.write_date).toLocaleDateString()}</td>
-                    <td className="px-4 py-2 text-center">{descuento.write_uid_name || descuento.write_uid}</td>
                     <td className="px-4 py-2 text-center">
                       <button
                         onClick={() => {
@@ -460,7 +458,7 @@ export default function Descuentos() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                     <div className="mb-4">
                       <label className="block text-sm font-bold mb-2 text-center" htmlFor="descuento">
-                        Descuento por galón
+                        Descuento LPS por galón
                       </label>
                       <input
                         type="number"
@@ -476,7 +474,7 @@ export default function Descuentos() {
                     </div>
                     <div className="mb-4">
                       <label className="block text-sm font-bold mb-2 text-center" htmlFor="display_name">
-                        Display Name
+                        Descripción
                       </label>
                       <input
                         type="text"
@@ -576,7 +574,7 @@ export default function Descuentos() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                     <div className="mb-4">
                       <label className="block text-sm font-bold mb-2 text-center" htmlFor="descuento">
-                        Descuento por galón
+                        Descuento LPS por galón
                       </label>
                       <input
                         type="number"
@@ -592,7 +590,7 @@ export default function Descuentos() {
                     </div>
                     <div className="mb-4">
                       <label className="block text-sm font-bold mb-2 text-center" htmlFor="display_name">
-                        Display Name
+                        Descripción
                       </label>
                       <input
                         type="text"
