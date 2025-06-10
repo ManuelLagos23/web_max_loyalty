@@ -116,14 +116,15 @@ export default function Conductores() {
 
   return (
     <div className="font-sans bg-white text-gray-900 min-h-screen">
+      
       <div className="flex">
         <Navbar />
         <div className="flex-1 flex flex-col">
           <main className="flex-1 p-6">
             <div className="space-y-6">
-              <h1
+             <h1
                 className="text-4xl font-bold text-gray-900 mb-4
-                bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-white
+                bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
                 transition-all duration-300 text-center"
               >
                 Gestión de Conductores

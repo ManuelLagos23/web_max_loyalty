@@ -14,6 +14,8 @@ type Monedero = {
   odometro: number;
   tarjeta_id: number;
   tarjeta_numero?: string;
+  canal_id?: number;
+  subcanal_id?: number;
 };
 
 type Vehiculo = {
@@ -61,24 +63,26 @@ export default function MonederoFlota() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [monederoData, setMonederoData] = useState({
     galones_totales: '',
-    vehiculo_id: 0,
+    vehiculo_id: '',
     periodo: '',
     galones_consumidos: '',
     galones_disponibles: '',
     odometro: '',
-    tarjeta_id: 0,
-    canal_id: 0,
-    subcanal_id: 0,
+    tarjeta_id: '',
+    canal_id: '',
+    subcanal_id: '',
   });
   const [monederoToUpdate, setMonederoToUpdate] = useState<Monedero | null>(null);
   const [monederoToDelete, setMonederoToDelete] = useState<Monedero | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
   const itemsPerPage = 10;
 
-  const getPeriodLabel = (period: number): string => {
-    switch (period) {
+  const getPeriodLabel = (period: number | string | null): string => {
+    const periodNum = Number(period);
+    switch (periodNum) {
       case 1: return 'Diario';
       case 7: return 'Semanal';
       case 15: return 'Quincenal';
@@ -88,26 +92,27 @@ export default function MonederoFlota() {
   };
 
   const mapPeriodToNumber = (period: string): number => {
-    switch (period) {
-      case '1': return 1;
-      case '7': return 7;
-      case '15': return 15;
-      case '30': return 30;
-      default: return 0;
-    }
+    const periodNum = Number(period);
+    return [1, 7, 15, 30].includes(periodNum) ? periodNum : 0;
   };
 
   const fetchMonederos = useCallback(async () => {
     try {
+      setLoading(true);
       const response = await fetch(`/api/monedero_flota?page=${currentPage}&limit=${itemsPerPage}`);
-      if (!response.ok) throw new Error('Error fetching monederos');
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Error fetching monederos: ${response.status} - ${errorText}`);
+      }
       const data = await response.json();
       console.log('Monederos fetched:', data);
       setMonederos(Array.isArray(data) ? data : []);
       setError(null);
     } catch (err) {
       console.error('Error fetching monederos:', err);
-      setError('Error al cargar los monederos');
+      setError('Error al cargar los monederos: ' + (err as Error).message);
+    } finally {
+      setLoading(false);
     }
   }, [currentPage, itemsPerPage]);
 
@@ -120,6 +125,7 @@ export default function MonederoFlota() {
       setVehiculos(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error('Error fetching vehiculos:', err);
+      setError('Error al cargar los vehículos');
     }
   }, []);
 
@@ -134,9 +140,6 @@ export default function MonederoFlota() {
         : [];
       console.log('Tarjetas filtered:', JSON.stringify(tarjetasConVehiculo, null, 2));
       setTarjetas(tarjetasConVehiculo);
-      if (tarjetasConVehiculo.length === 0) {
-        
-      }
     } catch (err) {
       console.error('Error fetching tarjetas:', err);
       setError('Error al cargar las tarjetas');
@@ -157,6 +160,10 @@ export default function MonederoFlota() {
   }, []);
 
   const fetchSubcanales = useCallback(async (canalId: number) => {
+    if (canalId === 0) {
+      setSubcanales([]);
+      return;
+    }
     try {
       const response = await fetch(`/api/subcanales?canal_id=${canalId}`);
       if (!response.ok) throw new Error('Error fetching subcanales');
@@ -171,6 +178,11 @@ export default function MonederoFlota() {
   }, []);
 
   const fetchVehiculoIds = useCallback(async (canalId: number, subcanalId: number) => {
+    if (canalId === 0 || subcanalId === 0) {
+      setVehiculoIds([]);
+      setFilteredTarjetas([]);
+      return;
+    }
     try {
       const response = await fetch(`/api/tarjetas/filtro?canal_id=${canalId}&subcanal_id=${subcanalId}`);
       if (!response.ok) throw new Error('Error fetching vehiculo IDs');
@@ -187,10 +199,15 @@ export default function MonederoFlota() {
   }, []);
 
   useEffect(() => {
-    fetchMonederos();
-    fetchVehiculos();
-    fetchTarjetas();
-    fetchCanales();
+    Promise.all([
+      fetchMonederos(),
+      fetchVehiculos(),
+      fetchTarjetas(),
+      fetchCanales(),
+    ]).catch((err) => {
+      console.error('Error in initial fetch:', err);
+      setError('Error al cargar los datos iniciales');
+    });
   }, [fetchMonederos, fetchVehiculos, fetchTarjetas, fetchCanales]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -198,12 +215,12 @@ export default function MonederoFlota() {
     setMonederoData((prev) => {
       const newData = {
         ...prev,
-        [name]: name === 'vehiculo_id' || name === 'canal_id' || name === 'subcanal_id' ? Number(value) : value,
+        [name]: ['vehiculo_id', 'canal_id', 'subcanal_id', 'tarjeta_id'].includes(name) ? value : value,
       };
       if (name === 'canal_id') {
-        newData.subcanal_id = 0;
-        newData.vehiculo_id = 0;
-        newData.tarjeta_id = 0;
+        newData.subcanal_id = '';
+        newData.vehiculo_id = '';
+        newData.tarjeta_id = '';
         setSubcanales([]);
         setVehiculoIds([]);
         setFilteredTarjetas([]);
@@ -212,13 +229,12 @@ export default function MonederoFlota() {
         }
       }
       if (name === 'subcanal_id') {
-        newData.vehiculo_id = 0;
-        newData.tarjeta_id = 0;
-        if (newData.canal_id !== 0 && Number(value) !== 0) {
-          fetchVehiculoIds(newData.canal_id, Number(value));
-        } else {
-          setVehiculoIds([]);
-          setFilteredTarjetas([]);
+        newData.vehiculo_id = '';
+        newData.tarjeta_id = '';
+        setVehiculoIds([]);
+        setFilteredTarjetas([]);
+        if (newData.canal_id !== '' && Number(value) !== 0) {
+          fetchVehiculoIds(Number(newData.canal_id), Number(value));
         }
       }
       if (name === 'vehiculo_id') {
@@ -229,7 +245,7 @@ export default function MonederoFlota() {
           setError(`Advertencia: El vehículo seleccionado tiene ${selectedTarjetas.length} tarjetas asociadas. Se seleccionó la primera.`);
         }
         const selectedTarjeta = selectedTarjetas[0];
-        newData.tarjeta_id = selectedTarjeta ? selectedTarjeta.id : 0;
+        newData.tarjeta_id = selectedTarjeta ? String(selectedTarjeta.id) : '';
         if (!selectedTarjeta) {
           console.error(`No se encontró tarjeta para vehiculo_id ${value}`);
           setError('No se encontró una tarjeta asociada al vehículo seleccionado.');
@@ -242,35 +258,36 @@ export default function MonederoFlota() {
 
   const handleSubmitAdd = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!monederoData.periodo) {
+    const { galones_totales, vehiculo_id, periodo, canal_id, subcanal_id, tarjeta_id } = monederoData;
+    if (!periodo) {
       alert('Por favor seleccione un período');
       return;
     }
-    if (monederoData.vehiculo_id === 0) {
+    if (!vehiculo_id) {
       alert('Por favor seleccione un vehículo');
       return;
     }
-    if (monederoData.tarjeta_id === 0) {
+    if (!tarjeta_id) {
       alert('No hay tarjeta asociada al vehículo seleccionado');
       return;
     }
-    if (monederoData.canal_id === 0) {
+    if (!canal_id) {
       alert('Por favor seleccione un canal');
       return;
     }
-    if (monederoData.subcanal_id === 0) {
+    if (!subcanal_id) {
       alert('Por favor seleccione un subcanal');
       return;
     }
     try {
       const formData = new FormData();
-      formData.append('galones_totales', monederoData.galones_totales);
-      formData.append('vehiculo_id', String(monederoData.vehiculo_id));
-      formData.append('periodo', String(mapPeriodToNumber(monederoData.periodo)));
+      formData.append('galones_totales', galones_totales);
+      formData.append('vehiculo_id', vehiculo_id);
+      formData.append('periodo', String(mapPeriodToNumber(periodo)));
       formData.append('galones_consumidos', monederoData.galones_consumidos || '0');
       formData.append('galones_disponibles', monederoData.galones_disponibles || '0');
-      formData.append('odometro', monederoData.odometro);
-      formData.append('tarjeta_id', String(monederoData.tarjeta_id));
+      formData.append('odometro', monederoData.odometro || '0');
+      formData.append('tarjeta_id', tarjeta_id);
 
       const response = await fetch('/api/monedero_flota', {
         method: 'POST',
@@ -281,19 +298,20 @@ export default function MonederoFlota() {
         alert('Monedero agregado exitosamente');
         setMonederoData({
           galones_totales: '',
-          vehiculo_id: 0,
+          vehiculo_id: '',
           periodo: '',
           galones_consumidos: '',
           galones_disponibles: '',
           odometro: '',
-          tarjeta_id: 0,
-          canal_id: 0,
-          subcanal_id: 0,
+          tarjeta_id: '',
+          canal_id: '',
+          subcanal_id: '',
         });
         setIsAddModalOpen(false);
         fetchMonederos();
       } else {
-        alert('Error al agregar el monedero');
+        const errorText = await response.text();
+        alert(`Error al agregar el monedero: ${errorText}`);
       }
     } catch (err) {
       alert('Error al agregar el monedero');
@@ -303,23 +321,24 @@ export default function MonederoFlota() {
 
   const handleSubmitUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!monederoData.periodo) {
+    const { galones_totales, vehiculo_id, periodo, canal_id, subcanal_id, tarjeta_id } = monederoData;
+    if (!periodo) {
       alert('Por favor seleccione un período');
       return;
     }
-    if (monederoData.vehiculo_id === 0) {
+    if (!vehiculo_id) {
       alert('Por favor seleccione un vehículo');
       return;
     }
-    if (monederoData.tarjeta_id === 0) {
+    if (!tarjeta_id) {
       alert('No hay tarjeta asociada al vehículo seleccionado');
       return;
     }
-    if (monederoData.canal_id === 0) {
+    if (!canal_id) {
       alert('Por favor seleccione un canal');
       return;
     }
-    if (monederoData.subcanal_id === 0) {
+    if (!subcanal_id) {
       alert('Por favor seleccione un subcanal');
       return;
     }
@@ -327,13 +346,13 @@ export default function MonederoFlota() {
       try {
         const formData = new FormData();
         formData.append('id', String(monederoToUpdate.id));
-        formData.append('galones_totales', monederoData.galones_totales);
-        formData.append('vehiculo_id', String(monederoData.vehiculo_id));
-        formData.append('periodo', String(mapPeriodToNumber(monederoData.periodo)));
+        formData.append('galones_totales', galones_totales);
+        formData.append('vehiculo_id', vehiculo_id);
+        formData.append('periodo', String(mapPeriodToNumber(periodo)));
         formData.append('galones_consumidos', monederoData.galones_consumidos || '0');
         formData.append('galones_disponibles', monederoData.galones_disponibles || '0');
-        formData.append('odometro', monederoData.odometro);
-        formData.append('tarjeta_id', String(monederoData.tarjeta_id));
+        formData.append('odometro', monederoData.odometro || '0');
+        formData.append('tarjeta_id', tarjeta_id);
 
         const response = await fetch('/api/monedero_flota', {
           method: 'PUT',
@@ -344,19 +363,20 @@ export default function MonederoFlota() {
           alert('Monedero actualizado exitosamente');
           setMonederoData({
             galones_totales: '',
-            vehiculo_id: 0,
+            vehiculo_id: '',
             periodo: '',
             galones_consumidos: '',
             galones_disponibles: '',
             odometro: '',
-            tarjeta_id: 0,
-            canal_id: 0,
-            subcanal_id: 0,
+            tarjeta_id: '',
+            canal_id: '',
+            subcanal_id: '',
           });
           setIsUpdateModalOpen(false);
           fetchMonederos();
         } else {
-          alert('Error al actualizar el monedero');
+          const errorText = await response.text();
+          alert(`Error al actualizar el monedero: ${errorText}`);
         }
       } catch (err) {
         alert('Error al actualizar el monedero');
@@ -377,13 +397,44 @@ export default function MonederoFlota() {
           setIsDeleteModalOpen(false);
           fetchMonederos();
         } else {
-          alert('Error al eliminar el monedero');
+          const errorText = await response.text();
+          alert(`Error al eliminar el monedero: ${errorText}`);
         }
       } catch (err) {
         alert('Error al eliminar el monedero');
         console.error('Error deleting monedero:', err);
       }
     }
+  };
+
+  const handleEditClick = async (monedero: Monedero) => {
+    setMonederoToUpdate(monedero);
+    const associatedTarjeta = filteredTarjetas.find((tarjeta) => tarjeta.id === monedero.tarjeta_id) || 
+      tarjetas.find((tarjeta) => tarjeta.id === monedero.tarjeta_id);
+    const canalId = monedero.canal_id || associatedTarjeta?.canal_id || 0;
+    const subcanalId = monedero.subcanal_id || associatedTarjeta?.subcanal_id || 0;
+    const vehiculoId = monedero.vehiculo_id || associatedTarjeta?.vehiculo_id || 0;
+
+    setMonederoData({
+      galones_totales: String(monedero.galones_totales || ''),
+      vehiculo_id: String(vehiculoId),
+      periodo: String(monedero.periodo || ''),
+      galones_consumidos: String(monedero.galones_consumidos || '0'),
+      galones_disponibles: String(monedero.galones_disponibles || '0'),
+      odometro: String(monedero.odometro || '0'),
+      tarjeta_id: String(monedero.tarjeta_id || 0),
+      canal_id: String(canalId),
+      subcanal_id: String(subcanalId),
+    });
+
+    if (canalId) {
+      await fetchSubcanales(canalId);
+      if (subcanalId) {
+        await fetchVehiculoIds(canalId, subcanalId);
+      }
+    }
+
+    setIsUpdateModalOpen(true);
   };
 
   const filteredMonederos = monederos.filter((monedero) =>
@@ -412,6 +463,14 @@ export default function MonederoFlota() {
   };
 
   const filteredVehiculos = vehiculos.filter((vehiculo) => vehiculoIds.includes(vehiculo.id));
+
+  if (loading) {
+    return (
+      <div className="font-sans bg-white text-gray-900 min-h-screen flex items-center justify-center">
+        <div className="text-center text-gray-700">Cargando...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="font-sans bg-white text-gray-900 min-h-screen">
@@ -462,7 +521,6 @@ export default function MonederoFlota() {
                   <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Período</th>
                   <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Galones Disponibles</th>
                   <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Galones Consumidos</th>
-                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700" hidden>Odómetro</th>
                   <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Tarjeta</th>
                   <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Acciones</th>
                 </tr>
@@ -470,7 +528,7 @@ export default function MonederoFlota() {
               <tbody>
                 {currentMonederos.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="px-4 py-2 text-center text-gray-500">
+                    <td colSpan={8} className="px-4 py-2 text-center text-gray-500">
                       No hay monederos disponibles
                     </td>
                   </tr>
@@ -483,35 +541,10 @@ export default function MonederoFlota() {
                       <td className="px-4 py-2">{getPeriodLabel(monedero.periodo)}</td>
                       <td className="px-4 py-2">{monedero.galones_disponibles || '0'}</td>
                       <td className="px-4 py-2">{monedero.galones_consumidos || '0'}</td>
-                      <td className="px-4 py-2" hidden>{monedero.odometro || 'N/A'}</td>
                       <td className="px-4 py-2">{monedero.tarjeta_numero || 'N/A'}</td>
                       <td className="px-4 py-2 flex space-x-2">
                         <button
-                          onClick={() => {
-                            setMonederoToUpdate(monedero);
-                            const associatedTarjeta = filteredTarjetas.find((tarjeta) => tarjeta.id === monedero.tarjeta_id) || tarjetas.find((tarjeta) => tarjeta.id === monedero.tarjeta_id);
-                            const vehiculoId = associatedTarjeta?.vehiculo_id || monedero.vehiculo_id || 0;
-                            const canalId = associatedTarjeta?.canal_id || 0;
-                            const subcanalId = associatedTarjeta?.subcanal_id || 0;
-                            setMonederoData({
-                              galones_totales: String(monedero.galones_totales || ''),
-                              vehiculo_id: vehiculoId,
-                              periodo: String(monedero.periodo || ''),
-                              galones_consumidos: String(monedero.galones_consumidos || '0'),
-                              galones_disponibles: String(monedero.galones_disponibles || '0'),
-                              odometro: String(monedero.odometro || '0'),
-                              tarjeta_id: monedero.tarjeta_id || 0,
-                              canal_id: canalId,
-                              subcanal_id: subcanalId,
-                            });
-                            if (canalId) {
-                              fetchSubcanales(canalId);
-                              if (subcanalId) {
-                                fetchVehiculoIds(canalId, subcanalId);
-                              }
-                            }
-                            setIsUpdateModalOpen(true);
-                          }}
+                          onClick={() => handleEditClick(monedero)}
                           className="bg-yellow-500 text-white px-3 py-1 rounded-md hover:bg-yellow-600 transition-colors duration-200"
                         >
                           Editar
@@ -564,7 +597,7 @@ export default function MonederoFlota() {
                   }
                 }}
               >
-                <div className="bg-white p-6 rounded-md shadow-xl w-1/2 max-h-[90vh] overflow-y-auto border-1">
+                <div className="bg-white p-6 rounded-md shadow-xl w-1/2 max-h-[90vh] overflow-y-auto border">
                   <div className="text-center">
                     <h2 className="text-2xl font-bold text-gray-800 mb-4 bg-clip-text bg-gradient-to-r from-blue-700 to-indigo-700 text-transparent">
                       Agregar Monedero
@@ -610,7 +643,7 @@ export default function MonederoFlota() {
                         </select>
                       </div>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="mb-4">
                         <label className="block text-sm font-semibold text-gray-700 mb-1 text-center" htmlFor="canal_id">
                           Canal
@@ -623,7 +656,7 @@ export default function MonederoFlota() {
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
                           required
                         >
-                          <option value={0} disabled>
+                          <option value="" disabled>
                             Seleccione un canal
                           </option>
                           {canales.map((canal) => (
@@ -643,11 +676,11 @@ export default function MonederoFlota() {
                           value={monederoData.subcanal_id}
                           onChange={handleInputChange}
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
-                          disabled={monederoData.canal_id === 0}
+                          disabled={monederoData.canal_id === ''}
                           required
                         >
-                          <option value={0} disabled>
-                            {subcanales.length === 0 && monederoData.canal_id !== 0
+                          <option value="" disabled>
+                            {subcanales.length === 0 && monederoData.canal_id !== ''
                               ? 'No hay subcanales disponibles'
                               : 'Seleccione un subcanal'}
                           </option>
@@ -659,7 +692,7 @@ export default function MonederoFlota() {
                         </select>
                       </div>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="mb-4">
                         <label className="block text-sm font-semibold text-gray-700 mb-1 text-center" htmlFor="vehiculo_id">
                           Vehículo
@@ -670,11 +703,11 @@ export default function MonederoFlota() {
                           value={monederoData.vehiculo_id}
                           onChange={handleInputChange}
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
-                          disabled={monederoData.subcanal_id === 0}
+                          disabled={monederoData.subcanal_id === ''}
                           required
                         >
-                          <option value={0} disabled>
-                            {filteredVehiculos.length === 0 && monederoData.subcanal_id !== 0
+                          <option value="" disabled>
+                            {filteredVehiculos.length === 0 && monederoData.subcanal_id !== ''
                               ? 'No hay vehículos disponibles'
                               : 'Seleccione un vehículo'}
                           </option>
@@ -692,8 +725,9 @@ export default function MonederoFlota() {
                         <input
                           id="tarjeta_id"
                           value={
-                            filteredTarjetas.find((tarjeta) => tarjeta.id === monederoData.tarjeta_id)?.numero_tarjeta || 
-                            tarjetas.find((tarjeta) => tarjeta.id === monederoData.tarjeta_id)?.numero_tarjeta || 'N/A'
+                            filteredTarjetas.find((tarjeta) => Number(tarjeta.id) === Number(monederoData.tarjeta_id))?.numero_tarjeta ||
+                            tarjetas.find((tarjeta) => Number(tarjeta.id) === Number(monederoData.tarjeta_id))?.numero_tarjeta ||
+                            'N/A'
                           }
                           readOnly
                           className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-500 text-center"
@@ -730,7 +764,7 @@ export default function MonederoFlota() {
                   }
                 }}
               >
-                <div className="bg-white p-6 rounded-md shadow-xl w-1/2 max-h-[90vh] overflow-y-auto border-1">
+                <div className="bg-white p-6 rounded-md shadow-xl w-1/2 max-h-[90vh] overflow-y-auto border">
                   <div className="text-center">
                     <h2 className="text-2xl font-bold text-gray-800 mb-4 bg-clip-text bg-gradient-to-r from-blue-700 to-indigo-700 text-transparent">
                       Actualizar Monedero
@@ -776,7 +810,7 @@ export default function MonederoFlota() {
                         </select>
                       </div>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="mb-4">
                         <label className="block text-sm font-semibold text-gray-700 mb-1 text-center" htmlFor="canal_id">
                           Canal
@@ -789,7 +823,7 @@ export default function MonederoFlota() {
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
                           required
                         >
-                          <option value={0} disabled>
+                          <option value="" disabled>
                             Seleccione un canal
                           </option>
                           {canales.map((canal) => (
@@ -809,11 +843,11 @@ export default function MonederoFlota() {
                           value={monederoData.subcanal_id}
                           onChange={handleInputChange}
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
-                          disabled={monederoData.canal_id === 0}
+                          disabled={monederoData.canal_id === ''}
                           required
                         >
-                          <option value={0} disabled>
-                            {subcanales.length === 0 && monederoData.canal_id !== 0
+                          <option value="" disabled>
+                            {subcanales.length === 0 && monederoData.canal_id !== ''
                               ? 'No hay subcanales disponibles'
                               : 'Seleccione un subcanal'}
                           </option>
@@ -825,7 +859,7 @@ export default function MonederoFlota() {
                         </select>
                       </div>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="mb-4">
                         <label className="block text-sm font-semibold text-gray-700 mb-1 text-center" htmlFor="vehiculo_id">
                           Vehículo
@@ -836,11 +870,11 @@ export default function MonederoFlota() {
                           value={monederoData.vehiculo_id}
                           onChange={handleInputChange}
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
-                          disabled={monederoData.subcanal_id === 0}
+                          disabled={monederoData.subcanal_id === ''}
                           required
                         >
-                          <option value={0} disabled>
-                            {filteredVehiculos.length === 0 && monederoData.subcanal_id !== 0
+                          <option value="" disabled>
+                            {filteredVehiculos.length === 0 && monederoData.subcanal_id !== ''
                               ? 'No hay vehículos disponibles'
                               : 'Seleccione un vehículo'}
                           </option>
@@ -858,8 +892,9 @@ export default function MonederoFlota() {
                         <input
                           id="tarjeta_id"
                           value={
-                            filteredTarjetas.find((tarjeta) => tarjeta.id === monederoData.tarjeta_id)?.numero_tarjeta || 
-                            tarjetas.find((tarjeta) => tarjeta.id === monederoData.tarjeta_id)?.numero_tarjeta || 'N/A'
+                            filteredTarjetas.find((tarjeta) => Number(tarjeta.id) === Number(monederoData.tarjeta_id))?.numero_tarjeta ||
+                            tarjetas.find((tarjeta) => Number(tarjeta.id) === Number(monederoData.tarjeta_id))?.numero_tarjeta ||
+                            'N/A'
                           }
                           readOnly
                           className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-500 text-center"
