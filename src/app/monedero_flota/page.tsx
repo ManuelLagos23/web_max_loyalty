@@ -135,7 +135,7 @@ export default function MonederoFlota() {
       console.log('Tarjetas filtered:', JSON.stringify(tarjetasConVehiculo, null, 2));
       setTarjetas(tarjetasConVehiculo);
       if (tarjetasConVehiculo.length === 0) {
-        setError('No se encontraron tarjetas de flota disponibles');
+        
       }
     } catch (err) {
       console.error('Error fetching tarjetas:', err);
