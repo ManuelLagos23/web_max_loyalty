@@ -1,3 +1,5 @@
+
+
 import { NextResponse } from 'next/server';
 import { Pool } from 'pg';
 
@@ -15,11 +17,21 @@ export async function GET(request: Request) {
 
   try {
     const offset = (page - 1) * limit;
+
     const result = await client.query(
       `
-      SELECT v.id, v.marca, v.modelo, v.placa
+      SELECT 
+        v.id, 
+        v.marca, 
+        v.modelo, 
+        v.placa,
+        tc.name AS tipo_combustible_nombre,
+        mf.galones_totales,
+        mf.galones_disponibles
       FROM vehiculos v
       LEFT JOIN tarjetas t ON v.id = t.vehiculo_id
+      LEFT JOIN tipo_combustible tc ON v.tipo_combustible = tc.id
+      LEFT JOIN monedero_flota mf ON v.id = mf.vehiculo_id
       WHERE t.vehiculo_id IS NULL
         AND (v.marca ILIKE $1 OR v.modelo ILIKE $1 OR v.placa ILIKE $1)
       ORDER BY v.id
@@ -41,7 +53,9 @@ export async function GET(request: Request) {
 
     const total = parseInt(totalResult.rows[0].total, 10);
 
-    client.release();
+
+    console.log(`Total de vehículos disponibles: ${total}`);
+
     return NextResponse.json(
       {
         vehiculos: result.rows,
@@ -49,9 +63,11 @@ export async function GET(request: Request) {
       },
       { status: 200 }
     );
-  } catch (error) {
-    client.release();
+  } catch (error: unknown) {
     console.error('Error al obtener los vehículos:', error);
-    return NextResponse.json({ message: 'Error al obtener los vehículos' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+    return NextResponse.json({ message: `Error al obtener los vehículos: ${errorMessage}` }, { status: 500 });
+  } finally {
+    client.release();
   }
 }

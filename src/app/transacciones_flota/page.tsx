@@ -3,25 +3,34 @@
 import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 
-type Transaccion = {
+type TransaccionFlota = {
   id: number;
-  cliente_nombre: string;
-  establecimiento_nombre: string;
-  fecha: string;
   monto: number;
-  terminal_nombre: string;
-  numero_tarjeta: string | null;
-  estado: string | null;
   unidades: number;
-  descuento: number;
-  canal_nombre: string;
-  tipo_combustible_nombre: string;
-  turno_id: number | null;
-  turno_estado: string | null;
+  odometro: number | null;
+  tarjeta_id: number | null;
+  monedero_id: number | null;
+  canal_id: number;
+  subcanal_id: number;
+  created_at: string;
+  canal_nombre?: string;
+  subcanal_nombre?: string;
 };
 
-export default function Transacciones() {
-  const [transacciones, setTransacciones] = useState<Transaccion[]>([]);
+type Canal = {
+  id: number;
+  canal: string;
+};
+
+type Subcanal = {
+  id: number;
+  subcanal: string;
+};
+
+export default function TransaccionesFlota() {
+  const [transacciones, setTransacciones] = useState<TransaccionFlota[]>([]);
+  const [canales, setCanales] = useState<Canal[]>([]);
+  const [subcanales, setSubcanales] = useState<Subcanal[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -29,25 +38,63 @@ export default function Transacciones() {
   useEffect(() => {
     const fetchTransacciones = async () => {
       try {
-        const response = await fetch(`/api/transacciones?page=${currentPage}&limit=${itemsPerPage}`);
+        const response = await fetch(`/api/transacciones_flota?page=${currentPage}&limit=${itemsPerPage}`);
         if (response.ok) {
           const data = await response.json();
           setTransacciones(data);
         } else {
-          console.error('Failed to fetch transacciones:', response.statusText);
+          console.error('Failed to fetch transacciones flota:', response.statusText);
           setTransacciones([]);
         }
       } catch (error) {
-        console.error('Error fetching transacciones:', error);
+        console.error('Error fetching transacciones flota:', error);
         setTransacciones([]);
       }
     };
 
+    const fetchCanales = async () => {
+      try {
+        const response = await fetch('/api/canales');
+        if (response.ok) {
+          const data = await response.json();
+          setCanales(data);
+        } else {
+          console.error('Failed to fetch canales:', response.statusText);
+          setCanales([]);
+        }
+      } catch (error) {
+        console.error('Error fetching canales:', error);
+        setCanales([]);
+      }
+    };
+
+    const fetchSubcanales = async () => {
+      try {
+        const response = await fetch('/api/subcanales');
+        if (response.ok) {
+          const data = await response.json();
+          setSubcanales(data);
+        } else {
+          console.error('Failed to fetch subcanales:', response.statusText);
+          setSubcanales([]);
+        }
+      } catch (error) {
+        console.error('Error fetching subcanales:', error);
+        setSubcanales([]);
+      }
+    };
+
     fetchTransacciones();
+    fetchCanales();
+    fetchSubcanales();
   }, [currentPage]);
 
   const filteredTransacciones = transacciones.filter((transaccion) =>
-    Object.values(transaccion)
+    Object.values({
+      ...transaccion,
+      canal_nombre: canales.find((c) => c.id === transaccion.canal_id)?.canal ?? '',
+      subcanal_nombre: subcanales.find((s) => s.id === transaccion.subcanal_id)?.subcanal ?? '',
+    })
       .map((value) => String(value ?? ''))
       .join(' ')
       .toLowerCase()
@@ -74,16 +121,16 @@ export default function Transacciones() {
         <main className="flex-1 p-8 bg-white">
           <div className="space-y-4">
             <h1 className="text-4xl font-bold text-gray-900 mb-2 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent transition-all duration-300 text-center">
-              Gestión de Transacciones
+              Gestión de Transacciones de Flota
             </h1>
             <p className="text-center text-black leading-relaxed max-w-2xl p-2 rounded-lg transition-all duration-300 hover:shadow-md mx-auto">
-              Administra las transacciones de Max Loyalty.
+              Administra las transacciones de flota de Max Loyalty.
             </p>
           </div>
           <div className="mb-6">
             <input
               type="text"
-              placeholder="Buscar transacciones..."
+              placeholder="Buscar transacciones de flota..."
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
@@ -96,54 +143,48 @@ export default function Transacciones() {
             <thead className="bg-gray-200">
               <tr>
                 <th className="px-4 py-2">ID</th>
-                <th className="px-4 py-2">Cliente</th>
-                <th className="px-4 py-2">Establecimiento</th>
-                <th className="px-4 py-2">Fecha</th>
-                <th className="px-4 py-2">Total LPS.</th>
-                <th className="px-4 py-2">Terminal</th>
-                <th className="px-4 py-2">Número de Tarjeta</th>
-                <th className="px-4 py-2">Estado</th>
-                <th className="px-4 py-2">Litros</th>
-                <th className="px-4 py-2">Descuento LPS.</th>
+                <th className="px-4 py-2">Monto</th>
+                <th className="px-4 py-2">Unidades</th>
+                <th className="px-4 py-2">Odómetro</th>
+                <th className="px-4 py-2">Tarjeta ID</th>
+                <th className="px-4 py-2">Monedero ID</th>
                 <th className="px-4 py-2">Canal</th>
-                <th className="px-4 py-2">Tipo Combustible</th>
-                <th className="px-4 py-2">Turno ID</th>
-                <th className="px-4 py-2">Turno Estado</th>
+                <th className="px-4 py-2">Subcanal</th>
+                <th className="px-4 py-2">Fecha de Creación</th>
               </tr>
             </thead>
             <tbody>
               {currentTransacciones.length === 0 ? (
                 <tr>
-                  <td colSpan={14} className="px-4 py-2 text-center">
-                    No hay transacciones disponibles
+                  <td colSpan={9} className="px-4 py-2 text-center">
+                    No hay transacciones de flota disponibles
                   </td>
                 </tr>
               ) : (
                 currentTransacciones.map((transaccion) => (
                   <tr className="hover:bg-gray-50" key={transaccion.id}>
                     <td className="px-4 py-2 text-center">{transaccion.id}</td>
-                    <td className="px-4 py-2 text-center">{transaccion.cliente_nombre ?? 'Sin cliente'}</td>
-                    <td className="px-4 py-2 text-center">{transaccion.establecimiento_nombre}</td>
-                    <td className="px-4 py-2">{new Date(transaccion.fecha).toLocaleDateString()}</td>
                     <td className="px-4 py-2 text-center">
                       {transaccion.monto.toLocaleString('en-US', {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
                       })}
                     </td>
-                    <td className="px-4 py-2 text-center">{transaccion.terminal_nombre}</td>
-                    <td className="px-4 py-2 text-center">{transaccion.numero_tarjeta ?? 'Sin tarjeta'}</td>
-                    <td className="px-4 py-2 text-center">{transaccion.estado ? 'Validada' : 'Cancelada'}</td>
                     <td className="px-4 py-2 text-center">
                       {transaccion.unidades != null ? transaccion.unidades.toFixed(2) : 'N/A'}
                     </td>
+                    <td className="px-4 py-2 text-center">{transaccion.odometro ?? 'N/A'}</td>
+                    <td className="px-4 py-2 text-center">{transaccion.tarjeta_id ?? 'N/A'}</td>
+                    <td className="px-4 py-2 text-center">{transaccion.monedero_id ?? 'N/A'}</td>
                     <td className="px-4 py-2 text-center">
-                      {transaccion.descuento != null ? transaccion.descuento.toFixed(2) : 'N/A'}
+                      {canales.find((c) => c.id === transaccion.canal_id)?.canal ?? 'N/A'}
                     </td>
-                    <td className="px-4 py-2 text-center">{transaccion.canal_nombre}</td>
-                    <td className="px-4 py-2 text-center">{transaccion.tipo_combustible_nombre}</td>
-                    <td className="px-4 py-2 text-center">{transaccion.turno_id ?? 'N/A'}</td>
-                    <td className="px-4 py-2 text-center">{transaccion.turno_estado ?? 'N/A'}</td>
+                    <td className="px-4 py-2 text-center">
+                      {subcanales.find((s) => s.id === transaccion.subcanal_id)?.subcanal ?? 'N/A'}
+                    </td>
+                    <td className="px-4 py-2 text-center">
+                      {new Date(transaccion.created_at).toLocaleDateString()}
+                    </td>
                   </tr>
                 ))
               )}

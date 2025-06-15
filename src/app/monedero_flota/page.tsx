@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Navbar from '../components/Navbar';
+import { usePathname } from 'next/navigation';
+import Link from 'next/link';
 
 type Monedero = {
   id: number;
@@ -61,16 +63,16 @@ export default function MonederoFlota() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const pathname = usePathname();
   const [monederoData, setMonederoData] = useState({
     galones_totales: '',
-    vehiculo_id: '',
     periodo: '',
     galones_consumidos: '',
     galones_disponibles: '',
     odometro: '',
-    tarjeta_id: '',
     canal_id: '',
     subcanal_id: '',
+    selectedVehiculoIds: [] as number[],
   });
   const [monederoToUpdate, setMonederoToUpdate] = useState<Monedero | null>(null);
   const [monederoToDelete, setMonederoToDelete] = useState<Monedero | null>(null);
@@ -101,16 +103,16 @@ export default function MonederoFlota() {
       setLoading(true);
       const response = await fetch(`/api/monedero_flota?page=${currentPage}&limit=${itemsPerPage}`);
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Error fetching monederos: ${response.status} - ${errorText}`);
+        const errorData = await response.json();
+        throw new Error(errorData.message || `Error HTTP: ${response.status}`);
       }
       const data = await response.json();
-      console.log('Monederos fetched:', data);
       setMonederos(Array.isArray(data) ? data : []);
       setError(null);
-    } catch (err) {
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
       console.error('Error fetching monederos:', err);
-      setError('Error al cargar los monederos: ' + (err as Error).message);
+      setError(`Error al cargar los monederos: ${errorMessage}`);
     } finally {
       setLoading(false);
     }
@@ -119,43 +121,51 @@ export default function MonederoFlota() {
   const fetchVehiculos = useCallback(async () => {
     try {
       const response = await fetch('/api/vehiculos');
-      if (!response.ok) throw new Error('Error fetching vehiculos');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `Error HTTP: ${response.status}`);
+      }
       const data = await response.json();
-      console.log('Vehiculos fetched:', data);
       setVehiculos(Array.isArray(data) ? data : []);
-    } catch (err) {
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
       console.error('Error fetching vehiculos:', err);
-      setError('Error al cargar los vehículos');
+      setError(`Error al cargar los vehículos: ${errorMessage}`);
     }
   }, []);
 
   const fetchTarjetas = useCallback(async () => {
     try {
       const response = await fetch('/api/tarjetas');
-      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `Error HTTP: ${response.status}`);
+      }
       const data = await response.json();
-      console.log('Tarjetas raw data:', JSON.stringify(data, null, 2));
       const tarjetasConVehiculo = Array.isArray(data.tarjetas)
         ? data.tarjetas.filter((tarjeta: Tarjeta) => tarjeta.vehiculo_id !== null)
         : [];
-      console.log('Tarjetas filtered:', JSON.stringify(tarjetasConVehiculo, null, 2));
       setTarjetas(tarjetasConVehiculo);
-    } catch (err) {
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
       console.error('Error fetching tarjetas:', err);
-      setError('Error al cargar las tarjetas');
+      setError(`Error al cargar las tarjetas: ${errorMessage}`);
     }
   }, []);
 
   const fetchCanales = useCallback(async () => {
     try {
       const response = await fetch('/api/canales');
-      if (!response.ok) throw new Error('Error fetching canales');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `Error HTTP: ${response.status}`);
+      }
       const data = await response.json();
-      console.log('Canales fetched:', data);
       setCanales(Array.isArray(data) ? data : []);
-    } catch (err) {
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
       console.error('Error fetching canales:', err);
-      setError('Error al cargar los canales');
+      setError(`Error al cargar los canales: ${errorMessage}`);
     }
   }, []);
 
@@ -166,35 +176,44 @@ export default function MonederoFlota() {
     }
     try {
       const response = await fetch(`/api/subcanales?canal_id=${canalId}`);
-      if (!response.ok) throw new Error('Error fetching subcanales');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `Error HTTP: ${response.status}`);
+      }
       const data = await response.json();
-      console.log(`Subcanales fetched for canal_id=${canalId}:`, data);
       setSubcanales(Array.isArray(data) ? data : []);
-    } catch (err) {
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
       console.error('Error fetching subcanales:', err);
       setSubcanales([]);
-      setError('Error al cargar los subcanales');
+      setError(`Error al cargar los subcanales: ${errorMessage}`);
     }
   }, []);
 
-  const fetchVehiculoIds = useCallback(async (canalId: number, subcanalId: number) => {
-    if (canalId === 0 || subcanalId === 0) {
+  const fetchVehiculoIds = useCallback(async (canalId: number, subcanalId: number = 0) => {
+    if (canalId === 0) {
       setVehiculoIds([]);
       setFilteredTarjetas([]);
       return;
     }
     try {
-      const response = await fetch(`/api/tarjetas/filtro?canal_id=${canalId}&subcanal_id=${subcanalId}`);
-      if (!response.ok) throw new Error('Error fetching vehiculo IDs');
+      const url = subcanalId
+        ? `/api/tarjetas/filtro/monedero?canal_id=${canalId}&subcanal_id=${subcanalId}`
+        : `/api/tarjetas/filtro/monedero?canal_id=${canalId}`;
+      const response = await fetch(url);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `Error HTTP: ${response.status}`);
+      }
       const data = await response.json();
-      console.log(`Vehiculo IDs fetched for canal_id=${canalId}, subcanal_id=${subcanalId}:`, data);
       setVehiculoIds(Array.isArray(data.vehiculo_ids) ? data.vehiculo_ids : []);
       setFilteredTarjetas(Array.isArray(data.tarjetas) ? data.tarjetas : []);
-    } catch (err) {
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
       console.error('Error fetching vehiculo IDs:', err);
       setVehiculoIds([]);
       setFilteredTarjetas([]);
-      setError('Error al cargar los IDs de vehículos');
+      setError(`Error al cargar los IDs de vehículos: ${errorMessage}`);
     }
   }, []);
 
@@ -204,71 +223,58 @@ export default function MonederoFlota() {
       fetchVehiculos(),
       fetchTarjetas(),
       fetchCanales(),
-    ]).catch((err) => {
+    ]).catch((err: unknown) => {
+      const errorMessage = err instanceof Error ? err.message : String(err);
       console.error('Error in initial fetch:', err);
-      setError('Error al cargar los datos iniciales');
+      setError(`Error al cargar los datos iniciales: ${errorMessage}`);
     });
   }, [fetchMonederos, fetchVehiculos, fetchTarjetas, fetchCanales]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setMonederoData((prev) => {
-      const newData = {
-        ...prev,
-        [name]: ['vehiculo_id', 'canal_id', 'subcanal_id', 'tarjeta_id'].includes(name) ? value : value,
-      };
+      const newData = { ...prev, [name]: value };
       if (name === 'canal_id') {
         newData.subcanal_id = '';
-        newData.vehiculo_id = '';
-        newData.tarjeta_id = '';
+        newData.selectedVehiculoIds = [];
         setSubcanales([]);
         setVehiculoIds([]);
         setFilteredTarjetas([]);
         if (Number(value) !== 0) {
           fetchSubcanales(Number(value));
+          fetchVehiculoIds(Number(value));
         }
       }
       if (name === 'subcanal_id') {
-        newData.vehiculo_id = '';
-        newData.tarjeta_id = '';
+        newData.selectedVehiculoIds = [];
         setVehiculoIds([]);
         setFilteredTarjetas([]);
         if (newData.canal_id !== '' && Number(value) !== 0) {
           fetchVehiculoIds(Number(newData.canal_id), Number(value));
         }
       }
-      if (name === 'vehiculo_id') {
-        const selectedTarjetas = filteredTarjetas.filter((tarjeta) => tarjeta.vehiculo_id === Number(value));
-        console.log(`Vehiculo ID: ${value}, Tarjetas encontradas:`, selectedTarjetas);
-        if (selectedTarjetas.length > 1) {
-          console.warn(`Múltiples tarjetas encontradas para vehiculo_id ${value}:`, selectedTarjetas);
-          setError(`Advertencia: El vehículo seleccionado tiene ${selectedTarjetas.length} tarjetas asociadas. Se seleccionó la primera.`);
-        }
-        const selectedTarjeta = selectedTarjetas[0];
-        newData.tarjeta_id = selectedTarjeta ? String(selectedTarjeta.id) : '';
-        if (!selectedTarjeta) {
-          console.error(`No se encontró tarjeta para vehiculo_id ${value}`);
-          setError('No se encontró una tarjeta asociada al vehículo seleccionado.');
-        }
-      }
-      console.log('MonederoData updated:', newData);
       return newData;
     });
   };
 
+  const handleCheckboxChange = (vehiculoId: number) => {
+    setMonederoData((prev) => ({
+      ...prev,
+      selectedVehiculoIds: prev.selectedVehiculoIds.includes(vehiculoId)
+        ? prev.selectedVehiculoIds.filter((id) => id !== vehiculoId)
+        : [...prev.selectedVehiculoIds, vehiculoId],
+    }));
+  };
+
   const handleSubmitAdd = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { galones_totales, vehiculo_id, periodo, canal_id, subcanal_id, tarjeta_id } = monederoData;
+    const { galones_totales, periodo, canal_id, subcanal_id, selectedVehiculoIds } = monederoData;
     if (!periodo) {
       alert('Por favor seleccione un período');
       return;
     }
-    if (!vehiculo_id) {
-      alert('Por favor seleccione un vehículo');
-      return;
-    }
-    if (!tarjeta_id) {
-      alert('No hay tarjeta asociada al vehículo seleccionado');
+    if (selectedVehiculoIds.length === 0) {
+      alert('Por favor seleccione al menos un vehículo');
       return;
     }
     if (!canal_id) {
@@ -279,59 +285,69 @@ export default function MonederoFlota() {
       alert('Por favor seleccione un subcanal');
       return;
     }
+
     try {
-      const formData = new FormData();
-      formData.append('galones_totales', galones_totales);
-      formData.append('vehiculo_id', vehiculo_id);
-      formData.append('periodo', String(mapPeriodToNumber(periodo)));
-      formData.append('galones_consumidos', monederoData.galones_consumidos || '0');
-      formData.append('galones_disponibles', monederoData.galones_disponibles || '0');
-      formData.append('odometro', monederoData.odometro || '0');
-      formData.append('tarjeta_id', tarjeta_id);
+      for (const vehiculoId of selectedVehiculoIds) {
+        const selectedTarjetas = filteredTarjetas.filter((tarjeta) => tarjeta.vehiculo_id === Number(vehiculoId));
+        if (selectedTarjetas.length === 0) {
+          alert(`No se encontró una tarjeta asociada al vehículo ID ${vehiculoId}`);
+          return;
+        }
+        if (selectedTarjetas.length > 1) {
+          setError(`Advertencia: El vehículo ID ${vehiculoId} tiene ${selectedTarjetas.length} tarjetas asociadas. Se seleccionó la primera.`);
+        }
+        const selectedTarjeta = selectedTarjetas[0];
 
-      const response = await fetch('/api/monedero_flota', {
-        method: 'POST',
-        body: formData,
-      });
+        const formData = new FormData();
+        formData.append('galones_totales', galones_totales);
+        formData.append('vehiculo_id', String(vehiculoId));
+        formData.append('periodo', String(mapPeriodToNumber(periodo)));
+        formData.append('galones_consumidos', monederoData.galones_consumidos || '0');
+        formData.append('galones_disponibles', monederoData.galones_disponibles || '0');
+        formData.append('odometro', monederoData.odometro || '0');
+        formData.append('tarjeta_id', String(selectedTarjeta.id));
 
-      if (response.ok) {
-        alert('Monedero agregado exitosamente');
-        setMonederoData({
-          galones_totales: '',
-          vehiculo_id: '',
-          periodo: '',
-          galones_consumidos: '',
-          galones_disponibles: '',
-          odometro: '',
-          tarjeta_id: '',
-          canal_id: '',
-          subcanal_id: '',
+        const response = await fetch('/api/monedero_flota', {
+          method: 'POST',
+          body: formData,
         });
-        setIsAddModalOpen(false);
-        fetchMonederos();
-      } else {
-        const errorText = await response.text();
-        alert(`Error al agregar el monedero: ${errorText}`);
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || `Error al agregar el monedero para el vehículo ID ${vehiculoId}`);
+        }
       }
-    } catch (err) {
-      alert('Error al agregar el monedero');
+
+      alert('Monederos agregados exitosamente');
+      setMonederoData({
+        galones_totales: '',
+        periodo: '',
+        galones_consumidos: '',
+        galones_disponibles: '',
+        odometro: '',
+        canal_id: '',
+        subcanal_id: '',
+        selectedVehiculoIds: [],
+      });
+      setIsAddModalOpen(false);
+      fetchMonederos();
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      alert('Error al agregar los monederos');
       console.error('Error submitting add:', err);
+      setError(`Error al agregar los monederos: ${errorMessage}`);
     }
   };
 
   const handleSubmitUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { galones_totales, vehiculo_id, periodo, canal_id, subcanal_id, tarjeta_id } = monederoData;
+    const { galones_totales, periodo, canal_id, subcanal_id, selectedVehiculoIds } = monederoData;
     if (!periodo) {
       alert('Por favor seleccione un período');
       return;
     }
-    if (!vehiculo_id) {
-      alert('Por favor seleccione un vehículo');
-      return;
-    }
-    if (!tarjeta_id) {
-      alert('No hay tarjeta asociada al vehículo seleccionado');
+    if (selectedVehiculoIds.length !== 1) {
+      alert('Por favor seleccione exactamente un vehículo');
       return;
     }
     if (!canal_id) {
@@ -344,15 +360,22 @@ export default function MonederoFlota() {
     }
     if (monederoToUpdate) {
       try {
+        const selectedTarjetas = filteredTarjetas.filter((tarjeta) => tarjeta.vehiculo_id === selectedVehiculoIds[0]);
+        if (selectedTarjetas.length === 0) {
+          alert(`No se encontró una tarjeta asociada al vehículo ID ${selectedVehiculoIds[0]}`);
+          return;
+        }
+        const selectedTarjeta = selectedTarjetas[0];
+
         const formData = new FormData();
         formData.append('id', String(monederoToUpdate.id));
         formData.append('galones_totales', galones_totales);
-        formData.append('vehiculo_id', vehiculo_id);
+        formData.append('vehiculo_id', String(selectedVehiculoIds[0]));
         formData.append('periodo', String(mapPeriodToNumber(periodo)));
         formData.append('galones_consumidos', monederoData.galones_consumidos || '0');
         formData.append('galones_disponibles', monederoData.galones_disponibles || '0');
         formData.append('odometro', monederoData.odometro || '0');
-        formData.append('tarjeta_id', tarjeta_id);
+        formData.append('tarjeta_id', String(selectedTarjeta.id));
 
         const response = await fetch('/api/monedero_flota', {
           method: 'PUT',
@@ -363,24 +386,25 @@ export default function MonederoFlota() {
           alert('Monedero actualizado exitosamente');
           setMonederoData({
             galones_totales: '',
-            vehiculo_id: '',
             periodo: '',
             galones_consumidos: '',
             galones_disponibles: '',
             odometro: '',
-            tarjeta_id: '',
             canal_id: '',
             subcanal_id: '',
+            selectedVehiculoIds: [],
           });
           setIsUpdateModalOpen(false);
           fetchMonederos();
         } else {
-          const errorText = await response.text();
-          alert(`Error al actualizar el monedero: ${errorText}`);
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Error al actualizar el monedero');
         }
-      } catch (err) {
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : String(err);
         alert('Error al actualizar el monedero');
         console.error('Error submitting update:', err);
+        setError(`Error al actualizar el monedero: ${errorMessage}`);
       }
     }
   };
@@ -397,12 +421,14 @@ export default function MonederoFlota() {
           setIsDeleteModalOpen(false);
           fetchMonederos();
         } else {
-          const errorText = await response.text();
-          alert(`Error al eliminar el monedero: ${errorText}`);
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Error al eliminar el monedero');
         }
-      } catch (err) {
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : String(err);
         alert('Error al eliminar el monedero');
         console.error('Error deleting monedero:', err);
+        setError(`Error al eliminar el monedero: ${errorMessage}`);
       }
     }
   };
@@ -417,14 +443,13 @@ export default function MonederoFlota() {
 
     setMonederoData({
       galones_totales: String(monedero.galones_totales || ''),
-      vehiculo_id: String(vehiculoId),
       periodo: String(monedero.periodo || ''),
       galones_consumidos: String(monedero.galones_consumidos || '0'),
       galones_disponibles: String(monedero.galones_disponibles || '0'),
       odometro: String(monedero.odometro || '0'),
-      tarjeta_id: String(monedero.tarjeta_id || 0),
       canal_id: String(canalId),
       subcanal_id: String(subcanalId),
+      selectedVehiculoIds: [vehiculoId],
     });
 
     if (canalId) {
@@ -472,6 +497,11 @@ export default function MonederoFlota() {
     );
   }
 
+  const monederoRoutes = [
+    { name: 'Monedero', href: '/monedero_flota' },
+    { name: 'Restablecer monedero', href: '/monedero_flota/monedero_reset' },
+  ];
+
   return (
     <div className="font-sans bg-white text-gray-900 min-h-screen">
       <div className="flex">
@@ -484,13 +514,30 @@ export default function MonederoFlota() {
               </h1>
             </div>
 
+            <nav className="flex justify-center space-x-4">
+              {monederoRoutes.map((monedero) => {
+                const isActive = pathname === monedero.href;
+                return (
+                  <Link key={monedero.name} href={monedero.href}>
+                    <button
+                      className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-300 ${
+                        isActive ? 'bg-blue-600 text-white' : 'text-gray-700 bg-gray-200 hover:bg-blue-600 hover:text-white'
+                      }`}
+                    >
+                      {monedero.name}
+                    </button>
+                  </Link>
+                );
+              })}
+            </nav>
+
             {error && (
               <div className="mb-4 p-2 bg-red-600 text-white text-center rounded-md">
                 {error}
               </div>
             )}
 
-            <div className="flex justify-between mb-4">
+            <div className="flex justify-between mb-4 space-x-2">
               <button
                 onClick={() => setIsAddModalOpen(true)}
                 className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors duration-200"
@@ -516,7 +563,7 @@ export default function MonederoFlota() {
               <thead>
                 <tr className="bg-gray-100">
                   <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">#</th>
-                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Galones Totales</th>
+                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Límite</th>
                   <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Vehículo</th>
                   <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Período</th>
                   <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Galones Disponibles</th>
@@ -607,7 +654,7 @@ export default function MonederoFlota() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="mb-4">
                         <label className="block text-sm font-semibold text-gray-700 mb-1 text-center" htmlFor="galones_totales">
-                          Galones Totales
+                          Límite de Galones
                         </label>
                         <input
                           type="number"
@@ -692,46 +739,31 @@ export default function MonederoFlota() {
                         </select>
                       </div>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="mb-4">
-                        <label className="block text-sm font-semibold text-gray-700 mb-1 text-center" htmlFor="vehiculo_id">
-                          Vehículo
-                        </label>
-                        <select
-                          id="vehiculo_id"
-                          name="vehiculo_id"
-                          value={monederoData.vehiculo_id}
-                          onChange={handleInputChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
-                          disabled={monederoData.subcanal_id === ''}
-                          required
-                        >
-                          <option value="" disabled>
-                            {filteredVehiculos.length === 0 && monederoData.subcanal_id !== ''
-                              ? 'No hay vehículos disponibles'
-                              : 'Seleccione un vehículo'}
-                          </option>
-                          {filteredVehiculos.map((vehiculo) => (
-                            <option key={vehiculo.id} value={vehiculo.id}>
-                              {vehiculo.marca} {vehiculo.modelo} - {vehiculo.placa}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="mb-4">
-                        <label className="block text-sm font-semibold text-gray-700 mb-1 text-center" htmlFor="tarjeta_id">
-                          Tarjeta
-                        </label>
-                        <input
-                          id="tarjeta_id"
-                          value={
-                            filteredTarjetas.find((tarjeta) => Number(tarjeta.id) === Number(monederoData.tarjeta_id))?.numero_tarjeta ||
-                            tarjetas.find((tarjeta) => Number(tarjeta.id) === Number(monederoData.tarjeta_id))?.numero_tarjeta ||
-                            'N/A'
-                          }
-                          readOnly
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-500 text-center"
-                        />
+                    <div className="mb-4">
+                      <label className="block text-sm font-semibold text-gray-700 mb-1 text-center">
+                        Vehículos
+                      </label>
+                      <div className="max-h-48 overflow-y-auto border border-gray-300 rounded-md p-2">
+                        {filteredVehiculos.length === 0 ? (
+                          <p className="text-center text-gray-500">
+                            {monederoData.subcanal_id === '' ? 'Seleccione un subcanal para ver vehículos' : 'No hay vehículos disponibles'}
+                          </p>
+                        ) : (
+                          filteredVehiculos.map((vehiculo) => (
+                            <div key={vehiculo.id} className="flex items-center space-x-2 py-1">
+                              <input
+                                type="checkbox"
+                                id={`vehiculo_${vehiculo.id}`}
+                                checked={monederoData.selectedVehiculoIds.includes(vehiculo.id)}
+                                onChange={() => handleCheckboxChange(vehiculo.id)}
+                                className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                              />
+                              <label htmlFor={`vehiculo_${vehiculo.id}`} className="text-gray-700">
+                                {vehiculo.marca} {vehiculo.modelo} - {vehiculo.placa}
+                              </label>
+                            </div>
+                          ))
+                        )}
                       </div>
                     </div>
                     <div className="flex justify-between">
@@ -774,7 +806,7 @@ export default function MonederoFlota() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="mb-4">
                         <label className="block text-sm font-semibold text-gray-700 mb-1 text-center" htmlFor="galones_totales">
-                          Galones Totales
+                          Límite de Galones
                         </label>
                         <input
                           type="number"
@@ -859,46 +891,32 @@ export default function MonederoFlota() {
                         </select>
                       </div>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="mb-4">
-                        <label className="block text-sm font-semibold text-gray-700 mb-1 text-center" htmlFor="vehiculo_id">
-                          Vehículo
-                        </label>
-                        <select
-                          id="vehiculo_id"
-                          name="vehiculo_id"
-                          value={monederoData.vehiculo_id}
-                          onChange={handleInputChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
-                          disabled={monederoData.subcanal_id === ''}
-                          required
-                        >
-                          <option value="" disabled>
-                            {filteredVehiculos.length === 0 && monederoData.subcanal_id !== ''
-                              ? 'No hay vehículos disponibles'
-                              : 'Seleccione un vehículo'}
-                          </option>
-                          {filteredVehiculos.map((vehiculo) => (
-                            <option key={vehiculo.id} value={vehiculo.id}>
-                              {vehiculo.marca} {vehiculo.modelo} - {vehiculo.placa}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="mb-4">
-                        <label className="block text-sm font-semibold text-gray-700 mb-1 text-center" htmlFor="tarjeta_id">
-                          Tarjeta
-                        </label>
-                        <input
-                          id="tarjeta_id"
-                          value={
-                            filteredTarjetas.find((tarjeta) => Number(tarjeta.id) === Number(monederoData.tarjeta_id))?.numero_tarjeta ||
-                            tarjetas.find((tarjeta) => Number(tarjeta.id) === Number(monederoData.tarjeta_id))?.numero_tarjeta ||
-                            'N/A'
-                          }
-                          readOnly
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-500 text-center"
-                        />
+                    <div className="mb-4">
+                      <label className="block text-sm font-semibold text-gray-700 mb-1 text-center">
+                        Vehículo
+                      </label>
+                      <div className="max-h-48 overflow-y-auto border border-gray-300 rounded-md p-2">
+                        {filteredVehiculos.length === 0 ? (
+                          <p className="text-center text-gray-500">
+                            {monederoData.subcanal_id === '' ? 'Seleccione un subcanal para ver vehículos' : 'No hay vehículos disponibles'}
+                          </p>
+                        ) : (
+                          filteredVehiculos.map((vehiculo) => (
+                            <div key={vehiculo.id} className="flex items-center space-x-2 py-1">
+                              <input
+                                type="checkbox"
+                                id={`vehiculo_${vehiculo.id}`}
+                                checked={monederoData.selectedVehiculoIds.includes(vehiculo.id)}
+                                onChange={() => handleCheckboxChange(vehiculo.id)}
+                                className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                disabled={monederoData.selectedVehiculoIds.length > 0 && !monederoData.selectedVehiculoIds.includes(vehiculo.id)}
+                              />
+                              <label htmlFor={`vehiculo_${vehiculo.id}`} className="text-gray-700">
+                                {vehiculo.marca} {vehiculo.modelo} - {vehiculo.placa}
+                              </label>
+                            </div>
+                          ))
+                        )}
                       </div>
                     </div>
                     <div className="flex justify-between">
@@ -949,7 +967,7 @@ export default function MonederoFlota() {
                     </button>
                     <button
                       onClick={handleDelete}
-                      className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors duration-200"
+                      className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-colors duration-200"
                     >
                       Eliminar
                     </button>

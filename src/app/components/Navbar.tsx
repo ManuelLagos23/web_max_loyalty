@@ -11,7 +11,7 @@ export default function Navbar() {
   const [userName, setUserName] = useState<string>('');
   const [isNavbarVisible, setIsNavbarVisible] = useState(true);
   const [isMaxLoyaltyOpen, setIsMaxLoyaltyOpen] = useState(false);
-  const [isMaxPayOpen, setIsMaxPayOpen] = useState(false);
+  const [isMaxPayOpen, setIsMaxPayOpen] = useState(false); // State for Max-Flotas
   const [isGeneralesOpen, setIsGeneralesOpen] = useState(false);
   const [isConfiguracionesOpen, setIsConfiguracionesOpen] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
@@ -64,7 +64,12 @@ export default function Navbar() {
       pathname.startsWith('/redimir') ||
       pathname.startsWith('/reportes')
     );
-    setIsMaxPayOpen(false); // No child routes defined yet
+    setIsMaxPayOpen(
+      pathname.startsWith('/vehiculos') ||
+      pathname.startsWith('/conductores') ||
+      pathname.startsWith('/monedero_flota') ||
+      pathname.startsWith('/transacciones_flota')
+    ); // Updated for Max-Flotas routes
     setIsGeneralesOpen(
       pathname.startsWith('/clientes') ||
       pathname.startsWith('/tarjetas') ||
@@ -72,8 +77,7 @@ export default function Navbar() {
       pathname.startsWith('/empresas') ||
       pathname.startsWith('/centro_de_costos') ||
       pathname.startsWith('/tipo_de_tarjetas') ||
-      pathname.startsWith('/sub_canales') 
-      
+      pathname.startsWith('/sub_canales')
     );
     setIsConfiguracionesOpen(
       pathname.startsWith('/terminales') ||
@@ -87,7 +91,6 @@ export default function Navbar() {
       pathname.startsWith('/monedas') ||
       pathname.startsWith('/estados') ||
       pathname.startsWith('/unidad_medida')
-      
     );
   }, [pathname]);
 
@@ -96,7 +99,7 @@ export default function Navbar() {
   };
 
   const handleMaxPayClick = () => {
-    setIsMaxPayOpen(!isMaxPayOpen);
+    setIsMaxPayOpen(!isMaxPayOpen); // Toggle for Max-Flotas
   };
 
   const handleGeneralesClick = () => {
@@ -192,7 +195,6 @@ export default function Navbar() {
                       Canjeados
                     </Link>
                   </li>
-               
                   <li>
                     <Link
                       href="/reportes"
@@ -210,32 +212,40 @@ export default function Navbar() {
               <button
                 onClick={handleMaxPayClick}
                 className="w-full text-left p-2 rounded hover:bg-gray-700 flex items-center justify-between"
-                
               >
-                Max-Flota
+                Max-Flotas
                 <ChevronDown className={`w-5 h-5 transition-transform ${isMaxPayOpen ? 'rotate-180' : ''}`} />
               </button>
               {isMaxPayOpen && (
                 <ul className="ml-4 space-y-2">
-                   <li>
+                  <li>
                     <Link
                       href="/vehiculos"
                       className={`block p-2 rounded hover:bg-gray-700 ${
-                        pathname === '/vehiculo' ? 'active-subitem' : ''
+                        pathname === '/vehiculos' ? 'active-subitem' : ''
                       }`}
                     >
                       Vehículos
                     </Link>
                   </li>
-
-                   <li>
+                  <li>
                     <Link
                       href="/monedero_flota"
                       className={`block p-2 rounded hover:bg-gray-700 ${
-                        pathname === '/vehiculo' ? 'active-subitem' : ''
+                        pathname === '/monedero_flota' ? 'active-subitem' : ''
                       }`}
                     >
                       Monedero
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/transacciones_flota"
+                      className={`block p-2 rounded hover:bg-gray-700 ${
+                        pathname === '/transacciones_flota' ? 'active-subitem' : ''
+                      }`}
+                    >
+                      Transacciones Flota
                     </Link>
                   </li>
                 </ul>
@@ -271,7 +281,6 @@ export default function Navbar() {
                       Tarjetas
                     </Link>
                   </li>
-                
                   <li>
                     <Link
                       href="/canales"
@@ -282,9 +291,6 @@ export default function Navbar() {
                       Canales y subcanales
                     </Link>
                   </li>
-                
-
-
                   <li>
                     <Link
                       href="/empresas"
@@ -295,10 +301,6 @@ export default function Navbar() {
                       Red de empresas
                     </Link>
                   </li>
-
-                
-           
-            
                 </ul>
               )}
             </li>
@@ -332,33 +334,27 @@ export default function Navbar() {
                       Usuarios
                     </Link>
                   </li>
-               
-                         <li>
+                  <li>
                     <Link
                       href="/paises"
                       className={`block p-2 rounded hover:bg-gray-700 ${
                         pathname === '/paises' ? 'active-subitem' : ''
                       }`}
                     >
-                    Configuración regional
+                      Configuración regional
                     </Link>
                   </li>
-              
-
-                         <li>
+                  <li>
                     <Link
                       href="/turnos"
                       className={`block p-2 rounded hover:bg-gray-700 ${
-                        pathname === '/miembros' ? 'active-subitem' : ''
+                        pathname === '/turnos' ? 'active-subitem' : ''
                       }`}
                     >
                       Turnos
                     </Link>
                   </li>
-
-              
-
-                   <li>
+                  <li>
                     <Link
                       href="/tipo_combustible"
                       className={`block p-2 rounded hover:bg-gray-700 ${
@@ -388,8 +384,6 @@ export default function Navbar() {
                       Precios y descuentos
                     </Link>
                   </li>
-               
-
                 </ul>
               )}
             </li>
@@ -530,7 +524,6 @@ export default function Navbar() {
     background-color: #4B5563;
   }
 `}</style>
-
     </div>
   );
 }

@@ -11,6 +11,12 @@ const compat = new FlatCompat({
 
 const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
+  {
+    files: ["src/app/components/pdf/TarjetaPDF.tsx"], // Adjust the path to match your file location
+    rules: {
+      "jsx-a11y/alt-text": "off", // Disable the alt-text rule for this file
+    },
+  },
 ];
 
 export default eslintConfig;

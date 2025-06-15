@@ -1,3 +1,4 @@
+
 import { NextResponse } from 'next/server';
 import { Pool } from 'pg';
 
@@ -101,25 +102,40 @@ export async function GET(request: Request) {
     const offset = (page - 1) * limit;
     const result = await client.query(
       `
-    SELECT t.id, t.numero_tarjeta, t.cliente_id, t.vehiculo_id, t.tipo_tarjeta_id, t.created_at, 
-       t.canal_id, COALESCE(can.canal, '') AS canal,
-       t.subcanal_id, COALESCE(s.subcanal, '') AS subcanal_nombre,
-       COALESCE(c.nombre, '') AS cliente_nombre, 
-       COALESCE(v.marca || ' ' || v.modelo || ' - ' || v.placa, '') AS vehiculo_nombre,
-       COALESCE(tt.tipo_tarjeta, '') AS tipo_tarjeta_nombre
-FROM tarjetas t
-LEFT JOIN clientes c ON t.cliente_id = c.id
-LEFT JOIN vehiculos v ON t.vehiculo_id = v.id
-LEFT JOIN tipos_tarjetas tt ON t.tipo_tarjeta_id = tt.id
-LEFT JOIN canales can ON t.canal_id = can.id
-LEFT JOIN subcanales s ON t.subcanal_id = s.id
-WHERE t.active = true
-  AND (t.numero_tarjeta ILIKE $1 
-       OR COALESCE(c.nombre, '') ILIKE $1 
-       OR COALESCE(v.marca || ' ' || v.modelo || ' - ' || v.placa, '') ILIKE $1 
-       OR COALESCE(tt.tipo_tarjeta, '') ILIKE $1)
-ORDER BY t.id
-LIMIT $2 OFFSET $3
+      SELECT t.id, t.numero_tarjeta, t.cliente_id, t.vehiculo_id, t.tipo_tarjeta_id, t.created_at, 
+             t.canal_id, COALESCE(can.canal, '') AS canal,
+             t.subcanal_id, COALESCE(s.subcanal, '') AS subcanal_nombre,
+             COALESCE(c.nombre, '') AS cliente_nombre, 
+             COALESCE(v.marca || ' ' || v.modelo || ' - ' || v.placa, '') AS vehiculo_nombre,
+             COALESCE(tt.tipo_tarjeta, '') AS tipo_tarjeta_nombre,
+             COALESCE(
+               CASE 
+                 WHEN t.cliente_id IS NOT NULL THEN (
+                   SELECT can2.codigo_canal 
+                   FROM canales can2 
+                   WHERE can2.id = c.canal_id
+                 )
+                 WHEN t.vehiculo_id IS NOT NULL THEN (
+                   SELECT can3.codigo_canal 
+                   FROM canales can3 
+                   WHERE can3.id = t.canal_id
+                 )
+                 ELSE ''
+               END, ''
+             ) AS codigo_canal
+      FROM tarjetas t
+      LEFT JOIN clientes c ON t.cliente_id = c.id
+      LEFT JOIN vehiculos v ON t.vehiculo_id = v.id
+      LEFT JOIN tipos_tarjetas tt ON t.tipo_tarjeta_id = tt.id
+      LEFT JOIN canales can ON t.canal_id = can.id
+      LEFT JOIN subcanales s ON t.subcanal_id = s.id
+      WHERE t.active = true
+        AND (t.numero_tarjeta ILIKE $1 
+             OR COALESCE(c.nombre, '') ILIKE $1 
+             OR COALESCE(v.marca || ' ' || v.modelo || ' - ' || v.placa, '') ILIKE $1 
+             OR COALESCE(tt.tipo_tarjeta, '') ILIKE $1)
+      ORDER BY t.id
+      LIMIT $2 OFFSET $3
       `,
       [`%${search}%`, limit, offset]
     );
@@ -259,7 +275,8 @@ export async function POST(request: Request) {
                 (SELECT marca || ' ' || modelo || ' - ' || placa FROM vehiculos WHERE id = $4) AS vehiculo_nombre,
                 (SELECT tipo_tarjeta FROM tipos_tarjetas WHERE id = $5) AS tipo_tarjeta_nombre,
                 (SELECT canal FROM canales WHERE id = $6) AS canal,
-                (SELECT subcanal FROM subcanales WHERE id = $7) AS subcanal_nombre
+                (SELECT subcanal FROM subcanales WHERE id = $7) AS subcanal_nombre,
+                (SELECT codigo_canal FROM canales WHERE id = $6) AS codigo_canal
       `,
       [numero_tarjeta, numero_correlativo, cliente_id || null, vehiculo_id || null, tipo_tarjeta_id, canal_id || null, subcanal_id || null]
     );
@@ -271,6 +288,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: 'Error al crear la tarjeta' }, { status: 500 });
   }
 }
+
 export async function PUT(request: Request) {
   try {
     const formData = await request.formData();
@@ -391,7 +409,8 @@ export async function PUT(request: Request) {
                 (SELECT marca || ' ' || modelo || ' - ' || placa FROM vehiculos WHERE id = $4) AS vehiculo_nombre,
                 (SELECT tipo_tarjeta FROM tipos_tarjetas WHERE id = $5) AS tipo_tarjeta_nombre,
                 (SELECT canal FROM canales WHERE id = $6) AS canal,
-                (SELECT subcanal FROM subcanales WHERE id = $7) AS subcanal_nombre
+                (SELECT subcanal FROM subcanales WHERE id = $7) AS subcanal_nombre,
+                (SELECT codigo_canal FROM canales WHERE id = $6) AS codigo_canal
       `,
       [numero_tarjeta, numero_correlativo, cliente_id || null, vehiculo_id || null, tipo_tarjeta_id, canal_id || null, subcanal_id || null, id]
     );

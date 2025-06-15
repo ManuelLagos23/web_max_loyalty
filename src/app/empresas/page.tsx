@@ -32,6 +32,8 @@ export default function Empresas() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(5);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const openDeletePopup = (empresa: Empresa) => {
     setEmpresaAEliminar(empresa);
@@ -129,9 +131,17 @@ export default function Empresas() {
     return `data:image/jpeg;base64,${logo}`;
   };
 
-  const getLogoImpresoSrc = (logoImpreso: string | null | undefined) => {
-    if (!logoImpreso) return null;
-    return `data:image/jpeg;base64,${logoImpreso}`;
+
+  const openModal = (imageSrc: string | null) => {
+    if (imageSrc) {
+      setSelectedImage(imageSrc);
+      setIsModalOpen(true);
+    }
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedImage(null);
   };
 
   const empresaRoutes = [
@@ -199,7 +209,6 @@ export default function Empresas() {
                 <tr className="bg-gray-200">
                   <th className="px-4 py-2 text-left text-gray-700 font-semibold">#</th>
                   <th className="px-4 py-2 text-left text-gray-700 font-semibold">Logo</th>
-                  <th className="px-4 py-2 text-left text-gray-700 font-semibold">Logo Impreso</th>
                   <th className="px-4 py-2 text-left text-gray-700 font-semibold">Nombre Empresa</th>
                   <th className="px-4 py-2 text-left text-gray-700 font-semibold">País</th>
                   <th className="px-4 py-2 text-left text-gray-700 font-semibold">Moneda</th>
@@ -215,7 +224,7 @@ export default function Empresas() {
                   currentEmpresas.map((empresa, index) => (
                     <tr className="hover:bg-gray-50 transition-all duration-200" key={empresa.id}>
                       <td className="px-4 py-2">{indexOfFirstItem + index + 1}</td>
-                      <td className="px-4 py-2">
+                      <td className="px-4 py-2 cursor-pointer" onClick={() => openModal(getLogoSrc(empresa.logo))}>
                         {empresa.logo && getLogoSrc(empresa.logo) ? (
                           <Image
                             src={getLogoSrc(empresa.logo)!}
@@ -227,20 +236,6 @@ export default function Empresas() {
                           />
                         ) : (
                           <span className="text-gray-500">Sin logo</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-2">
-                        {empresa.logo_impreso && getLogoImpresoSrc(empresa.logo_impreso) ? (
-                          <Image
-                            src={getLogoImpresoSrc(empresa.logo_impreso)!}
-                            alt="Logo impreso de la empresa"
-                            width={40}
-                            height={40}
-                            className="object-cover rounded"
-                            onError={() => console.error('Error al cargar el logo impreso')}
-                          />
-                        ) : (
-                          <span className="text-gray-500">Sin logo impreso</span>
                         )}
                       </td>
                       <td className="px-4 py-2">{empresa.nombre_empresa}</td>
@@ -256,6 +251,12 @@ export default function Empresas() {
                           className="bg-yellow-500 text-white px-3 py-1 rounded-lg hover:bg-yellow-600 transition-all duration-300"
                         >
                           Editar
+                        </button>
+                        <button
+                          onClick={() => router.push(`/empresas/ver/${empresa.id}`)}
+                          className="bg-green-500 text-white px-3 py-1 rounded-lg hover:bg-yelgreenlow-600 transition-all duration-300"
+                        >
+                          Ver
                         </button>
                         <button
                           onClick={() => openDeletePopup(empresa)}
@@ -335,6 +336,37 @@ export default function Empresas() {
                       Eliminar
                     </button>
                   </div>
+                </div>
+              </div>
+            )}
+
+            {isModalOpen && selectedImage && (
+              <div
+                className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md"
+                onClick={(e) => {
+                  if (e.target === e.currentTarget) {
+                    closeModal();
+                  }
+                }}
+              >
+                <div className="bg-white p-6 rounded-lg shadow-xl border max-w-4xl">
+                  <button
+                    onClick={closeModal}
+                    className="absolute top-4 right-4 text-gray-700 hover:text-gray-900 text-2xl font-bold"
+                  >
+                    &times;
+                  </button>
+                  <Image
+                    src={selectedImage}
+                    alt="Imagen ampliada"
+                    width={800}
+                    height={600}
+                    className="object-contain max-h-[80vh]"
+                    onError={() => {
+                      console.error('Error al cargar la imagen ampliada');
+                      closeModal();
+                    }}
+                  />
                 </div>
               </div>
             )}

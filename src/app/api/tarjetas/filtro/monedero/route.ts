@@ -1,4 +1,3 @@
-
 import { NextResponse } from 'next/server';
 import { Pool } from 'pg';
 
@@ -11,7 +10,6 @@ export async function GET(request: Request) {
   const canal_id = searchParams.get('canal_id');
   const subcanal_id = searchParams.get('subcanal_id');
 
-  // Validar que se proporcione al menos canal_id
   if (!canal_id) {
     return NextResponse.json(
       { message: 'canal_id es obligatorio' },
@@ -22,21 +20,19 @@ export async function GET(request: Request) {
   const client = await pool.connect();
 
   try {
-    // Construir la consulta dinámicamente con JOIN para incluir galones_totales y galones_disponibles
     let query = `
       SELECT 
         t.id, 
         t.numero_tarjeta, 
         t.vehiculo_id, 
         t.canal_id, 
-        t.subcanal_id,
-        mf.galones_totales,
-        mf.galones_disponibles
+        t.subcanal_id
       FROM tarjetas t
-      INNER JOIN monedero_flota mf ON t.vehiculo_id = mf.vehiculo_id
+      LEFT JOIN monedero_flota mf ON t.vehiculo_id = mf.vehiculo_id
       WHERE t.active = true
         AND t.canal_id = $1
         AND t.vehiculo_id IS NOT NULL
+        AND mf.vehiculo_id IS NULL
     `;
     const params = [canal_id];
 
@@ -49,26 +45,19 @@ export async function GET(request: Request) {
 
     const result = await client.query(query, params);
 
-    // Extraer los vehiculo_id únicos
     const vehiculoIds = [...new Set(result.rows.map((row) => row.vehiculo_id))];
-    // Mapear las tarjetas con los campos adicionales
+
     const tarjetas = result.rows.map((row) => ({
       id: row.id,
       numero_tarjeta: row.numero_tarjeta,
       vehiculo_id: row.vehiculo_id,
       canal_id: row.canal_id,
       subcanal_id: row.subcanal_id,
-      galones_totales: row.galones_totales,
-      galones_disponibles: row.galones_disponibles,
     }));
 
     console.log(
-      `Vehículo IDs encontrados para canal_id=${canal_id}${subcanal_id ? `, subcanal_id=${subcanal_id}` : ''}:`,
+      `Vehículo IDs filtrados (no en monedero_flota) para canal_id=${canal_id}${subcanal_id ? `, subcanal_id=${subcanal_id}` : ''}:`,
       vehiculoIds
-    );
-    console.log(
-      `Tarjetas encontradas para canal_id=${canal_id}${subcanal_id ? `, subcanal_id=${subcanal_id}` : ''}:`,
-      tarjetas
     );
 
     client.release();
