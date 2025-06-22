@@ -225,8 +225,9 @@ export async function PUT(request: Request) {
         Number(numero_asientos),
         Number(numero_puertas),
         Number(odometro),
+          codigo_vehiculo,
         Number(id),
-        codigo_vehiculo
+  
       ]
     );
     client.release();
