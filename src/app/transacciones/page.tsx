@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Navbar from '../components/Navbar';
 
 type Transaccion = {
@@ -25,6 +26,7 @@ export default function Transacciones() {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const router = useRouter();
 
   useEffect(() => {
     const fetchTransacciones = async () => {
@@ -106,15 +108,13 @@ export default function Transacciones() {
                 <th className="px-4 py-2">Litros</th>
                 <th className="px-4 py-2">Descuento LPS.</th>
                 <th className="px-4 py-2">Canal</th>
-                <th className="px-4 py-2">Tipo Combustible</th>
-                <th className="px-4 py-2">Turno ID</th>
-                <th className="px-4 py-2">Turno Estado</th>
+                <th className="px-4 py-2">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {currentTransacciones.length === 0 ? (
                 <tr>
-                  <td colSpan={14} className="px-4 py-2 text-center">
+                  <td colSpan={12} className="px-4 py-2 text-center">
                     No hay transacciones disponibles
                   </td>
                 </tr>
@@ -141,9 +141,14 @@ export default function Transacciones() {
                       {transaccion.descuento != null ? transaccion.descuento.toFixed(2) : 'N/A'}
                     </td>
                     <td className="px-4 py-2 text-center">{transaccion.canal_nombre}</td>
-                    <td className="px-4 py-2 text-center">{transaccion.tipo_combustible_nombre}</td>
-                    <td className="px-4 py-2 text-center">{transaccion.turno_id ?? 'N/A'}</td>
-                    <td className="px-4 py-2 text-center">{transaccion.turno_estado ?? 'N/A'}</td>
+                    <td className="px-4 py-2 text-center">
+                      <button
+                        onClick={() => router.push(`/transacciones/ver/${transaccion.id}`)}
+                        className="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600 transition-all duration-300"
+                      >
+                        Ver
+                      </button>
+                    </td>
                   </tr>
                 ))
               )}

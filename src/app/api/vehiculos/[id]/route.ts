@@ -35,6 +35,7 @@ export async function GET(request: NextRequest) {
         v.numero_asientos,
         v.numero_puertas,
         v.odometro,
+        v.codigo_vehiculo,
         tc.name AS tipo_combustible_nombre
       FROM vehiculos v
       LEFT JOIN tipo_combustible tc ON v.tipo_combustible = tc.id

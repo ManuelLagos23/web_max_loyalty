@@ -5,15 +5,30 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
-// Método GET para obtener todas las transacciones
 export async function GET() {
   try {
     const client = await pool.connect();
     const result = await client.query(
       `
-     SELECT id, monto, unidades, odometro, tarjeta_id, monedero_id, canal_id, subcanal_id, created_at
-       FROM transacciones_flota
-       LIMIT $1 OFFSET $2
+      SELECT 
+        id, 
+        monto, 
+        unidades, 
+        odometro, 
+        tarjeta_id, 
+        monedero_id, 
+        canal_id, 
+        subcanal_id, 
+        vehiculo_id, 
+        numero_tarjeta, 
+        tipo_combustible_id, 
+        turno_id, 
+        establecimiento_id, 
+        precio, 
+        turno_estado, 
+        estado, 
+        created_at
+      FROM transacciones_flota
       `
     );
     client.release();

@@ -31,7 +31,6 @@ export default function Vehiculos() {
   const [vehiculoToDelete, setVehiculoToDelete] = useState<Vehiculo | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [viewMode, setViewMode] = useState<'documentacion' | 'fisico'>('documentacion');
   const itemsPerPage = 10;
   const pathname = usePathname();
   const router = useRouter();
@@ -88,19 +87,9 @@ export default function Vehiculos() {
     'chasis',
     'tipo_combustible_nombre',
   ];
-  const fisicoFields = [
-    'transmision',
-    'capacidad_carga',
-    'color',
-    'caballo_potencia',
-    'potencia_motor',
-    'numero_motor',
-    'numero_asientos',
-    'numero_puertas',
-  ];
 
   const filteredVehiculos = vehiculos.filter((vehiculo) =>
-    (viewMode === 'documentacion' ? documentacionFields : fisicoFields)
+    documentacionFields
       .map((field) => String(vehiculo[field as keyof Vehiculo]))
       .join(' ')
       .toLowerCase()
@@ -134,8 +123,8 @@ export default function Vehiculos() {
       <div className="flex">
         <Navbar />
         <div className="flex-1 flex flex-col">
-          <main className="flex-1 p-8">
-            <div className="space-y-6">
+          <main className="flex-1 p-6">
+            <div className="space-y-5">
               <h1
                 className="text-4xl font-bold text-gray-900 mb-4
                 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
@@ -162,31 +151,7 @@ export default function Vehiculos() {
               </nav>
             </div>
 
-            <div className="flex justify-between mb-4 items-center">
-              <div className="flex space-x-2">
-                <button
-                  type="button"
-                  onClick={() => setViewMode('documentacion')}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
-                    viewMode === 'documentacion'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-200 text-gray-700 hover:bg-blue-600 hover:text-white'
-                  }`}
-                >
-                  Documentación
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setViewMode('fisico')}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
-                    viewMode === 'fisico'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-200 text-gray-700 hover:bg-blue-600 hover:text-white'
-                  }`}
-                >
-                  Físico
-                </button>
-              </div>
+            <div className="flex justify-end mb-4">
               <button
                 type="button"
                 onClick={() => router.push('/vehiculos/crear')}
@@ -196,100 +161,63 @@ export default function Vehiculos() {
               </button>
             </div>
 
-            <div className="mb-6">
+            <div className="mb-5">
               <input
                 type="text"
-                placeholder={
-                  viewMode === 'documentacion'
-                    ? 'Buscar por modelo, placa, marca, VIN...'
-                    : 'Buscar por transmisión, color, número de motor...'
-                }
+                placeholder="Buscar por modelo, placa, marca, VIN..."
                 value={searchTerm}
                 onChange={(e) => {
                   setSearchTerm(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-2/5 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-2/5 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             <table className="w-full bg-gray-100 table-auto rounded-lg shadow-md">
               <thead>
                 <tr className="bg-gray-200">
-                  <th className="px-4 py-2 text-left text-gray-700 font-semibold">#</th>
-                  {viewMode === 'documentacion' ? (
-                    <>
-                      <th className="px-4 py-2 text-left text-gray-700 font-semibold">Modelo</th>
-                      <th className="px-4 py-2 text-left text-gray-700 font-semibold">Placa</th>
-                      <th className="px-4 py-2 text-left text-gray-700 font-semibold">Marca</th>
-                      <th className="px-4 py-2 text-left text-gray-700 font-semibold">VIN</th>
-                      <th className="px-4 py-2 text-left text-gray-700 font-semibold">Cilindraje</th>
-                      <th className="px-4 py-2 text-left text-gray-700 font-semibold">Chasis</th>
-                      <th className="px-4 py-2 text-left text-gray-700 font-semibold">Tipo de Combustible</th>
-                    </>
-                  ) : (
-                    <>
-                      <th className="px-4 py-2 text-left text-gray-700 font-semibold">Transmisión</th>
-                      <th className="px-4 py-2 text-left text-gray-700 font-semibold">Capacidad de Carga</th>
-                      <th className="px-4 py-2 text-left text-gray-700 font-semibold">Color</th>
-                      <th className="px-4 py-2 text-left text-gray-700 font-semibold">Caballos de Potencia</th>
-                      <th className="px-4 py-2 text-left text-gray-700 font-semibold">Potencia del Motor</th>
-                      <th className="px-4 py-2 text-left text-gray-700 font-semibold">Número de Motor</th>
-                      <th className="px-4 py-2 text-left text-gray-700 font-semibold">Número de Asientos</th>
-                      <th className="px-4 py-2 text-left text-gray-700 font-semibold">Número de Puertas</th>
-                    </>
-                  )}
-                  <th className="px-4 py-2 text-left text-gray-700 font-semibold">Acciones</th>
+                  <th className="px-3 py-2 text-left text-gray-700 font-semibold">#</th>
+                  <th className="px-3 py-2 text-left text-gray-700 font-semibold">Modelo</th>
+                  <th className="px-3 py-2 text-left text-gray-700 font-semibold">Placa</th>
+                  <th className="px-3 py-2 text-left text-gray-700 font-semibold">Marca</th>
+                  <th className="px-3 py-2 text-left text-gray-700 font-semibold">VIN</th>
+                  <th className="px-3 py-2 text-left text-gray-700 font-semibold">Cilindraje</th>
+                  <th className="px-3 py-2 text-left text-gray-700 font-semibold">Chasis</th>
+                  <th className="px-3 py-2 text-left text-gray-700 font-semibold">Tipo de Combustible</th>
+                  <th className="px-3 py-2 text-left text-gray-700 font-semibold">Acciones</th>
                 </tr>
               </thead>
               <tbody>
                 {currentVehiculos.length === 0 ? (
                   <tr>
-                    <td
-                      colSpan={viewMode === 'documentacion' ? 9 : 10}
-                      className="px-4 py-2 text-center text-gray-500"
-                    >
+                    <td colSpan={9} className="px-3 py-2 text-center text-gray-500">
                       No hay vehículos disponibles
                     </td>
                   </tr>
                 ) : (
                   currentVehiculos.map((vehiculo, index) => (
                     <tr key={vehiculo.id} className="hover:bg-gray-50 transition-all duration-200">
-                      <td className="px-4 py-2">{indexOfFirstItem + index + 1}</td>
-                      {viewMode === 'documentacion' ? (
-                        <>
-                          <td className="px-4 py-2">{vehiculo.modelo}</td>
-                          <td className="px-4 py-2">{vehiculo.placa}</td>
-                          <td className="px-4 py-2">{vehiculo.marca}</td>
-                          <td className="px-4 py-2">{vehiculo.vin}</td>
-                          <td className="px-4 py-2">{vehiculo.cilindraje}</td>
-                          <td className="px-4 py-2">{vehiculo.chasis}</td>
-                          <td className="px-4 py-2">{vehiculo.tipo_combustible_nombre || '-'}</td>
-                        </>
-                      ) : (
-                        <>
-                          <td className="px-4 py-2">{vehiculo.transmision}</td>
-                          <td className="px-4 py-2">{vehiculo.capacidad_carga}</td>
-                          <td className="px-4 py-2">{vehiculo.color}</td>
-                          <td className="px-4 py-2">{vehiculo.caballo_potencia}</td>
-                          <td className="px-4 py-2">{vehiculo.potencia_motor}</td>
-                          <td className="px-4 py-2">{vehiculo.numero_motor}</td>
-                          <td className="px-4 py-2">{vehiculo.numero_asientos}</td>
-                          <td className="px-4 py-2">{vehiculo.numero_puertas}</td>
-                        </>
-                      )}
-                      <td className="px-4 py-2 flex space-x-2">
+                      <td className="px-3 py-2">{indexOfFirstItem + index + 1}</td>
+                      <td className="px-3 py-2">{vehiculo.modelo}</td>
+                      <td className="px-3 py-2">{vehiculo.placa}</td>
+                      <td className="px-3 py-2">{vehiculo.marca}</td>
+                      <td className="px-3 py-2">{vehiculo.vin}</td>
+                      <td className="px-3 py-2">{vehiculo.cilindraje}</td>
+                      <td className="px-3 py-2">{vehiculo.chasis}</td>
+                      <td className="px-3 py-2">{vehiculo.tipo_combustible_nombre || '-'}</td>
+                      <td className="px-3 py-2 flex space-x-2">
                         <button
                           type="button"
                           onClick={() => router.push(`/vehiculos/ver/${vehiculo.id}`)}
-                          className="bg-green-500 text-white px-3 py-1 rounded-lg hover:bg-green-600 transition-all duration-300"
+                          className="bg-green-500 text-white px-2 py-1 rounded-lg hover:bg-green-600 transition-all duration-300"
                         >
                           Ver
                         </button>
                         <button
                           type="button"
                           onClick={() => router.push(`/vehiculos/editar/${vehiculo.id}`)}
-                          className="bg-yellow-500 text-white px-3 py-1 rounded-lg hover:bg-yellow-600 transition-all duration-300"
+                          className="bg-yellow-500 text-white px-2 py-1 rounded-lg hover:bg-yellow-600 transition-all duration-300"
                         >
                           Editar
                         </button>
@@ -299,7 +227,7 @@ export default function Vehiculos() {
                             setVehiculoToDelete(vehiculo);
                             setIsDeleteModalOpen(true);
                           }}
-                          className="bg-red-600 text-white px-3 py-1 rounded-lg hover:bg-red-700 transition-all duration-300"
+                          className="bg-red-600 text-white px-2 py-1 rounded-lg hover:bg-red-700 transition-all duration-300"
                         >
                           Eliminar
                         </button>
@@ -315,7 +243,7 @@ export default function Vehiculos() {
                 type="button"
                 onClick={handlePrevPage}
                 disabled={currentPage === 1}
-                className={`px-4 py-2 rounded-lg transition-all duration-300 ${
+                className={`px-3 py-2 rounded-lg transition-all duration-300 ${
                   currentPage === 1 ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'
                 }`}
               >
@@ -328,7 +256,7 @@ export default function Vehiculos() {
                 type="button"
                 onClick={handleNextPage}
                 disabled={currentPage === totalPages}
-                className={`px-4 py-2 rounded-lg transition-all duration-300 ${
+                className={`px-3 py-2 rounded-lg transition-all duration-300 ${
                   currentPage === totalPages ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'
                 }`}
               >
@@ -345,15 +273,15 @@ export default function Vehiculos() {
                   }
                 }}
               >
-                <div className="bg-white p-6 rounded-lg shadow-xl w-1/3 border">
+                <div className="bg-white p-5 rounded-lg shadow-xl w-1/3 border">
                   <h2
-                    className="text-2xl font-bold text-gray-800 mb-4 tracking-tight 
+                    className="text-2xl font-bold text-gray-800 mb-3 tracking-tight 
                     bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
                     transition-all duration-300 hover:scale-105 text-center"
                   >
                     Confirmar Eliminación
                   </h2>
-                  <p className="text-center text-gray-700 mb-4">
+                  <p className="text-center text-gray-700 mb-3">
                     ¿Estás seguro de que deseas eliminar el vehículo {vehiculoToDelete.marca} {vehiculoToDelete.modelo} (
                     {vehiculoToDelete.placa})?
                   </p>
@@ -361,14 +289,14 @@ export default function Vehiculos() {
                     <button
                       type="button"
                       onClick={() => setIsDeleteModalOpen(false)}
-                      className="bg-gray-400 text-white px-4 py-2 rounded-lg hover:bg-gray-500 transition-all duration-300"
+                      className="bg-gray-400 text-white px-3 py-1 rounded-lg hover:bg-gray-500 transition-all duration-300"
                     >
                       Cancelar
                     </button>
                     <button
                       type="button"
                       onClick={handleDelete}
-                      className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-all duration-300"
+                      className="bg-red-600 text-white px-3 py-1 rounded-lg hover:bg-red-700 transition-all duration-300"
                     >
                       Eliminar
                     </button>

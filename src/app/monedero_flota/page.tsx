@@ -566,8 +566,8 @@ export default function MonederoFlota() {
                   <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Límite</th>
                   <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Vehículo</th>
                   <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Período</th>
-                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Galones Disponibles</th>
-                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Galones Consumidos</th>
+                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Litros Disponibles</th>
+                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Litros Consumidos</th>
                   <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Tarjeta</th>
                   <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Acciones</th>
                 </tr>
@@ -586,9 +586,21 @@ export default function MonederoFlota() {
                       <td className="px-4 py-2">{monedero.galones_totales || 'N/A'}</td>
                       <td className="px-4 py-2">{monedero.vehiculo_nombre || 'N/A'}</td>
                       <td className="px-4 py-2">{getPeriodLabel(monedero.periodo)}</td>
-                      <td className="px-4 py-2">{monedero.galones_disponibles || '0'}</td>
-                      <td className="px-4 py-2">{monedero.galones_consumidos || '0'}</td>
+     <td className="px-4 py-2 text-center">
+  {(Number(monedero.galones_disponibles ?? 0)).toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}
+</td>
+<td className="px-4 py-2 text-center">
+  {(Number(monedero.galones_consumidos ?? 0)).toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}
+</td>
+
                       <td className="px-4 py-2">{monedero.tarjeta_numero || 'N/A'}</td>
+                         
                       <td className="px-4 py-2 flex space-x-2">
                         <button
                           onClick={() => handleEditClick(monedero)}
@@ -654,7 +666,7 @@ export default function MonederoFlota() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="mb-4">
                         <label className="block text-sm font-semibold text-gray-700 mb-1 text-center" htmlFor="galones_totales">
-                          Límite de Galones
+                          Límite de Litros
                         </label>
                         <input
                           type="number"
@@ -806,7 +818,7 @@ export default function MonederoFlota() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="mb-4">
                         <label className="block text-sm font-semibold text-gray-700 mb-1 text-center" htmlFor="galones_totales">
-                          Límite de Galones
+                          Límite de Litros
                         </label>
                         <input
                           type="number"

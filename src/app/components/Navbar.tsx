@@ -68,6 +68,7 @@ export default function Navbar() {
       pathname.startsWith('/vehiculos') ||
       pathname.startsWith('/conductores') ||
       pathname.startsWith('/monedero_flota') ||
+      pathname.startsWith('/reportes_flota') ||
       pathname.startsWith('/transacciones_flota')
     ); // Updated for Max-Flotas routes
     setIsGeneralesOpen(
@@ -197,7 +198,7 @@ export default function Navbar() {
                   </li>
                   <li>
                     <Link
-                      href="/reportes"
+                      href="/reportes_transacciones/reportes"
                       className={`block p-2 rounded hover:bg-gray-700 ${
                         pathname === '/reportes' ? 'active-subitem' : ''
                       }`}
@@ -246,6 +247,17 @@ export default function Navbar() {
                       }`}
                     >
                       Transacciones Flota
+                    </Link>
+                  </li>
+
+                   <li>
+                    <Link
+                      href="/reportes_flota/reporte_estacion"
+                      className={`block p-2 rounded hover:bg-gray-700 ${
+                        pathname === '/transacciones_flota' ? 'active-subitem' : ''
+                      }`}
+                    >
+                      Reportes
                     </Link>
                   </li>
                 </ul>
@@ -453,7 +465,7 @@ export default function Navbar() {
             }
           }}
         >
-          <div className="bg-gray-200 p-6 rounded-lg shadow-lg w-11/12 sm:w-1/3">
+          <div className="bg-gray-200 p-6 rounded-lg shadow-lg w-11/12 sm:w-1/3 border-1">
             <h2 className="text-xl font-semibold mb-4 text-center text-gray-900">
               Confirmar Cierre de Sesión
             </h2>

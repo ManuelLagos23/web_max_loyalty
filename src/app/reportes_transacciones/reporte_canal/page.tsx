@@ -1,14 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Navbar from '../components/Navbar';
+import Navbar from '@/app/components/Navbar';
 import Link from 'next/link';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import { usePathname } from 'next/navigation';
-
 
 interface Canal {
   id: number;
@@ -26,8 +25,7 @@ interface Transaccion {
 }
 
 export default function Reportes() {
-  const [fechaInicio, setFechaInicio] = useState<string>('');
-  const [fechaFinal, setFechaFinal] = useState<string>('');
+  
   const [canalId, setCanalId] = useState<string>('');
   const [canales, setCanales] = useState<Canal[]>([]);
   const [transacciones, setTransacciones] = useState<Transaccion[]>([]);
@@ -37,6 +35,19 @@ export default function Reportes() {
   const itemsPerPage = 10;
   const pathname = usePathname();
 
+  const redondearMinutosACero = (fecha = new Date()) => {
+    const nuevaFecha = new Date(fecha);
+    nuevaFecha.setMinutes(0, 0, 0); // Redondear minutos, segundos y milisegundos a cero
+    const año = nuevaFecha.getFullYear();
+    const mes = String(nuevaFecha.getMonth() + 1).padStart(2, '0');
+    const dia = String(nuevaFecha.getDate()).padStart(2, '0');
+    const horas = '00';
+    const minutos = '00';
+    return `${año}-${mes}-${dia}T${horas}:${minutos}`;
+  };
+
+  const [fechaInicio, setFechaInicio] = useState<string>(redondearMinutosACero());
+  const [fechaFinal, setFechaFinal] = useState<string>(redondearMinutosACero());
 
   useEffect(() => {
     const fetchCanales = async () => {
@@ -211,11 +222,8 @@ export default function Reportes() {
 
   // Define report routes
   const reportRoutes = [
-    { name: 'Reporte general', href: '/reportes' },
-    { name: 'Reporte por canal', href: '/reporte_canal' }, // Fixed route
-    { name: 'Reporte 3', href: '#' },
-    { name: 'Reporte 4', href: '#' },
-    { name: 'Reporte 5', href: '#' },
+    { name: 'Reporte general', href: '/reportes_transacciones/reportes' },
+    { name: 'Reporte por canal', href: '/reportes_transacciones/reporte_canal' },
   ];
 
   return (
@@ -228,28 +236,27 @@ export default function Reportes() {
               <h1 className="text-4xl font-bold text-gray-900 mb-4 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent transition-all duration-300 text-center">
                 Reporte por canal
               </h1>
-            <nav className="flex justify-center space-x-4">
-  {reportRoutes.map((reporte) => {
-    const isActive = pathname === reporte.href;
-    return (
-      <Link key={reporte.name} href={reporte.href}>
-        <button
-          className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-300 ${
-            isActive
-              ? 'bg-blue-600 text-white'
-              : 'text-gray-700 bg-gray-200 hover:bg-blue-600 hover:text-white'
-          }`}
-        >
-          {reporte.name}
-        </button>
-      </Link>
-    );
-  })}
-</nav>
-
+              <nav className="flex justify-center space-x-4">
+                {reportRoutes.map((reporte) => {
+                  const isActive = pathname === reporte.href;
+                  return (
+                    <Link key={reporte.name} href={reporte.href}>
+                      <button
+                        className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-300 ${
+                          isActive
+                            ? 'bg-blue-600 text-white'
+                            : 'text-gray-700 bg-gray-200 hover:bg-blue-600 hover:text-white'
+                        }`}
+                      >
+                        {reporte.name}
+                      </button>
+                    </Link>
+                  );
+                })}
+              </nav>
             </div>
 
-            <div className="mt-6 bg-gray-100 p-4 rounded-lg shadow-md max-w-3xl mx-auto">
+            <div className="mt-6 bg-gray-100 p-4 rounded-lg shadow-md max-w-4xl mx-auto">
               <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-3">
                 <div>
                   <label htmlFor="fechaInicio" className="block text-sm font-medium text-gray-700">
@@ -260,7 +267,6 @@ export default function Reportes() {
                     id="fechaInicio"
                     value={fechaInicio}
                     onChange={(e) => setFechaInicio(e.target.value)}
-                  
                     required
                     className="mt-1 block w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                   />
@@ -270,11 +276,10 @@ export default function Reportes() {
                     Fecha Final
                   </label>
                   <input
-                      type="datetime-local"
+                    type="datetime-local"
                     id="fechaFinal"
                     value={fechaFinal}
                     onChange={(e) => setFechaFinal(e.target.value)}
-                  
                     required
                     className="mt-1 block w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                   />

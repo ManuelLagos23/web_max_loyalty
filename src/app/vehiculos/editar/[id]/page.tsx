@@ -11,6 +11,7 @@ interface VehiculoFormData {
   placa: string;
   marca: string;
   vin: string;
+  codigo_vehiculo: string;
   cilindraje: string;
   chasis: string;
   tipo_combustible: string;
@@ -39,6 +40,7 @@ export default function EditarVehiculo() {
     placa: '',
     marca: '',
     vin: '',
+    codigo_vehiculo: '',
     cilindraje: '',
     chasis: '',
     tipo_combustible: '0',
@@ -105,6 +107,7 @@ export default function EditarVehiculo() {
           placa: vehiculoData.placa || '',
           marca: vehiculoData.marca || '',
           vin: vehiculoData.vin || '',
+          codigo_vehiculo: vehiculoData.codigo_vehiculo || '',
           cilindraje: vehiculoData.cilindraje?.toString() || '',
           chasis: vehiculoData.chasis || '',
           tipo_combustible: vehiculoData.tipo_combustible?.toString() || '0',
@@ -201,6 +204,7 @@ export default function EditarVehiculo() {
       formData.placa.trim() !== '' &&
       formData.marca.trim() !== '' &&
       formData.vin.trim() !== '' &&
+      formData.codigo_vehiculo.trim() !== '' &&
       formData.cilindraje.trim() !== '' &&
       formData.chasis.trim() !== '' &&
       formData.tipo_combustible !== '0' &&
@@ -324,7 +328,25 @@ export default function EditarVehiculo() {
                     required
                   />
                 </div>
+
+
+                  <div>
+                  <label htmlFor="codigo_vehiculo" className="block text-center text-sm sm:text-base font-bold text-black">
+                    Código del Vehículo
+                  </label>
+                  <input
+                    type="text"
+                    name="codigo_vehiculo"
+                    placeholder="Ejemplo: CAR-001"
+                    value={formData.codigo_vehiculo}
+                    onChange={handleInputChange}
+                    className="w-full px-5 py-3 border border-gray-300 rounded text-center text-black text-sm sm:text-base"
+                    required
+                  />
+                </div>
               </div>
+
+              
             )}
 
             {activeTab === 'tab2' && (

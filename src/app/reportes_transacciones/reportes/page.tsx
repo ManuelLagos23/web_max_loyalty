@@ -1,8 +1,7 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
-import Navbar from '../components/Navbar';
+import Navbar from '@/app/components/Navbar';
 import Link from 'next/link';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -34,32 +33,26 @@ interface GroupedData {
 }
 
 export default function Reportes() {
-
   const [establecimientoId, setEstablecimientoId] = useState<string>('');
   const [establecimientos, setEstablecimientos] = useState<Establecimiento[]>([]);
   const [transacciones, setTransacciones] = useState<Transaccion[]>([]);
   const [error, setError] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const pathname = usePathname();
-  
 
   const redondearMinutosACero = (fecha = new Date()) => {
-  const nuevaFecha = new Date(fecha);
-  nuevaFecha.setMinutes(0, 0, 0); // Redondear minutos, segundos y ms
+    const nuevaFecha = new Date(fecha);
+    nuevaFecha.setMinutes(0, 0, 0); // Redondear minutos, segundos y milisegundos a cero
+    const año = nuevaFecha.getFullYear();
+    const mes = String(nuevaFecha.getMonth() + 1).padStart(2, '0');
+    const dia = String(nuevaFecha.getDate()).padStart(2, '0');
+    const horas = '00';
+    const minutos = '00';
+    return `${año}-${mes}-${dia}T${horas}:${minutos}`;
+  };
 
-  // Ajustar al formato local sin cambiar zona horaria
-  const año = nuevaFecha.getFullYear();
-  const mes = String(nuevaFecha.getMonth() + 1).padStart(2, '0');
-  const dia = String(nuevaFecha.getDate()).padStart(2, '0');
-  const horas = String(nuevaFecha.getHours()).padStart(2, '0');
-  const minutos = '00'; // Siempre en cero
-
-  return `${año}-${mes}-${dia}T${horas}:${minutos}`;
-};
-
-const [fechaInicio, setFechaInicio] = useState(redondearMinutosACero());
-const [fechaFinal, setFechaFinal] = useState(redondearMinutosACero());
-
+  const [fechaInicio, setFechaInicio] = useState<string>(redondearMinutosACero());
+  const [fechaFinal, setFechaFinal] = useState<string>(redondearMinutosACero());
 
   // Aggregate data by canal
   const groupByCanal = transacciones.reduce((acc, t) => {
@@ -167,8 +160,8 @@ const [fechaFinal, setFechaFinal] = useState(redondearMinutosACero());
     doc.setFontSize(16);
     doc.text(`Reporte de Transacciones ${establecimientoNombre}`, 14, 20);
     doc.setFontSize(12);
-doc.text(`Fecha Inicio: ${fechaInicio || 'N/A'}`, 14, 30);
-doc.text(`Fecha Final: ${fechaFinal || 'N/A'}`, 100, 30); // misma línea, desplazado a la derecha
+    doc.text(`Fecha Inicio: ${fechaInicio || 'N/A'}`, 14, 30);
+    doc.text(`Fecha Final: ${fechaFinal || 'N/A'}`, 100, 30);
 
     // Resumen por Tipo de Combustible Table
     doc.text('Resumen por Tipo de Combustible', 14, 50);
@@ -187,9 +180,8 @@ doc.text(`Fecha Final: ${fechaFinal || 'N/A'}`, 100, 30); // misma línea, despl
       headStyles: { fillColor: [66, 153, 190] },
     });
 
-    
-const lastAutoTable = (doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable;
-let finalY = (lastAutoTable?.finalY ?? 55) + 10;
+    const lastAutoTable = (doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable;
+    let finalY = (lastAutoTable?.finalY ?? 55) + 10;
     doc.text('Resumen por Canal', 14, finalY);
     autoTable(doc, {
       startY: finalY + 5,
@@ -206,8 +198,7 @@ let finalY = (lastAutoTable?.finalY ?? 55) + 10;
       headStyles: { fillColor: [66, 100, 180] },
     });
 
- finalY = ((doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? 55) + 10;
-
+    finalY = ((doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? 55) + 10;
     doc.text('Transacciones Detalladas', 14, finalY);
     autoTable(doc, {
       startY: finalY + 5,
@@ -223,8 +214,7 @@ let finalY = (lastAutoTable?.finalY ?? 55) + 10;
         new Date(t.fecha).toLocaleDateString(),
       ]),
       styles: { fontSize: 10 },
-     headStyles: { fillColor: [56, 178, 172] }
-
+      headStyles: { fillColor: [56, 178, 172] },
     });
 
     doc.save(`reporte_transacciones_${fechaInicio}_${fechaFinal}.pdf`);
@@ -303,7 +293,7 @@ let finalY = (lastAutoTable?.finalY ?? 55) + 10;
     const worksheet = XLSX.utils.json_to_sheet(worksheetData, { skipHeader: true });
 
     worksheet['!cols'] = [
-      { wch: 5 }, // Item number column
+      { wch: 5 },
       { wch: 20 },
       { wch: 10 },
       { wch: 10 },
@@ -342,18 +332,10 @@ let finalY = (lastAutoTable?.finalY ?? 55) + 10;
   };
 
   const reportRoutes = [
-    { name: 'Reporte general', href: '/reportes' },
-    { name: 'Reporte por canal', href: '/reporte_canal' },
-    { name: 'Reporte 3', href: '#' },
-    { name: 'Reporte 4', href: '#' },
-    { name: 'Reporte 5', href: '#' },
+    { name: 'Reporte general', href: '/reportes_transacciones/reportes' },
+    { name: 'Reporte por canal', href: '/reportes_transacciones/reporte_canal' },
+  
   ];
-
-
-  
-  
-
-  
 
   return (
     <div className="font-sans bg-white text-gray-900 min-h-screen">
@@ -547,7 +529,7 @@ let finalY = (lastAutoTable?.finalY ?? 55) + 10;
                     <tr>
                       <th className="px-4 py-2 text-left text-gray-700 font-semibold">#</th>
                       <th className="px-4 py-2 text-left text-gray-700 font-semibold">Canal</th>
-                      <th className="px-4 py-2 text-left text-gray-700 font-semibold">Monton LPS.</th>
+                      <th className="px-4 py-2 text-left text-gray-700 font-semibold">Monto LPS.</th>
                       <th className="px-4 py-2 text-left text-gray-700 font-semibold">Descuento LPS.</th>
                       <th className="px-4 py-2 text-left text-gray-700 font-semibold">Tipo Combustible</th>
                       <th className="px-4 py-2 text-left text-gray-700 font-semibold">Unidades (Litros.)</th>

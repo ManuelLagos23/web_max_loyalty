@@ -13,6 +13,7 @@ export async function POST(request: Request) {
     const placa = formData.get('placa');
     const marca = formData.get('marca');
     const vin = formData.get('vin');
+    const codigo_vehiculo = formData.get('codigo_vehiculo');
     const cilindraje = formData.get('cilindraje');
     const chasis = formData.get('chasis');
     const tipo_combustible = formData.get('tipo_combustible');
@@ -32,6 +33,7 @@ export async function POST(request: Request) {
       !placa || typeof placa !== 'string' ||
       !marca || typeof marca !== 'string' ||
       !vin || typeof vin !== 'string' ||
+      !codigo_vehiculo || typeof codigo_vehiculo !== 'string' ||
       !cilindraje || isNaN(Number(cilindraje)) ||
       !chasis || typeof chasis !== 'string' ||
       !tipo_combustible || isNaN(Number(tipo_combustible)) ||
@@ -53,8 +55,8 @@ export async function POST(request: Request) {
       `INSERT INTO vehiculos (
         modelo, placa, marca, vin, cilindraje, chasis, tipo_combustible, transmision,
         capacidad_carga, color, caballo_potencia, potencia_motor, numero_motor,
-        numero_asientos, numero_puertas, odometro
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+        numero_asientos, numero_puertas, odometro, codigo_vehiculo  
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
       RETURNING *`,
       [
         modelo,
@@ -73,6 +75,7 @@ export async function POST(request: Request) {
         Number(numero_asientos),
         Number(numero_puertas),
         Number(odometro),
+        codigo_vehiculo,
       ]
     );
     client.release();
@@ -116,7 +119,9 @@ export async function GET(request: Request) {
         v.potencia_motor,
         v.numero_motor,
         v.numero_asientos,
-        v.numero_puertas
+        v.numero_puertas,
+        v.codigo_vehiculo,
+        v.odometro
       FROM vehiculos v
       LEFT JOIN tipo_combustible tc ON v.tipo_combustible = tc.id
       ORDER BY v.id
@@ -143,6 +148,7 @@ export async function PUT(request: Request) {
     const placa = formData.get('placa');
     const marca = formData.get('marca');
     const vin = formData.get('vin');
+   const codigo_vehiculo = formData.get('codigo_vehiculo');
     const cilindraje = formData.get('cilindraje');
     const chasis = formData.get('chasis');
     const tipo_combustible = formData.get('tipo_combustible');
@@ -163,6 +169,7 @@ export async function PUT(request: Request) {
       !placa || typeof placa !== 'string' ||
       !marca || typeof marca !== 'string' ||
       !vin || typeof vin !== 'string' ||
+        !codigo_vehiculo || typeof codigo_vehiculo !== 'string' ||
       !cilindraje || isNaN(Number(cilindraje)) ||
       !chasis || typeof chasis !== 'string' ||
       !tipo_combustible || isNaN(Number(tipo_combustible)) ||
@@ -197,8 +204,9 @@ export async function PUT(request: Request) {
         numero_motor = $13,
         numero_asientos = $14,
         numero_puertas = $15,
-        odometro = $16
-      WHERE id = $17
+        odometro = $16,
+        codigo_vehiculo = $17
+      WHERE id = $18
       RETURNING *`,
       [
         modelo,
@@ -218,6 +226,7 @@ export async function PUT(request: Request) {
         Number(numero_puertas),
         Number(odometro),
         Number(id),
+        codigo_vehiculo
       ]
     );
     client.release();

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Navbar from '../components/Navbar';
 
 type TransaccionFlota = {
@@ -15,6 +16,14 @@ type TransaccionFlota = {
   created_at: string;
   canal_nombre?: string;
   subcanal_nombre?: string;
+  vehiculo_id: number | null;
+  numero_tarjeta: string | null;
+  tipo_combustible_id: number | null;
+  turno_id: number | null;
+  establecimiento_id: number | null;
+  precio: number | null;
+  turno_estado: string | null;
+  estado: boolean;
 };
 
 type Canal = {
@@ -34,6 +43,7 @@ export default function TransaccionesFlota() {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const router = useRouter();
 
   useEffect(() => {
     const fetchTransacciones = async () => {
@@ -118,16 +128,16 @@ export default function TransaccionesFlota() {
     <div className="font-sans bg-white text-gray-900 min-h-screen flex">
       <Navbar />
       <div className="flex-1 flex flex-col">
-        <main className="flex-1 p-8 bg-white">
-          <div className="space-y-4">
-            <h1 className="text-4xl font-bold text-gray-900 mb-2 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent transition-all duration-300 text-center">
+        <main className="flex-1 p-4 sm:p-6 bg-white">
+          <div className="space-y-3">
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent transition-all duration-300 text-center">
               Gestión de Transacciones de Flota
             </h1>
-            <p className="text-center text-black leading-relaxed max-w-2xl p-2 rounded-lg transition-all duration-300 hover:shadow-md mx-auto">
+            <p className="text-center text-black leading-relaxed max-w-xl p-1 rounded-lg transition-all duration-300 hover:shadow-md mx-auto">
               Administra las transacciones de flota de Max Loyalty.
             </p>
           </div>
-          <div className="mb-6">
+          <div className="mb-4">
             <input
               type="text"
               placeholder="Buscar transacciones de flota..."
@@ -136,65 +146,70 @@ export default function TransaccionesFlota() {
                 setSearchTerm(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-2/5 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-1/2 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          <table className="mt-6 w-full bg-gray-100 table-auto border-collapse border-gray-300">
+          <table className="mt-4 w-full bg-gray-100 table-auto border-collapse border-gray-300">
             <thead className="bg-gray-200">
               <tr>
-                <th className="px-4 py-2">ID</th>
-                <th className="px-4 py-2">Monto</th>
-                <th className="px-4 py-2">Unidades</th>
-                <th className="px-4 py-2">Odómetro</th>
-                <th className="px-4 py-2">Tarjeta ID</th>
-                <th className="px-4 py-2">Monedero ID</th>
-                <th className="px-4 py-2">Canal</th>
-                <th className="px-4 py-2">Subcanal</th>
-                <th className="px-4 py-2">Fecha de Creación</th>
+                <th className="px-2 py-1">ID</th>
+                <th className="px-2 py-1">Unidades</th>
+                <th className="px-2 py-1">Número Tarjeta</th>
+                <th className="px-2 py-1">Canal</th>
+                <th className="px-2 py-1">Monto</th>
+                <th className="px-2 py-1">Odómetro</th>
+                <th className="px-2 py-1">Estado</th>
+                <th className="px-2 py-1">Fecha Creación</th>
+                <th className="px-2 py-1">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {currentTransacciones.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="px-4 py-2 text-center">
+                  <td colSpan={9} className="px-2 py-1 text-center">
                     No hay transacciones de flota disponibles
                   </td>
                 </tr>
               ) : (
                 currentTransacciones.map((transaccion) => (
                   <tr className="hover:bg-gray-50" key={transaccion.id}>
-                    <td className="px-4 py-2 text-center">{transaccion.id}</td>
-                    <td className="px-4 py-2 text-center">
+                    <td className="px-2 py-1 text-center">{transaccion.id}</td>
+                    <td className="px-2 py-1 text-center">
+                      {transaccion.unidades != null ? transaccion.unidades.toFixed(2) : 'N/A'}
+                    </td>
+                    <td className="px-2 py-1 text-center">{transaccion.numero_tarjeta ?? 'N/A'}</td>
+                    <td className="px-2 py-1 text-center">
+                      {canales.find((c) => c.id === transaccion.canal_id)?.canal ?? 'N/A'}
+                    </td>
+                    <td className="px-2 py-1 text-center">
                       {transaccion.monto.toLocaleString('en-US', {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
                       })}
                     </td>
-                    <td className="px-4 py-2 text-center">
-                      {transaccion.unidades != null ? transaccion.unidades.toFixed(2) : 'N/A'}
-                    </td>
-                    <td className="px-4 py-2 text-center">{transaccion.odometro ?? 'N/A'}</td>
-                    <td className="px-4 py-2 text-center">{transaccion.tarjeta_id ?? 'N/A'}</td>
-                    <td className="px-4 py-2 text-center">{transaccion.monedero_id ?? 'N/A'}</td>
-                    <td className="px-4 py-2 text-center">
-                      {canales.find((c) => c.id === transaccion.canal_id)?.canal ?? 'N/A'}
-                    </td>
-                    <td className="px-4 py-2 text-center">
-                      {subcanales.find((s) => s.id === transaccion.subcanal_id)?.subcanal ?? 'N/A'}
-                    </td>
-                    <td className="px-4 py-2 text-center">
+                    <td className="px-2 py-1 text-center">{transaccion.odometro ?? 'N/A'}</td>
+                    <td className="px-2 py-1 text-center">{transaccion.estado ? 'Activo' : 'Inactivo'}</td>
+                    <td className="px-2 py-1 text-center">
                       {new Date(transaccion.created_at).toLocaleDateString()}
+                    </td>
+                    <td className="px-2 py-1 text-center">
+                      <button
+                        onClick={() => router.push(`/transacciones_flota/ver/${transaccion.id}`)}
+                        className="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600 transition-all duration-300"
+                      >
+                        Ver
+                      </button>
                     </td>
                   </tr>
                 ))
               )}
             </tbody>
           </table>
-          <div className="mt-4 flex justify-between items-center">
+          <div className="mt-3 flex justify-between items-center">
             <button
               onClick={handlePrevPage}
               disabled={currentPage === 1}
-              className={`px-4 py-2 rounded-lg ${currentPage === 1 ? 'bg-gray-300' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+              className={`px-3 py-1 rounded-lg ${currentPage === 1 ? 'bg-gray-300' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
             >
               Anterior
             </button>
@@ -202,7 +217,7 @@ export default function TransaccionesFlota() {
             <button
               onClick={handleNextPage}
               disabled={currentPage === totalPages}
-              className={`px-4 py-2 rounded-lg ${currentPage === totalPages ? 'bg-gray-300' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+              className={`px-3 py-1 rounded-lg ${currentPage === totalPages ? 'bg-gray-300' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
             >
               Siguiente
             </button>
