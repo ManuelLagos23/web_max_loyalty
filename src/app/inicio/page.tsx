@@ -1,10 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FaUsers, FaBuilding, FaMoneyCheckAlt, FaNetworkWired, FaSitemap, FaDesktop, FaUserFriends, FaCreditCard, FaMoneyBillWave } from 'react-icons/fa';
+import { FaUsers, FaBuilding, FaMoneyCheckAlt, FaNetworkWired, FaSitemap, FaDesktop, FaUserFriends, FaCreditCard, FaMoneyBillWave, FaCar } from 'react-icons/fa';
 import Navbar from '../components/Navbar';
 import PageWrapper from '../components/PageWrapper';
-import RealTimeStats from '../components/RealTimeStats';
 
 interface DashboardData {
   clientes: number;
@@ -16,6 +15,7 @@ interface DashboardData {
   miembros: number;
   tarjetas: number;
   transaccionesCanjeados: number;
+  vehiculos: number;
 }
 
 export default function Home() {
@@ -29,6 +29,7 @@ export default function Home() {
     miembros: 0,
     tarjetas: 0,
     transaccionesCanjeados: 0,
+    vehiculos: 0,
   });
   const [loading, setLoading] = useState(true);
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
@@ -49,6 +50,7 @@ export default function Home() {
         tarjetasRes,
         transaccionesRes,
         canjeadosRes,
+        vehiculosRes,
       ] = await Promise.all([
         fetch('/api/clientes'),
         fetch('/api/empresas'),
@@ -60,6 +62,7 @@ export default function Home() {
         fetch('/api/tarjetas'),
         fetch('/api/transacciones'),
         fetch('/api/canjeados'),
+        fetch('/api/vehiculos'),
       ]);
 
       const results = await Promise.all([
@@ -73,6 +76,7 @@ export default function Home() {
         tarjetasRes.ok ? tarjetasRes.json().catch(() => []) : [],
         transaccionesRes.ok ? transaccionesRes.json().catch(() => []) : [],
         canjeadosRes.ok ? canjeadosRes.json().catch(() => []) : [],
+        vehiculosRes.ok ? vehiculosRes.json().catch(() => []) : [],
       ]);
 
       setDashboardData({
@@ -88,6 +92,7 @@ export default function Home() {
           (results[8].total || (Array.isArray(results[8].transacciones) ? results[8].transacciones.length : Array.isArray(results[8]) ? results[8].length : results[8].count || results[8].data?.length || 0)) +
           (results[9].total || (Array.isArray(results[9].canjeados) ? results[9].canjeados.length : Array.isArray(results[9]) ? results[9].length : results[9].count || results[9].data?.length || 0))
         ),
+        vehiculos: Array.isArray(results[10]) ? results[10].length : results[10].count || results[10].data?.length || 0,
       });
     } catch (error: unknown) {
       console.error('Error al obtener datos del dashboard:', error);
@@ -118,90 +123,112 @@ export default function Home() {
     { title: 'Tarjetas', value: dashboardData.tarjetas, icon: <FaCreditCard className="text-3xl text-blue-600" /> },
   ];
 
-  const totalIndicator = {
-    title: 'Transacciones y Canjeados',
-    text: 'Total de transacciones y canjeados en la plataforma',
-    value: dashboardData.transaccionesCanjeados,
-    icon: <FaMoneyBillWave className="text-4xl text-green-600" />,
-  };
+  const totalIndicators = [
+    {
+      title: 'Transacciones y Canjeados',
+      text: 'Total de transacciones y canjeados en la plataforma',
+      value: dashboardData.transaccionesCanjeados,
+      icon: <FaMoneyBillWave className="text-4xl text-green-600" />,
+    },
+    {
+      title: 'Vehículos',
+      text: 'Total de vehículos registrados en el sistema',
+      value: dashboardData.vehiculos,
+      icon: <FaCar className="text-4xl text-yellow-600" />,
+    },
+  ];
 
   return (
-    <div className="font-sans min-h-screen flex bg-gray-100 text-gray-900">
+    <div className="font-sans min-h-screen flex bg-gradient-to-br from-gray-50 to-gray-200 text-gray-900">
       <PageWrapper>
         <Navbar />
       </PageWrapper>
-      <div className="flex-1 flex flex-col overflow-x-auto">
-        <main className="flex-1 p-4 md:p-8">
+      <div className="flex-1 flex flex-col overflow-x-hidden">
+        <main className="flex-1 p-4 md:p-6 lg:p-8">
           <h1
-            className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 md:mb-6
-            bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent
-            transition-all duration-300 text-center"
+            className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-6 md:mb-8
+            bg-blue-600 bg-clip-text text-transparent
+            animate-fadeIn drop-shadow-md text-center"
           >
-            Dashboard de Max Platform
+            Max Platform
           </h1>
           <p
-            className="text-center text-gray-700 leading-relaxed max-w-2xl
-            p-4 rounded-lg transition-all duration-300 hover:shadow-md mx-auto mb-6 md:mb-8"
+            className="text-center text-gray-700 text-lg md:text-xl leading-relaxed max-w-3xl
+            bg-white/80 p-4 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 mx-auto mb-8"
           >
-            Visualiza los indicadores clave de tu plataforma de fidelidad en tiempo real.
+            Indicadores clave de tu plataforma de fidelidad.
           </p>
 
           {loading && (
-            <p className="text-center text-gray-600 mb-6">Cargando datos...</p>
+            <div className="flex justify-center mb-8">
+              <div className="animate-pulse bg-blue-200/50 p-4 rounded-full">
+                <p className="text-gray-600">Cargando datos...</p>
+              </div>
+            </div>
           )}
 
           {errorMessages.length > 0 && (
-            <div className="text-center text-red-500 mb-6">
+            <div className="text-center mb-8">
               {errorMessages.map((error, index) => (
-                <p key={index}>{error}</p>
+                <p key={index} className="text-red-500 mb-2 bg-red-100/50 p-2 rounded-md inline-block">
+                  {error}
+                </p>
               ))}
               <button
                 onClick={fetchDashboardData}
-                className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all duration-300"
+                className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-all duration-300 transform hover:scale-105"
               >
                 Reintentar
               </button>
             </div>
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
             {indicators.map((indicator, index) => (
               <div
                 key={index}
-                className="bg-white p-4 md:p-6 rounded-lg shadow-md hover:shadow-lg 
-                transition-all duration-300 flex items-center space-x-4 min-w-[200px]"
+                className="bg-white/90 p-5 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300
+                transform hover:-translate-y-1 hover:bg-gradient-to-br from-blue-50 to-indigo-50 border border-gray-100
+                flex items-center justify-between min-h-[120px]"
               >
-                <div>{indicator.icon}</div>
-                <div>
-                  <h2 className="text-base md:text-lg font-semibold text-gray-800">{indicator.title}</h2>
-                  <p className="text-xl md:text-2xl font-bold text-blue-600">
-                    {loading ? '...' : indicator.value}
-                  </p>
+                <div className="flex items-center space-x-4">
+                  <div className="p-3 bg-blue-100 rounded-full">{indicator.icon}</div>
+                  <div>
+                    <h2 className="text-md md:text-lg font-semibold text-gray-800">{indicator.title}</h2>
+                    <p className="text-2xl md:text-3xl font-bold text-blue-600 animate-countUp">
+                      {loading ? '...' : indicator.value.toLocaleString()}
+                    </p>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-            {/* Total Indicator (Izquierda) */}
-            <div
-              className="bg-gradient-to-r from-green-100 to-blue-100 p-4 md:p-8 rounded-lg shadow-lg 
-              hover:shadow-xl transition-all duration-300 flex items-center space-x-4 md:space-x-6 w-full max-w-full"
-            >
-              <div>{totalIndicator.icon}</div>
-              <div>
-                <h2 className="text-lg md:text-xl font-semibold text-gray-800">{totalIndicator.title}</h2>
-                <p className="text-base md:text-lg text-gray-700 mb-2">{totalIndicator.text}</p>
-                <p className="text-2xl md:text-3xl font-bold text-green-600">
-                  {loading ? '...' : totalIndicator.value}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {totalIndicators.map((indicator, index) => (
+              <div
+                key={index}
+                className={`bg-gradient-to-br ${
+                  index === 0 ? 'from-green-100 via-blue-100 to-green-200' : 'from-yellow-100 via-amber-100 to-yellow-200'
+                } p-6 md:p-8 rounded-xl shadow-2xl hover:shadow-2xl transition-all duration-300 flex flex-col md:flex-row
+                items-center justify-between border ${
+                  index === 0 ? 'border-green-200' : 'border-yellow-200'
+                } animate-slideIn`}
+              >
+                <div className="flex items-center space-x-6 mb-4 md:mb-0">
+                  <div className={`p-4 ${index === 0 ? 'bg-green-200' : 'bg-yellow-200'} rounded-full`}>{indicator.icon}</div>
+                  <div>
+                    <h2 className="text-xl md:text-2xl font-bold text-gray-800">{indicator.title}</h2>
+                    <p className="text-md md:text-lg text-gray-600">{indicator.text}</p>
+                  </div>
+                </div>
+                <p className="text-3xl md:text-4xl font-extrabold ${
+                  index === 0 ? 'text-green-700' : 'text-yellow-700'
+                } animate-countUp">
+                  {loading ? '...' : indicator.value.toLocaleString()}
                 </p>
               </div>
-            </div>
-
-            {/* RealTimeStats (Derecha) */}
-            <div className="w-full max-w-full">
-              <RealTimeStats />
-            </div>
+            ))}
           </div>
         </main>
       </div>

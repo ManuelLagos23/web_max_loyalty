@@ -20,66 +20,13 @@ type Monedero = {
   subcanal_id?: number;
 };
 
-type Vehiculo = {
-  id: number;
-  modelo: string;
-  placa: string;
-  marca: string;
-};
-
-type Tarjeta = {
-  id: number;
-  numero_tarjeta: string;
-  cliente_id: number | null;
-  tipo_tarjeta_id: number;
-  vehiculo_id: number | null;
-  cliente_nombre?: string;
-  tipo_tarjeta_nombre?: string;
-  canal_id?: number;
-  codigo_canal?: string;
-  subcanal_id?: number;
-  subcanal_nombre?: string;
-};
-
-type Canal = {
-  id: number;
-  canal: string;
-};
-
-type Subcanal = {
-  id: number;
-  subcanal: string;
-  canal_id: number;
-};
-
 export default function MonederoFlota() {
   const [monederos, setMonederos] = useState<Monedero[]>([]);
-  const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
-  const [tarjetas, setTarjetas] = useState<Tarjeta[]>([]);
-  const [filteredTarjetas, setFilteredTarjetas] = useState<Tarjeta[]>([]);
-  const [canales, setCanales] = useState<Canal[]>([]);
-  const [subcanales, setSubcanales] = useState<Subcanal[]>([]);
-  const [vehiculoIds, setVehiculoIds] = useState<number[]>([]);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const pathname = usePathname();
-  const [monederoData, setMonederoData] = useState({
-    galones_totales: '',
-    periodo: '',
-    galones_consumidos: '',
-    galones_disponibles: '',
-    odometro: '',
-    canal_id: '',
-    subcanal_id: '',
-    selectedVehiculoIds: [] as number[],
-  });
-  const [monederoToUpdate, setMonederoToUpdate] = useState<Monedero | null>(null);
-  const [monederoToDelete, setMonederoToDelete] = useState<Monedero | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const pathname = usePathname();
   const itemsPerPage = 10;
 
   const getPeriodLabel = (period: number | string | null): string => {
@@ -91,11 +38,6 @@ export default function MonederoFlota() {
       case 30: return 'Mensual';
       default: return 'N/A';
     }
-  };
-
-  const mapPeriodToNumber = (period: string): number => {
-    const periodNum = Number(period);
-    return [1, 7, 15, 30].includes(periodNum) ? periodNum : 0;
   };
 
   const fetchMonederos = useCallback(async () => {
@@ -118,349 +60,9 @@ export default function MonederoFlota() {
     }
   }, [currentPage, itemsPerPage]);
 
-  const fetchVehiculos = useCallback(async () => {
-    try {
-      const response = await fetch('/api/vehiculos');
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || `Error HTTP: ${response.status}`);
-      }
-      const data = await response.json();
-      setVehiculos(Array.isArray(data) ? data : []);
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : String(err);
-      console.error('Error fetching vehiculos:', err);
-      setError(`Error al cargar los vehículos: ${errorMessage}`);
-    }
-  }, []);
-
-  const fetchTarjetas = useCallback(async () => {
-    try {
-      const response = await fetch('/api/tarjetas');
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || `Error HTTP: ${response.status}`);
-      }
-      const data = await response.json();
-      const tarjetasConVehiculo = Array.isArray(data.tarjetas)
-        ? data.tarjetas.filter((tarjeta: Tarjeta) => tarjeta.vehiculo_id !== null)
-        : [];
-      setTarjetas(tarjetasConVehiculo);
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : String(err);
-      console.error('Error fetching tarjetas:', err);
-      setError(`Error al cargar las tarjetas: ${errorMessage}`);
-    }
-  }, []);
-
-  const fetchCanales = useCallback(async () => {
-    try {
-      const response = await fetch('/api/canales');
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || `Error HTTP: ${response.status}`);
-      }
-      const data = await response.json();
-      setCanales(Array.isArray(data) ? data : []);
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : String(err);
-      console.error('Error fetching canales:', err);
-      setError(`Error al cargar los canales: ${errorMessage}`);
-    }
-  }, []);
-
-  const fetchSubcanales = useCallback(async (canalId: number) => {
-    if (canalId === 0) {
-      setSubcanales([]);
-      return;
-    }
-    try {
-      const response = await fetch(`/api/subcanales?canal_id=${canalId}`);
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || `Error HTTP: ${response.status}`);
-      }
-      const data = await response.json();
-      setSubcanales(Array.isArray(data) ? data : []);
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : String(err);
-      console.error('Error fetching subcanales:', err);
-      setSubcanales([]);
-      setError(`Error al cargar los subcanales: ${errorMessage}`);
-    }
-  }, []);
-
-  const fetchVehiculoIds = useCallback(async (canalId: number, subcanalId: number = 0) => {
-    if (canalId === 0) {
-      setVehiculoIds([]);
-      setFilteredTarjetas([]);
-      return;
-    }
-    try {
-      const url = subcanalId
-        ? `/api/tarjetas/filtro/monedero?canal_id=${canalId}&subcanal_id=${subcanalId}`
-        : `/api/tarjetas/filtro/monedero?canal_id=${canalId}`;
-      const response = await fetch(url);
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || `Error HTTP: ${response.status}`);
-      }
-      const data = await response.json();
-      setVehiculoIds(Array.isArray(data.vehiculo_ids) ? data.vehiculo_ids : []);
-      setFilteredTarjetas(Array.isArray(data.tarjetas) ? data.tarjetas : []);
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : String(err);
-      console.error('Error fetching vehiculo IDs:', err);
-      setVehiculoIds([]);
-      setFilteredTarjetas([]);
-      setError(`Error al cargar los IDs de vehículos: ${errorMessage}`);
-    }
-  }, []);
-
   useEffect(() => {
-    Promise.all([
-      fetchMonederos(),
-      fetchVehiculos(),
-      fetchTarjetas(),
-      fetchCanales(),
-    ]).catch((err: unknown) => {
-      const errorMessage = err instanceof Error ? err.message : String(err);
-      console.error('Error in initial fetch:', err);
-      setError(`Error al cargar los datos iniciales: ${errorMessage}`);
-    });
-  }, [fetchMonederos, fetchVehiculos, fetchTarjetas, fetchCanales]);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setMonederoData((prev) => {
-      const newData = { ...prev, [name]: value };
-      if (name === 'canal_id') {
-        newData.subcanal_id = '';
-        newData.selectedVehiculoIds = [];
-        setSubcanales([]);
-        setVehiculoIds([]);
-        setFilteredTarjetas([]);
-        if (Number(value) !== 0) {
-          fetchSubcanales(Number(value));
-          fetchVehiculoIds(Number(value));
-        }
-      }
-      if (name === 'subcanal_id') {
-        newData.selectedVehiculoIds = [];
-        setVehiculoIds([]);
-        setFilteredTarjetas([]);
-        if (newData.canal_id !== '' && Number(value) !== 0) {
-          fetchVehiculoIds(Number(newData.canal_id), Number(value));
-        }
-      }
-      return newData;
-    });
-  };
-
-  const handleCheckboxChange = (vehiculoId: number) => {
-    setMonederoData((prev) => ({
-      ...prev,
-      selectedVehiculoIds: prev.selectedVehiculoIds.includes(vehiculoId)
-        ? prev.selectedVehiculoIds.filter((id) => id !== vehiculoId)
-        : [...prev.selectedVehiculoIds, vehiculoId],
-    }));
-  };
-
-  const handleSubmitAdd = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const { galones_totales, periodo, canal_id, subcanal_id, selectedVehiculoIds } = monederoData;
-    if (!periodo) {
-      alert('Por favor seleccione un período');
-      return;
-    }
-    if (selectedVehiculoIds.length === 0) {
-      alert('Por favor seleccione al menos un vehículo');
-      return;
-    }
-    if (!canal_id) {
-      alert('Por favor seleccione un canal');
-      return;
-    }
-    if (!subcanal_id) {
-      alert('Por favor seleccione un subcanal');
-      return;
-    }
-
-    try {
-      for (const vehiculoId of selectedVehiculoIds) {
-        const selectedTarjetas = filteredTarjetas.filter((tarjeta) => tarjeta.vehiculo_id === Number(vehiculoId));
-        if (selectedTarjetas.length === 0) {
-          alert(`No se encontró una tarjeta asociada al vehículo ID ${vehiculoId}`);
-          return;
-        }
-        if (selectedTarjetas.length > 1) {
-          setError(`Advertencia: El vehículo ID ${vehiculoId} tiene ${selectedTarjetas.length} tarjetas asociadas. Se seleccionó la primera.`);
-        }
-        const selectedTarjeta = selectedTarjetas[0];
-
-        const formData = new FormData();
-        formData.append('galones_totales', galones_totales);
-        formData.append('vehiculo_id', String(vehiculoId));
-        formData.append('periodo', String(mapPeriodToNumber(periodo)));
-        formData.append('galones_consumidos', monederoData.galones_consumidos || '0');
-        formData.append('galones_disponibles', monederoData.galones_disponibles || '0');
-        formData.append('odometro', monederoData.odometro || '0');
-        formData.append('tarjeta_id', String(selectedTarjeta.id));
-
-        const response = await fetch('/api/monedero_flota', {
-          method: 'POST',
-          body: formData,
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || `Error al agregar el monedero para el vehículo ID ${vehiculoId}`);
-        }
-      }
-
-      alert('Monederos agregados exitosamente');
-      setMonederoData({
-        galones_totales: '',
-        periodo: '',
-        galones_consumidos: '',
-        galones_disponibles: '',
-        odometro: '',
-        canal_id: '',
-        subcanal_id: '',
-        selectedVehiculoIds: [],
-      });
-      setIsAddModalOpen(false);
-      fetchMonederos();
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : String(err);
-      alert('Error al agregar los monederos');
-      console.error('Error submitting add:', err);
-      setError(`Error al agregar los monederos: ${errorMessage}`);
-    }
-  };
-
-  const handleSubmitUpdate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const { galones_totales, periodo, canal_id, subcanal_id, selectedVehiculoIds } = monederoData;
-    if (!periodo) {
-      alert('Por favor seleccione un período');
-      return;
-    }
-    if (selectedVehiculoIds.length !== 1) {
-      alert('Por favor seleccione exactamente un vehículo');
-      return;
-    }
-    if (!canal_id) {
-      alert('Por favor seleccione un canal');
-      return;
-    }
-    if (!subcanal_id) {
-      alert('Por favor seleccione un subcanal');
-      return;
-    }
-    if (monederoToUpdate) {
-      try {
-        const selectedTarjetas = filteredTarjetas.filter((tarjeta) => tarjeta.vehiculo_id === selectedVehiculoIds[0]);
-        if (selectedTarjetas.length === 0) {
-          alert(`No se encontró una tarjeta asociada al vehículo ID ${selectedVehiculoIds[0]}`);
-          return;
-        }
-        const selectedTarjeta = selectedTarjetas[0];
-
-        const formData = new FormData();
-        formData.append('id', String(monederoToUpdate.id));
-        formData.append('galones_totales', galones_totales);
-        formData.append('vehiculo_id', String(selectedVehiculoIds[0]));
-        formData.append('periodo', String(mapPeriodToNumber(periodo)));
-        formData.append('galones_consumidos', monederoData.galones_consumidos || '0');
-        formData.append('galones_disponibles', monederoData.galones_disponibles || '0');
-        formData.append('odometro', monederoData.odometro || '0');
-        formData.append('tarjeta_id', String(selectedTarjeta.id));
-
-        const response = await fetch('/api/monedero_flota', {
-          method: 'PUT',
-          body: formData,
-        });
-
-        if (response.ok) {
-          alert('Monedero actualizado exitosamente');
-          setMonederoData({
-            galones_totales: '',
-            periodo: '',
-            galones_consumidos: '',
-            galones_disponibles: '',
-            odometro: '',
-            canal_id: '',
-            subcanal_id: '',
-            selectedVehiculoIds: [],
-          });
-          setIsUpdateModalOpen(false);
-          fetchMonederos();
-        } else {
-          const errorData = await response.json();
-          throw new Error(errorData.message || 'Error al actualizar el monedero');
-        }
-      } catch (err: unknown) {
-        const errorMessage = err instanceof Error ? err.message : String(err);
-        alert('Error al actualizar el monedero');
-        console.error('Error submitting update:', err);
-        setError(`Error al actualizar el monedero: ${errorMessage}`);
-      }
-    }
-  };
-
-  const handleDelete = async () => {
-    if (monederoToDelete) {
-      try {
-        const response = await fetch(`/api/monedero_flota/${monederoToDelete.id}`, {
-          method: 'DELETE',
-        });
-
-        if (response.ok) {
-          alert('Monedero eliminado exitosamente');
-          setIsDeleteModalOpen(false);
-          fetchMonederos();
-        } else {
-          const errorData = await response.json();
-          throw new Error(errorData.message || 'Error al eliminar el monedero');
-        }
-      } catch (err: unknown) {
-        const errorMessage = err instanceof Error ? err.message : String(err);
-        alert('Error al eliminar el monedero');
-        console.error('Error deleting monedero:', err);
-        setError(`Error al eliminar el monedero: ${errorMessage}`);
-      }
-    }
-  };
-
-  const handleEditClick = async (monedero: Monedero) => {
-    setMonederoToUpdate(monedero);
-    const associatedTarjeta = filteredTarjetas.find((tarjeta) => tarjeta.id === monedero.tarjeta_id) || 
-      tarjetas.find((tarjeta) => tarjeta.id === monedero.tarjeta_id);
-    const canalId = monedero.canal_id || associatedTarjeta?.canal_id || 0;
-    const subcanalId = monedero.subcanal_id || associatedTarjeta?.subcanal_id || 0;
-    const vehiculoId = monedero.vehiculo_id || associatedTarjeta?.vehiculo_id || 0;
-
-    setMonederoData({
-      galones_totales: String(monedero.galones_totales || ''),
-      periodo: String(monedero.periodo || ''),
-      galones_consumidos: String(monedero.galones_consumidos || '0'),
-      galones_disponibles: String(monedero.galones_disponibles || '0'),
-      odometro: String(monedero.odometro || '0'),
-      canal_id: String(canalId),
-      subcanal_id: String(subcanalId),
-      selectedVehiculoIds: [vehiculoId],
-    });
-
-    if (canalId) {
-      await fetchSubcanales(canalId);
-      if (subcanalId) {
-        await fetchVehiculoIds(canalId, subcanalId);
-      }
-    }
-
-    setIsUpdateModalOpen(true);
-  };
+    fetchMonederos();
+  }, [fetchMonederos]);
 
   const filteredMonederos = monederos.filter((monedero) =>
     Object.values(monedero)
@@ -476,18 +78,12 @@ export default function MonederoFlota() {
   const totalPages = Math.ceil(filteredMonederos.length / itemsPerPage);
 
   const handleNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
-    }
+    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
   };
 
   const handlePrevPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
+    if (currentPage > 1) setCurrentPage(currentPage - 1);
   };
-
-  const filteredVehiculos = vehiculos.filter((vehiculo) => vehiculoIds.includes(vehiculo.id));
 
   if (loading) {
     return (
@@ -538,12 +134,11 @@ export default function MonederoFlota() {
             )}
 
             <div className="flex justify-between mb-4 space-x-2">
-              <button
-                onClick={() => setIsAddModalOpen(true)}
-                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors duration-200"
-              >
-                Agregar Monedero
-              </button>
+              <Link href="/monedero_flota/crear">
+                <button className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors duration-200">
+                  Agregar Monedero
+                </button>
+              </Link>
             </div>
 
             <div className="mb-6">
@@ -586,32 +181,28 @@ export default function MonederoFlota() {
                       <td className="px-4 py-2">{monedero.galones_totales || 'N/A'}</td>
                       <td className="px-4 py-2">{monedero.vehiculo_nombre || 'N/A'}</td>
                       <td className="px-4 py-2">{getPeriodLabel(monedero.periodo)}</td>
-     <td className="px-4 py-2 text-center">
-  {(Number(monedero.galones_disponibles ?? 0)).toLocaleString('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}
-</td>
-<td className="px-4 py-2 text-center">
-  {(Number(monedero.galones_consumidos ?? 0)).toLocaleString('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}
-</td>
-
+                      <td className="px-4 py-2 text-center">
+                        {Number(monedero.galones_disponibles ?? 0).toLocaleString('en-US', {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                      </td>
+                      <td className="px-4 py-2 text-center">
+                        {Number(monedero.galones_consumidos ?? 0).toLocaleString('en-US', {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                      </td>
                       <td className="px-4 py-2">{monedero.tarjeta_numero || 'N/A'}</td>
-                         
                       <td className="px-4 py-2 flex space-x-2">
-                        <button
-                          onClick={() => handleEditClick(monedero)}
-                          className="bg-yellow-500 text-white px-3 py-1 rounded-md hover:bg-yellow-600 transition-colors duration-200"
-                        >
-                          Editar
-                        </button>
+                        <Link href={`/monedero_flota/editar/${monedero.id}`}>
+                          <button className="bg-yellow-500 text-white px-3 py-1 rounded-md hover:bg-yellow-600 transition-colors duration-200">
+                            Editar
+                          </button>
+                        </Link>
                         <button
                           onClick={() => {
-                            setMonederoToDelete(monedero);
-                            setIsDeleteModalOpen(true);
+                            // Aquí iría la lógica de eliminación
                           }}
                           className="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 transition-colors duration-200"
                         >
@@ -645,348 +236,6 @@ export default function MonederoFlota() {
                 Siguiente
               </button>
             </div>
-
-            {/* Modal para agregar monedero */}
-            {isAddModalOpen && (
-              <div
-                className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-md"
-                onClick={(e) => {
-                  if (e.target === e.currentTarget) {
-                    setIsAddModalOpen(false);
-                  }
-                }}
-              >
-                <div className="bg-white p-6 rounded-md shadow-xl w-1/2 max-h-[90vh] overflow-y-auto border">
-                  <div className="text-center">
-                    <h2 className="text-2xl font-bold text-gray-800 mb-4 bg-clip-text bg-gradient-to-r from-blue-700 to-indigo-700 text-transparent">
-                      Agregar Monedero
-                    </h2>
-                  </div>
-                  <form onSubmit={handleSubmitAdd}>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="mb-4">
-                        <label className="block text-sm font-semibold text-gray-700 mb-1 text-center" htmlFor="galones_totales">
-                          Límite de Litros
-                        </label>
-                        <input
-                          type="number"
-                          id="galones_totales"
-                          name="galones_totales"
-                          placeholder="Ejemplo: 100"
-                          value={monederoData.galones_totales}
-                          onChange={handleInputChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
-                          required
-                          step="0.01"
-                        />
-                      </div>
-                      <div className="mb-4">
-                        <label className="block text-sm font-semibold text-gray-700 mb-1 text-center" htmlFor="periodo">
-                          Período
-                        </label>
-                        <select
-                          id="periodo"
-                          name="periodo"
-                          value={monederoData.periodo}
-                          onChange={handleInputChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
-                          required
-                        >
-                          <option value="" disabled>
-                            Seleccione un período
-                          </option>
-                          <option value="1">Diario</option>
-                          <option value="7">Semanal</option>
-                          <option value="15">Quincenal</option>
-                          <option value="30">Mensual</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="mb-4">
-                        <label className="block text-sm font-semibold text-gray-700 mb-1 text-center" htmlFor="canal_id">
-                          Canal
-                        </label>
-                        <select
-                          id="canal_id"
-                          name="canal_id"
-                          value={monederoData.canal_id}
-                          onChange={handleInputChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
-                          required
-                        >
-                          <option value="" disabled>
-                            Seleccione un canal
-                          </option>
-                          {canales.map((canal) => (
-                            <option key={canal.id} value={canal.id}>
-                              {canal.canal}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="mb-4">
-                        <label className="block text-sm font-semibold text-gray-700 mb-1 text-center" htmlFor="subcanal_id">
-                          Subcanal
-                        </label>
-                        <select
-                          id="subcanal_id"
-                          name="subcanal_id"
-                          value={monederoData.subcanal_id}
-                          onChange={handleInputChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
-                          disabled={monederoData.canal_id === ''}
-                          required
-                        >
-                          <option value="" disabled>
-                            {subcanales.length === 0 && monederoData.canal_id !== ''
-                              ? 'No hay subcanales disponibles'
-                              : 'Seleccione un subcanal'}
-                          </option>
-                          {subcanales.map((subcanal) => (
-                            <option key={subcanal.id} value={subcanal.id}>
-                              {subcanal.subcanal}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-                    <div className="mb-4">
-                      <label className="block text-sm font-semibold text-gray-700 mb-1 text-center">
-                        Vehículos
-                      </label>
-                      <div className="max-h-48 overflow-y-auto border border-gray-300 rounded-md p-2">
-                        {filteredVehiculos.length === 0 ? (
-                          <p className="text-center text-gray-500">
-                            {monederoData.subcanal_id === '' ? 'Seleccione un subcanal para ver vehículos' : 'No hay vehículos disponibles'}
-                          </p>
-                        ) : (
-                          filteredVehiculos.map((vehiculo) => (
-                            <div key={vehiculo.id} className="flex items-center space-x-2 py-1">
-                              <input
-                                type="checkbox"
-                                id={`vehiculo_${vehiculo.id}`}
-                                checked={monederoData.selectedVehiculoIds.includes(vehiculo.id)}
-                                onChange={() => handleCheckboxChange(vehiculo.id)}
-                                className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                              />
-                              <label htmlFor={`vehiculo_${vehiculo.id}`} className="text-gray-700">
-                                {vehiculo.marca} {vehiculo.modelo} - {vehiculo.placa}
-                              </label>
-                            </div>
-                          ))
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex justify-between">
-                      <button
-                        type="button"
-                        onClick={() => setIsAddModalOpen(false)}
-                        className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors duration-200"
-                      >
-                        Cancelar
-                      </button>
-                      <button
-                        type="submit"
-                        className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors duration-200"
-                      >
-                        Agregar
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            )}
-
-            {/* Modal para actualizar monedero */}
-            {isUpdateModalOpen && monederoToUpdate && (
-              <div
-                className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-md"
-                onClick={(e) => {
-                  if (e.target === e.currentTarget) {
-                    setIsUpdateModalOpen(false);
-                  }
-                }}
-              >
-                <div className="bg-white p-6 rounded-md shadow-xl w-1/2 max-h-[90vh] overflow-y-auto border">
-                  <div className="text-center">
-                    <h2 className="text-2xl font-bold text-gray-800 mb-4 bg-clip-text bg-gradient-to-r from-blue-700 to-indigo-700 text-transparent">
-                      Actualizar Monedero
-                    </h2>
-                  </div>
-                  <form onSubmit={handleSubmitUpdate}>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="mb-4">
-                        <label className="block text-sm font-semibold text-gray-700 mb-1 text-center" htmlFor="galones_totales">
-                          Límite de Litros
-                        </label>
-                        <input
-                          type="number"
-                          id="galones_totales"
-                          name="galones_totales"
-                          placeholder="Ejemplo: 100"
-                          value={monederoData.galones_totales}
-                          onChange={handleInputChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
-                          required
-                          step="0.01"
-                        />
-                      </div>
-                      <div className="mb-4">
-                        <label className="block text-sm font-semibold text-gray-700 mb-1 text-center" htmlFor="periodo">
-                          Período
-                        </label>
-                        <select
-                          id="periodo"
-                          name="periodo"
-                          value={monederoData.periodo}
-                          onChange={handleInputChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
-                          required
-                        >
-                          <option value="" disabled>
-                            Seleccione un período
-                          </option>
-                          <option value="1">Diario</option>
-                          <option value="7">Semanal</option>
-                          <option value="15">Quincenal</option>
-                          <option value="30">Mensual</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="mb-4">
-                        <label className="block text-sm font-semibold text-gray-700 mb-1 text-center" htmlFor="canal_id">
-                          Canal
-                        </label>
-                        <select
-                          id="canal_id"
-                          name="canal_id"
-                          value={monederoData.canal_id}
-                          onChange={handleInputChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
-                          required
-                        >
-                          <option value="" disabled>
-                            Seleccione un canal
-                          </option>
-                          {canales.map((canal) => (
-                            <option key={canal.id} value={canal.id}>
-                              {canal.canal}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="mb-4">
-                        <label className="block text-sm font-semibold text-gray-700 mb-1 text-center" htmlFor="subcanal_id">
-                          Subcanal
-                        </label>
-                        <select
-                          id="subcanal_id"
-                          name="subcanal_id"
-                          value={monederoData.subcanal_id}
-                          onChange={handleInputChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
-                          disabled={monederoData.canal_id === ''}
-                          required
-                        >
-                          <option value="" disabled>
-                            {subcanales.length === 0 && monederoData.canal_id !== ''
-                              ? 'No hay subcanales disponibles'
-                              : 'Seleccione un subcanal'}
-                          </option>
-                          {subcanales.map((subcanal) => (
-                            <option key={subcanal.id} value={subcanal.id}>
-                              {subcanal.subcanal}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-                    <div className="mb-4">
-                      <label className="block text-sm font-semibold text-gray-700 mb-1 text-center">
-                        Vehículo
-                      </label>
-                      <div className="max-h-48 overflow-y-auto border border-gray-300 rounded-md p-2">
-                        {filteredVehiculos.length === 0 ? (
-                          <p className="text-center text-gray-500">
-                            {monederoData.subcanal_id === '' ? 'Seleccione un subcanal para ver vehículos' : 'No hay vehículos disponibles'}
-                          </p>
-                        ) : (
-                          filteredVehiculos.map((vehiculo) => (
-                            <div key={vehiculo.id} className="flex items-center space-x-2 py-1">
-                              <input
-                                type="checkbox"
-                                id={`vehiculo_${vehiculo.id}`}
-                                checked={monederoData.selectedVehiculoIds.includes(vehiculo.id)}
-                                onChange={() => handleCheckboxChange(vehiculo.id)}
-                                className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                                disabled={monederoData.selectedVehiculoIds.length > 0 && !monederoData.selectedVehiculoIds.includes(vehiculo.id)}
-                              />
-                              <label htmlFor={`vehiculo_${vehiculo.id}`} className="text-gray-700">
-                                {vehiculo.marca} {vehiculo.modelo} - {vehiculo.placa}
-                              </label>
-                            </div>
-                          ))
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex justify-between">
-                      <button
-                        type="button"
-                        onClick={() => setIsUpdateModalOpen(false)}
-                        className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors duration-200"
-                      >
-                        Cancelar
-                      </button>
-                      <button
-                        type="submit"
-                        className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors duration-200"
-                      >
-                        Actualizar
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            )}
-
-            {/* Modal para eliminar monedero */}
-            {isDeleteModalOpen && monederoToDelete && (
-              <div
-                className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-md"
-                onClick={(e) => {
-                  if (e.target === e.currentTarget) {
-                    setIsDeleteModalOpen(false);
-                  }
-                }}
-              >
-                <div className="bg-white p-6 rounded-md shadow-xl w-1/3 border border-gray-200">
-                  <h2 className="text-xl font-bold text-gray-800 mb-4 bg-clip-text bg-gradient-to-r from-blue-700 to-indigo-700 text-transparent">
-                    Confirmar Eliminación
-                  </h2>
-                  <p className="text-center text-gray-700 mb-4">
-                    ¿Estás seguro de que deseas eliminar el monedero para el vehículo{' '}
-                    {monederoToDelete.vehiculo_nombre || 'N/A'}?
-                  </p>
-                  <div className="flex justify-between">
-                    <button
-                      type="button"
-                      onClick={() => setIsDeleteModalOpen(false)}
-                      className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors duration-200"
-                    >
-                      Cancelar
-                    </button>
-                    <button
-                      onClick={handleDelete}
-                      className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-colors duration-200"
-                    >
-                      Eliminar
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
           </main>
         </div>
       </div>

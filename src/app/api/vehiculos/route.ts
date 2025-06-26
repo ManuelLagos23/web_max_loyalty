@@ -90,15 +90,9 @@ export async function POST(request: Request) {
   }
 }
 
-// Método GET para obtener todos los vehículos
-export async function GET(request: Request) {
+/// Método GET para obtener todos los vehículos
+export async function GET() {
   try {
-    const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '10');
-    const offset = (page - 1) * limit;
-
-
     const client = await pool.connect();
     const result = await client.query(
       `
@@ -125,9 +119,7 @@ export async function GET(request: Request) {
       FROM vehiculos v
       LEFT JOIN tipo_combustible tc ON v.tipo_combustible = tc.id
       ORDER BY v.id
-      LIMIT $1 OFFSET $2
-      `,
-      [limit, offset]
+      `
     );
     client.release();
 
