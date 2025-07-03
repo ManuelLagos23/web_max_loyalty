@@ -35,6 +35,7 @@ export async function middleware(request: NextRequest) {
     '/transacciones',
     '/transacciones_flota',
     '/turnos',
+    '/unauthorized',
     '/unidad_medida',
     '/usuarios',
     '/vehiculos',
