@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Navbar from '@/app/components/Navbar';
 
 type Vehiculo = {
   id: number;
@@ -271,6 +272,7 @@ export default function CrearMonedero() {
 
   return (
     <div className="font-sans bg-white text-gray-900 min-h-screen flex items-center justify-center">
+    <Navbar />
       <div className="bg-white p-6 rounded-md shadow-xl w-1/2 max-h-[90vh] overflow-y-auto border">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-800 mb-4 bg-clip-text bg-gradient-to-r from-blue-700 to-indigo-700 text-transparent">

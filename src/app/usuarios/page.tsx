@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import Navbar from '../components/Navbar';
 
-
 interface Usuario {
   id: number;
   nombre: string;
@@ -12,6 +11,7 @@ interface Usuario {
   contraseña: string;
   num_telefono: string;
   img?: string; // Base64 string for the image
+  admin: boolean; // Nuevo campo booleano
 }
 
 export default function Usuarios() {
@@ -26,6 +26,7 @@ export default function Usuarios() {
     foto: null as File | null,
     img: '', // Base64 string for display
     num_telefono: '',
+    admin: false, // Nuevo campo booleano
   });
   const [searchTerm, setSearchTerm] = useState('');
   const [usuarioSeleccionado, setUsuarioSeleccionado] = useState<Usuario | null>(null);
@@ -45,6 +46,7 @@ export default function Usuarios() {
         foto: null,
         img: '',
         num_telefono: '',
+        admin: false,
       });
     }
   };
@@ -60,8 +62,11 @@ export default function Usuarios() {
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    const { name, value, type, checked } = e.target;
+    setFormData({
+      ...formData,
+      [name]: type === 'checkbox' ? checked : value,
+    });
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -72,7 +77,7 @@ export default function Usuarios() {
         setFormData({
           ...formData,
           foto: file,
-          img: reader.result as string, // Vista previa de la nueva imagen
+          img: reader.result as string,
         });
       };
       reader.readAsDataURL(file);
@@ -87,7 +92,7 @@ export default function Usuarios() {
   const handleSubmitAgregar = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.nombre || !formData.email || !formData.contraseña || !formData.num_telefono || !formData.foto) {
-      alert('Por favor, complete todos los campos.');
+      alert('Por favor, complete todos los campos obligatorios.');
       return;
     }
     const formDataToSend = new FormData();
@@ -96,6 +101,7 @@ export default function Usuarios() {
     formDataToSend.append('contraseña', formData.contraseña);
     formDataToSend.append('foto', formData.foto);
     formDataToSend.append('num_telefono', formData.num_telefono);
+    formDataToSend.append('admin', formData.admin.toString());
 
     try {
       const response = await fetch('/api/usuarios', {
@@ -129,6 +135,7 @@ export default function Usuarios() {
       formDataToSend.append('foto', formData.foto);
     }
     formDataToSend.append('num_telefono', formData.num_telefono);
+    formDataToSend.append('admin', formData.admin.toString());
 
     try {
       const response = await fetch('/api/usuarios', {
@@ -187,8 +194,9 @@ export default function Usuarios() {
       email: usuario.email,
       contraseña: '',
       foto: null,
-      img: usuario.img ? `data:image/jpeg;base64,${usuario.img}` : '', // Cargar imagen Base64
+      img: usuario.img ? `data:image/jpeg;base64,${usuario.img}` : '',
       num_telefono: usuario.num_telefono,
+      admin: usuario.admin,
     });
     openPopup('editar');
   };
@@ -225,7 +233,6 @@ export default function Usuarios() {
       <div className="flex">
         <Navbar />
         <div className="flex-1 flex flex-col">
-    
           <main className="flex-1 p-8">
             <div className="space-y-6">
               <h1
@@ -268,6 +275,7 @@ export default function Usuarios() {
                   <th className="px-4 py-2 text-left text-gray-700 font-semibold">Nombre</th>
                   <th className="px-4 py-2 text-left text-gray-700 font-semibold">Email</th>
                   <th className="px-4 py-2 text-left text-gray-700 font-semibold">Teléfono</th>
+                  <th className="px-4 py-2 text-left text-gray-700 font-semibold">Admin</th>
                   <th className="px-4 py-2 text-left text-gray-700 font-semibold">Acciones</th>
                 </tr>
               </thead>
@@ -279,6 +287,7 @@ export default function Usuarios() {
                       <td className="px-4 py-2">{usuario.nombre}</td>
                       <td className="px-4 py-2">{usuario.email}</td>
                       <td className="px-4 py-2">{usuario.num_telefono}</td>
+                      <td className="px-4 py-2">{usuario.admin ? 'Sí' : 'No'}</td>
                       <td className="px-4 py-2 flex space-x-2">
                         <button
                           onClick={() => handleEditar(usuario)}
@@ -297,7 +306,7 @@ export default function Usuarios() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={5} className="px-4 py-2 text-center text-gray-500">
+                    <td colSpan={6} className="px-4 py-2 text-center text-gray-500">
                       No hay usuarios disponibles.
                     </td>
                   </tr>
@@ -374,7 +383,7 @@ export default function Usuarios() {
                         onChange={handleInputChange}
                         className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
                       />
-                      <label className="block text-center font-bold text-gray-700" htmlFor="contraseña">
+                      <label className="block text center font-bold text-gray-700" htmlFor="contraseña">
                         Contraseña
                       </label>
                       <input
@@ -404,6 +413,7 @@ export default function Usuarios() {
                       )}
                       <input
                         type="file"
+                   
                         name="foto"
                         onChange={handleFileChange}
                         className="w-full p-2 mb-4 border border-gray-300 rounded-lg text-center"
@@ -420,6 +430,18 @@ export default function Usuarios() {
                         onChange={handleInputChange}
                         className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
                       />
+                      <label className="block text-center font-bold text-gray-700" htmlFor="admin">
+                        Administrador
+                      </label>
+                      <div className="flex justify-center mb-4">
+                        <input
+                          type="checkbox"
+                          name="admin"
+                          checked={formData.admin}
+                          onChange={handleInputChange}
+                          className="h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        />
+                      </div>
                       <div className="flex justify-between">
                         <button
                           type="button"
@@ -493,6 +515,18 @@ export default function Usuarios() {
                         onChange={handleInputChange}
                         className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
                       />
+                      <label className="block text-center font-bold text-gray-700" htmlFor="admin">
+                        Administrador
+                      </label>
+                      <div className="flex justify-center mb-4">
+                        <input
+                          type="checkbox"
+                          name="admin"
+                          checked={formData.admin}
+                          onChange={handleInputChange}
+                          className="h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        />
+                      </div>
                       <div className="flex justify-between">
                         <button
                           type="button"

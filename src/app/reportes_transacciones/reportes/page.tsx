@@ -40,9 +40,18 @@ export default function Reportes() {
   const [loading, setLoading] = useState<boolean>(false);
   const pathname = usePathname();
 
+  // Helper function to format numbers with thousand separators
+  const formatNumber = (value: number | null) => {
+    if (value === null || isNaN(value)) return 'N/A';
+    return value.toLocaleString('es-HN', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  };
+
   const redondearMinutosACero = (fecha = new Date()) => {
     const nuevaFecha = new Date(fecha);
-    nuevaFecha.setMinutes(0, 0, 0); // Redondear minutos, segundos y milisegundos a cero
+    nuevaFecha.setMinutes(0, 0, 0);
     const año = nuevaFecha.getFullYear();
     const mes = String(nuevaFecha.getMonth() + 1).padStart(2, '0');
     const dia = String(nuevaFecha.getDate()).padStart(2, '0');
@@ -171,9 +180,9 @@ export default function Reportes() {
       body: tipoCombustibleData.map((item, index) => [
         index + 1,
         item.key,
-        item.totalMonto.toFixed(2),
-        item.totalDescuento.toFixed(2),
-        item.totalUnidades.toFixed(2),
+        formatNumber(item.totalMonto),
+        formatNumber(item.totalDescuento),
+        formatNumber(item.totalUnidades),
         item.transactionCount,
       ]),
       styles: { fontSize: 10 },
@@ -189,9 +198,9 @@ export default function Reportes() {
       body: canalData.map((item, index) => [
         index + 1,
         item.key,
-        item.totalMonto.toFixed(2),
-        item.totalDescuento.toFixed(2),
-        item.totalUnidades.toFixed(2),
+        formatNumber(item.totalMonto),
+        formatNumber(item.totalDescuento),
+        formatNumber(item.totalUnidades),
         item.transactionCount,
       ]),
       styles: { fontSize: 10 },
@@ -206,10 +215,10 @@ export default function Reportes() {
       body: transacciones.map((t, index) => [
         index + 1,
         t.canal ?? 'N/A',
-        t.monto.toFixed(2),
-        t.descuento.toFixed(2),
+        formatNumber(t.monto),
+        formatNumber(t.descuento),
         t.tipo_combustible,
-        t.unidades?.toFixed(2) ?? 'N/A',
+        formatNumber(t.unidades),
         t.cliente,
         new Date(t.fecha).toLocaleDateString(),
       ]),
@@ -240,9 +249,9 @@ export default function Reportes() {
     const tipoCombustibleDataRows = tipoCombustibleData.map((item, index) => ({
       '#': index + 1,
       Canal: item.key,
-      Monto: item.totalMonto.toFixed(2),
-      Descuento: item.totalDescuento.toFixed(2),
-      'Tipo Combustible': item.totalUnidades.toFixed(2),
+      Monto: formatNumber(item.totalMonto),
+      Descuento: formatNumber(item.totalDescuento),
+      'Tipo Combustible': formatNumber(item.totalUnidades),
       Unidades: item.transactionCount,
       Cliente: '',
       Fecha: '',
@@ -256,9 +265,9 @@ export default function Reportes() {
     const canalDataRows = canalData.map((item, index) => ({
       '#': index + 1,
       Canal: item.key,
-      Monto: item.totalMonto.toFixed(2),
-      Descuento: item.totalDescuento.toFixed(2),
-      'Tipo Combustible': item.totalUnidades.toFixed(2),
+      Monto: formatNumber(item.totalMonto),
+      Descuento: formatNumber(item.totalDescuento),
+      'Tipo Combustible': formatNumber(item.totalUnidades),
       Unidades: item.transactionCount,
       Cliente: '',
       Fecha: '',
@@ -272,10 +281,10 @@ export default function Reportes() {
     const transactionData = transacciones.map((t, index) => ({
       '#': index + 1,
       Canal: t.canal ?? 'N/A',
-      Monto: t.monto.toFixed(2),
-      Descuento: t.descuento.toFixed(2),
+      Monto: formatNumber(t.monto),
+      Descuento: formatNumber(t.descuento),
       'Tipo Combustible': t.tipo_combustible,
-      Unidades: t.unidades?.toFixed(2) ?? 'N/A',
+      Unidades: formatNumber(t.unidades),
       Cliente: t.cliente,
       Fecha: new Date(t.fecha).toLocaleDateString(),
     }));
@@ -295,10 +304,10 @@ export default function Reportes() {
     worksheet['!cols'] = [
       { wch: 5 },
       { wch: 20 },
-      { wch: 10 },
-      { wch: 10 },
+      { wch: 15 }, // Increased width to accommodate thousand separators
+      { wch: 15 },
       { wch: 20 },
-      { wch: 10 },
+      { wch: 15 },
       { wch: 20 },
       { wch: 15 },
     ];
@@ -313,9 +322,34 @@ export default function Reportes() {
       { s: { r: headerData.length + tipoCombustibleHeader.length + tipoCombustibleDataRows.length + canalHeader.length + canalDataRows.length, c: 0 }, e: { r: headerData.length + tipoCombustibleHeader.length + tipoCombustibleDataRows.length + canalHeader.length + canalDataRows.length, c: 7 } },
     ];
 
-    const tipoCombustibleHeaderCells = [`A${headerData.length + 2}`, `B${headerData.length + 2}`, `C${headerData.length + 2}`, `D${headerData.length + 2}`, `E${headerData.length + 2}`, `F${headerData.length + 2}`, `G${headerData.length + 2}`];
-    const canalHeaderCells = [`A${headerData.length + tipoCombustibleHeader.length + tipoCombustibleDataRows.length + 2}`, `B${headerData.length + tipoCombustibleHeader.length + tipoCombustibleDataRows.length + 2}`, `C${headerData.length + tipoCombustibleHeader.length + tipoCombustibleDataRows.length + 2}`, `D${headerData.length + tipoCombustibleHeader.length + tipoCombustibleDataRows.length + 2}`, `E${headerData.length + tipoCombustibleHeader.length + tipoCombustibleDataRows.length + 2}`, `F${headerData.length + tipoCombustibleHeader.length + tipoCombustibleDataRows.length + 2}`, `G${headerData.length + tipoCombustibleHeader.length + tipoCombustibleDataRows.length + 2}`];
-    const transactionHeaderCells = [`A${headerData.length + tipoCombustibleHeader.length + tipoCombustibleDataRows.length + canalHeader.length + canalDataRows.length + 2}`, `B${headerData.length + tipoCombustibleHeader.length + tipoCombustibleDataRows.length + canalHeader.length + canalDataRows.length + 2}`, `C${headerData.length + tipoCombustibleHeader.length + tipoCombustibleDataRows.length + canalHeader.length + canalDataRows.length + 2}`, `D${headerData.length + tipoCombustibleHeader.length + tipoCombustibleDataRows.length + canalHeader.length + canalDataRows.length + 2}`, `E${headerData.length + tipoCombustibleHeader.length + tipoCombustibleDataRows.length + canalHeader.length + canalDataRows.length + 2}`, `F${headerData.length + tipoCombustibleHeader.length + tipoCombustibleDataRows.length + canalHeader.length + canalDataRows.length + 2}`, `G${headerData.length + tipoCombustibleHeader.length + tipoCombustibleDataRows.length + canalHeader.length + canalDataRows.length + 2}`, `H${headerData.length + tipoCombustibleHeader.length + tipoCombustibleDataRows.length + canalHeader.length + canalDataRows.length + 2}`];
+    const tipoCombustibleHeaderCells = [
+      `A${headerData.length + 2}`,
+      `B${headerData.length + 2}`,
+      `C${headerData.length + 2}`,
+      `D${headerData.length + 2}`,
+      `E${headerData.length + 2}`,
+      `F${headerData.length + 2}`,
+      `G${headerData.length + 2}`,
+    ];
+    const canalHeaderCells = [
+      `A${headerData.length + tipoCombustibleHeader.length + tipoCombustibleDataRows.length + 2}`,
+      `B${headerData.length + tipoCombustibleHeader.length + tipoCombustibleDataRows.length + 2}`,
+      `C${headerData.length + tipoCombustibleHeader.length + tipoCombustibleDataRows.length + 2}`,
+      `D${headerData.length + tipoCombustibleHeader.length + tipoCombustibleDataRows.length + 2}`,
+      `E${headerData.length + tipoCombustibleHeader.length + tipoCombustibleDataRows.length + 2}`,
+      `F${headerData.length + tipoCombustibleHeader.length + tipoCombustibleDataRows.length + 2}`,
+      `G${headerData.length + tipoCombustibleHeader.length + tipoCombustibleDataRows.length + 2}`,
+    ];
+    const transactionHeaderCells = [
+      `A${headerData.length + tipoCombustibleHeader.length + tipoCombustibleDataRows.length + canalHeader.length + canalDataRows.length + 2}`,
+      `B${headerData.length + tipoCombustibleHeader.length + tipoCombustibleDataRows.length + canalHeader.length + canalDataRows.length + 2}`,
+      `C${headerData.length + tipoCombustibleHeader.length + tipoCombustibleDataRows.length + canalHeader.length + canalDataRows.length + 2}`,
+      `D${headerData.length + tipoCombustibleHeader.length + tipoCombustibleDataRows.length + canalHeader.length + canalDataRows.length + 2}`,
+      `E${headerData.length + tipoCombustibleHeader.length + tipoCombustibleDataRows.length + canalHeader.length + canalDataRows.length + 2}`,
+      `F${headerData.length + tipoCombustibleHeader.length + tipoCombustibleDataRows.length + canalHeader.length + canalDataRows.length + 2}`,
+      `G${headerData.length + tipoCombustibleHeader.length + tipoCombustibleDataRows.length + canalHeader.length + canalDataRows.length + 2}`,
+      `H${headerData.length + tipoCombustibleHeader.length + tipoCombustibleDataRows.length + canalHeader.length + canalDataRows.length + 2}`,
+    ];
 
     [...tipoCombustibleHeaderCells, ...canalHeaderCells, ...transactionHeaderCells].forEach((cell) => {
       if (worksheet[cell]) {
@@ -334,7 +368,6 @@ export default function Reportes() {
   const reportRoutes = [
     { name: 'Reporte general', href: '/reportes_transacciones/reportes' },
     { name: 'Reporte por canal', href: '/reportes_transacciones/reporte_canal' },
-  
   ];
 
   return (
@@ -478,9 +511,9 @@ export default function Reportes() {
                       <tr key={`tipo-${index}`} className="hover:bg-gray-50 transition-all duration-200">
                         <td className="px-4 py-2">{index + 1}</td>
                         <td className="px-4 py-2">{item.key}</td>
-                        <td className="px-4 py-2">{item.totalMonto.toFixed(2)}</td>
-                        <td className="px-4 py-2">{item.totalDescuento.toFixed(2)}</td>
-                        <td className="px-4 py-2">{item.totalUnidades.toFixed(2)}</td>
+                        <td className="px-4 py-2">{formatNumber(item.totalMonto)}</td>
+                        <td className="px-4 py-2">{formatNumber(item.totalDescuento)}</td>
+                        <td className="px-4 py-2">{formatNumber(item.totalUnidades)}</td>
                         <td className="px-4 py-2">{item.transactionCount}</td>
                         <td className="px-4 py-2"></td>
                         <td className="px-4 py-2"></td>
@@ -510,9 +543,9 @@ export default function Reportes() {
                       <tr key={`canal-${index}`} className="hover:bg-gray-50 transition-all duration-200">
                         <td className="px-4 py-2">{index + 1}</td>
                         <td className="px-4 py-2">{item.key}</td>
-                        <td className="px-4 py-2">{item.totalMonto.toFixed(2)}</td>
-                        <td className="px-4 py-2">{item.totalDescuento.toFixed(2)}</td>
-                        <td className="px-4 py-2">{item.totalUnidades.toFixed(2)}</td>
+                        <td className="px-4 py-2">{formatNumber(item.totalMonto)}</td>
+                        <td className="px-4 py-2">{formatNumber(item.totalDescuento)}</td>
+                        <td className="px-4 py-2">{formatNumber(item.totalUnidades)}</td>
                         <td className="px-4 py-2">{item.transactionCount}</td>
                         <td className="px-4 py-2"></td>
                         <td className="px-4 py-2"></td>
@@ -542,10 +575,10 @@ export default function Reportes() {
                       <tr key={`transaccion-${index}`} className="hover:bg-gray-50 transition-all duration-200">
                         <td className="px-4 py-2">{index + 1}</td>
                         <td className="px-4 py-2">{transaccion.canal ?? 'N/A'}</td>
-                        <td className="px-4 py-2">{transaccion.monto.toFixed(2)}</td>
-                        <td className="px-4 py-2">{transaccion.descuento.toFixed(2)}</td>
+                        <td className="px-4 py-2">{formatNumber(transaccion.monto)}</td>
+                        <td className="px-4 py-2">{formatNumber(transaccion.descuento)}</td>
                         <td className="px-4 py-2">{transaccion.tipo_combustible}</td>
-                        <td className="px-4 py-2">{transaccion.unidades?.toFixed(2) ?? 'N/A'}</td>
+                        <td className="px-4 py-2">{formatNumber(transaccion.unidades)}</td>
                         <td className="px-4 py-2">{transaccion.cliente}</td>
                         <td className="px-4 py-2">{new Date(transaccion.fecha).toLocaleDateString()}</td>
                       </tr>
